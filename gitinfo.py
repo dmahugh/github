@@ -1,4 +1,4 @@
-"""GitHub helper functions.
+"""Helper functions for retrieving data via the GitHub API.
 
 basic_auth() -> Credentials for basic authentication.
 get_repos() --> Get all public repos for an organization or user.
