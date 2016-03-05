@@ -1,8 +1,18 @@
 # github
 
-Tools for working with the GitHub API.
+What it is:
 
-This is a very early version, will be fleshed out with a bunch of things in the next few weeks.
+* A collection of helper functions that make it very easy to retrieve information via the GitHub API.
+* Optimized for ease of use.
+* A module with one external dependency - the [requests](https://pypi.python.org/pypi/requests) library.
+* Work in progress; much more to come.
+
+What it's not:
+
+* A complete wrapper for the GitHub API - only a few common use cases are currently supported.
+* A way to do automated updates and changes; all functions are read-only.
+
+## sample usage
 
 Here's an example of the code for retrieving all public repos in the Microsoft organization:
 
