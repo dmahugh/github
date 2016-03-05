@@ -4,9 +4,13 @@ Tools for working with the GitHub API.
 
 This is a very early version, will be fleshed out with a bunch of things in the next few weeks.
 
-Here's an example of listing all public repos in the Microsoft organization:
+Here's an example of the code for retrieving all public repos in the Microsoft organization:
 
 ![MicrosoftRepos](images/MicrosoftRepos.png)
+
+And here's the beginning of the output for that example:
+
+![MicrosoftReposOutput](images/MicrosoftReposOutput.png)
 
 ## authentication
 You can use this module to retrieve public information from GitHub without any authentication, but the 60 requests per hour rate limit
