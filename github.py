@@ -17,11 +17,17 @@ def basic_auth():
 def link_url(link_header, linktype='next'):
     """Extract link URL from the 'link' HTTP header returned by GitHub API.
     
-    1st parameter = the 'link' HTTP header
+    1st parameter = the 'link' HTTP header passed as a string, or a
+                    response object returned by the requests module
     linktype = the desired link type (default = 'next')
     """
+    if isinstance(link_header, str):
+        link_string = link_header
+    else:
+        link_string = link_header.headers['Link']
+    
     retval = None # default return value if linktype not found
-    links = link_header.split(',') # each of these is '<url>; rel="type"'
+    links = link_string.split(',') # each of these is '<url>; rel="type"'
     for link in links:
         if '"' + linktype + '"' in link:
             retval = link.split(';')[0].strip()[1:-1]
