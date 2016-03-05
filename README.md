@@ -1,6 +1,6 @@
 # gitinfo
 
-A collection of Python 3.x helper functions that make it easy to retrieve information via the GitHub API.
+Python 3.x helper functions to make it easy to retrieve information via the GitHub API.
 
 What it is:
 
@@ -8,18 +8,18 @@ What it is:
 * A module with one external dependency - the [requests](https://pypi.python.org/pypi/requests) library.
 * Work in progress; much more to come.
 
-What it's not:
+What it isn't:
 
-* A complete wrapper for the GitHub API - only a few common use cases are currently supported.
+* A complete wrapper for the GitHub API - many calls not supported (yet).
 * A way to do automated updates and changes; all functions are read-only.
 
 ## sample usage
 
-Here's an example of the code for retrieving all public repos in the Microsoft organization:
+Here's an example of how to retrieve all public repos in the Microsoft organization:
 
 ![MicrosoftRepos](images/MicrosoftRepos.png)
 
-And here's the beginning of the output for that example:
+And here's the output for that example:
 
 ![MicrosoftReposOutput](images/MicrosoftReposOutput.png)
 
