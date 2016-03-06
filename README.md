@@ -23,6 +23,10 @@ And here's the output for that example:
 
 ![MicrosoftReposOutput](images/MicrosoftReposOutput.png)
 
+Here's an example of how to retrieve the public repos for a specified user instead of organization, and how to specify fields to be returned:
+
+![OctocatRepos](images/OctocatRepos.png)
+
 ## authentication
 You can use this module to retrieve public information from GitHub without any authentication, but the 60 requests per hour rate limit
 will be enforced. You can bump that up to 5000 requests per hour by using authentication.
