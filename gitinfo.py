@@ -5,6 +5,7 @@ get_members() ----> Get members of an organization.
 get_repos() ------> Get all public repos for an organization or user.
 pagination() -----> Parse values from 'link' HTTP header returned by GitHub API.
 write_csv() ------> Write a list of namedtuples to a CSV file.
+verbose() --------> Set verbose mode on/off.
 verbose_output() -> Display status info in verbose mode.
 """
 import collections
@@ -12,6 +13,14 @@ import csv
 import json
 import os
 import requests
+import traceback
+
+#------------------------------------------------------------------------------
+class _verbose:
+    """Used for the verbose-mode setting. Should not be accessed directly -
+    use the verbose() function to change the setting.
+    """
+    setting = False # default value
 
 #------------------------------------------------------------------------------
 def basic_auth():
@@ -37,7 +46,7 @@ def get_members(org=None, fields=None):
         fields = ['login', 'id', 'type', 'site_admin']
 
     endpoint = 'https://api.github.com/orgs/' + org + '/members'
-    verbose_output('get_members() ->', 'API endpoint:', endpoint)
+    verbose_output('API endpoint:', endpoint)
 
     memberlist = [] # the list that will be returned
     member_tuple = collections.namedtuple('member_tuple', ' '.join(fields))
@@ -59,13 +68,13 @@ def get_members(org=None, fields=None):
         endpoint = pagelinks['nextURL']
         if not endpoint:
             break # there are no more results to process
-        verbose_output('get_members() ->', 'processing page {0} of {1}'. \
+        verbose_output('processing page {0} of {1}'. \
                        format(pagelinks['nextpage'], pagelinks['lastpage']))
 
-    verbose_output('get_members() -> ', 'pages processed:', totpages)
-    verbose_output('get_members() -> ', 'members returned:', len(memberlist))
+    verbose_output('pages processed:', totpages)
+    verbose_output('members returned:', len(memberlist))
     for header in ['X-RateLimit-Limit', 'X-RateLimit-Remaining']:
-        verbose_output('get_members() -> ', header + ':', response.headers[header])
+        verbose_output(header + ':', response.headers[header])
 
     return memberlist
 
@@ -88,7 +97,7 @@ def get_repos(org=None, user=None, fields=None):
         endpoint = 'https://api.github.com/orgs/' + org + '/repos'
     else:
         endpoint = 'https://api.github.com/users/' + user + '/repos'
-    verbose_output('get_repos() ->', 'API endpoint:', endpoint)
+    verbose_output('API endpoint:', endpoint)
 
     repolist = [] # the list that will be returned
     repo_tuple = collections.namedtuple('Repo', ' '.join(fields))
@@ -110,13 +119,13 @@ def get_repos(org=None, user=None, fields=None):
         endpoint = pagelinks['nextURL']
         if not endpoint:
             break # there are no more results to process
-        verbose_output('get_repos() ->', 'processing page {0} of {1}'. \
+        verbose_output('processing page {0} of {1}'. \
                        format(pagelinks['nextpage'], pagelinks['lastpage']))
 
-    verbose_output('get_repos() ->', 'pages processed:', totpages)
-    verbose_output('get_repos() ->', 'repos returned:', len(repolist))
+    verbose_output('pages processed:', totpages)
+    verbose_output('repos returned:', len(repolist))
     for header in ['X-RateLimit-Limit', 'X-RateLimit-Remaining']:
-        verbose_output('get_repos() ->', header + ':', response.headers[header])
+        verbose_output(header + ':', response.headers[header])
 
     return repolist
 
@@ -154,20 +163,19 @@ def pagination(link_header):
     return retval
 
 #-------------------------------------------------------------------------------
-def write_csv(listobj, filename, verbose=False):
+def write_csv(listobj, filename):
     """Write a list of namedtuples to a CSV file.
 
     1st parameter = the list
     2nd parameter = name of CSV file to be written
-    verbose = flag for whether to display status information to console
     """
     csvfile = open(filename, 'w', newline='')
     csvwriter = csv.writer(csvfile, dialect='excel')
     header_row = listobj[0]._fields
     csvwriter.writerow(header_row)
 
-    verbose_output('write_csv() ->', 'filename:', filename)
-    verbose_output('write_csv() ->', 'columns:', header_row)
+    verbose_output('filename:', filename)
+    verbose_output('columns:', header_row)
 
     for row in listobj:
         values = []
@@ -176,21 +184,44 @@ def write_csv(listobj, filename, verbose=False):
         csvwriter.writerow(values)
     csvfile.close()
 
-    verbose_output('write_csv() ->', 'total rows:', len(listobj))
+    verbose_output('total rows:', len(listobj))
+
+#-------------------------------------------------------------------------------
+def verbose(*args):
+    """Set verbose mode on/off.
+    
+    1st parameter = True for verbose mode, False to turn verbose mode off.
+    
+    Returns the current verbose mode setting as True/False. To query the
+    current setting, call verbose() with no parameters.
+    """
+    if len(args) == 1:
+        _verbose.setting = args[0]
+    return _verbose.setting
 
 #-------------------------------------------------------------------------------
 def verbose_output(*args):
     """Display status information in verbose mode.
 
     parameters = message to be displayed if verbose(True) is set.
+
     NOTE: can pass any number of parameters, which will be displayed as a single
     string delimited by spaces.
     """
+    if not _verbose.setting:
+        return # verbose mode is off, nothing to do
+
+    # convert all to strings, to allow for non-string parameters
     string_args = [str(_) for _ in args]
-    print(' '.join(string_args))
+
+    caller = traceback.format_stack()[1].split(',')[2].strip().split()[1]
+    print(caller + '() ->', ' '.join(string_args))
+
 
 # if running standalone, run a few examples/tests ------------------------------
 if __name__ == "__main__":
+
+    verbose(True) # turn on verbose mode
 
     print('-'*40 + '\n' + 'basic_auth() test' + '\n' + '-'*40) #----------------
     print(basic_auth())
