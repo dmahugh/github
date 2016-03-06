@@ -1,10 +1,11 @@
 """Helper functions for retrieving data via the GitHub API.
 
-basic_auth() --> Credentials for basic authentication.
-get_members() -> Get members of an organization.
-get_repos() ---> Get all public repos for an organization or user.
-pagination() --> Parse values from 'link' HTTP header returned by GitHub API.
-write_csv() ---> Write a list of namedtuples to a CSV file.
+basic_auth() -----> Credentials for basic authentication.
+get_members() ----> Get members of an organization.
+get_repos() ------> Get all public repos for an organization or user.
+pagination() -----> Parse values from 'link' HTTP header returned by GitHub API.
+write_csv() ------> Write a list of namedtuples to a CSV file.
+verbose_output() -> Display status info in verbose mode.
 """
 import collections
 import csv
@@ -22,13 +23,12 @@ def basic_auth():
     return (os.getenv('GitHubUser'), os.getenv('GitHubPAT'))
 
 #-------------------------------------------------------------------------------
-def get_members(org=None, fields=None, verbose=False):
+def get_members(org=None, fields=None):
     """Get members for an organization.
 
     org = organization
     fields = list of field names to be returned; names must be the same as
              returned by the GitHub API
-    verbose = flag for whether to display status information to console
 
     Returns a list of namedtuple objects, one per member.
     """
@@ -37,9 +37,7 @@ def get_members(org=None, fields=None, verbose=False):
         fields = ['login', 'id', 'type', 'site_admin']
 
     endpoint = 'https://api.github.com/orgs/' + org + '/members'
-
-    if verbose:
-        print('get_members() ->', 'API endpoint:', endpoint)
+    verbose_output('get_members() ->', 'API endpoint:', endpoint)
 
     memberlist = [] # the list that will be returned
     member_tuple = collections.namedtuple('member_tuple', ' '.join(fields))
@@ -61,27 +59,24 @@ def get_members(org=None, fields=None, verbose=False):
         endpoint = pagelinks['nextURL']
         if not endpoint:
             break # there are no more results to process
-        if verbose:
-            print('get_members() ->', 'processing page {0} of {1}'. \
-                format(pagelinks['nextpage'], pagelinks['lastpage']))
+        verbose_output('get_members() ->', 'processing page {0} of {1}'. \
+                       format(pagelinks['nextpage'], pagelinks['lastpage']))
 
-    if verbose:
-        print('get_members() -> ', 'pages processed:', totpages)
-        print('get_members() -> ', 'members returned:', len(memberlist))
-        for header in ['X-RateLimit-Limit', 'X-RateLimit-Remaining']:
-            print('get_members() -> ', header + ':', response.headers[header])
+    verbose_output('get_members() -> ', 'pages processed:', totpages)
+    verbose_output('get_members() -> ', 'members returned:', len(memberlist))
+    for header in ['X-RateLimit-Limit', 'X-RateLimit-Remaining']:
+        verbose_output('get_members() -> ', header + ':', response.headers[header])
 
     return memberlist
 
 #-------------------------------------------------------------------------------
-def get_repos(org=None, user=None, fields=None, verbose=False):
+def get_repos(org=None, user=None, fields=None):
     """Get all public repos for an organization or user.
 
     org = organization
     user = username (ignored if an organization is provided)
     fields = list of field names to be returned; names must be the same as
              returned by the GitHub API
-    verbose = flag for whether to display status information to console
 
     Returns a list of namedtuple objects, one per repo.
     """
@@ -93,9 +88,7 @@ def get_repos(org=None, user=None, fields=None, verbose=False):
         endpoint = 'https://api.github.com/orgs/' + org + '/repos'
     else:
         endpoint = 'https://api.github.com/users/' + user + '/repos'
-
-    if verbose:
-        print('get_repos() ->', 'API endpoint:', endpoint)
+    verbose_output('get_repos() ->', 'API endpoint:', endpoint)
 
     repolist = [] # the list that will be returned
     repo_tuple = collections.namedtuple('Repo', ' '.join(fields))
@@ -117,15 +110,13 @@ def get_repos(org=None, user=None, fields=None, verbose=False):
         endpoint = pagelinks['nextURL']
         if not endpoint:
             break # there are no more results to process
-        if verbose:
-            print('get_repos() ->', 'processing page {0} of {1}'. \
-                format(pagelinks['nextpage'], pagelinks['lastpage']))
+        verbose_output('get_repos() ->', 'processing page {0} of {1}'. \
+                       format(pagelinks['nextpage'], pagelinks['lastpage']))
 
-    if verbose:
-        print('get_repos() ->', 'pages processed:', totpages)
-        print('get_repos() ->', 'repos returned:', len(repolist))
-        for header in ['X-RateLimit-Limit', 'X-RateLimit-Remaining']:
-            print('get_repos() ->', header + ':', response.headers[header])
+    verbose_output('get_repos() ->', 'pages processed:', totpages)
+    verbose_output('get_repos() ->', 'repos returned:', len(repolist))
+    for header in ['X-RateLimit-Limit', 'X-RateLimit-Remaining']:
+        verbose_output('get_repos() ->', header + ':', response.headers[header])
 
     return repolist
 
@@ -175,9 +166,8 @@ def write_csv(listobj, filename, verbose=False):
     header_row = listobj[0]._fields
     csvwriter.writerow(header_row)
 
-    if verbose:
-        print('write_csv() ->', 'filename:', filename)
-        print('write_csv() ->', 'columns:', header_row)
+    verbose_output('write_csv() ->', 'filename:', filename)
+    verbose_output('write_csv() ->', 'columns:', header_row)
 
     for row in listobj:
         values = []
@@ -186,8 +176,18 @@ def write_csv(listobj, filename, verbose=False):
         csvwriter.writerow(values)
     csvfile.close()
 
-    if verbose:
-        print('write_csv() ->', 'total rows:', len(listobj))
+    verbose_output('write_csv() ->', 'total rows:', len(listobj))
+
+#-------------------------------------------------------------------------------
+def verbose_output(*args):
+    """Display status information in verbose mode.
+
+    parameters = message to be displayed if verbose(True) is set.
+    NOTE: can pass any number of parameters, which will be displayed as a single
+    string delimited by spaces.
+    """
+    string_args = [str(_) for _ in args]
+    print(' '.join(string_args))
 
 # if running standalone, run a few examples/tests ------------------------------
 if __name__ == "__main__":
@@ -203,13 +203,13 @@ if __name__ == "__main__":
 
     print('-'*40 + '\n' + 'get_repos() test' + '\n' + '-'*40) #-----------------
     OCT_REPOS = get_repos(user='octocat',
-                          fields=['full_name', 'default_branch'], verbose=True)
+                          fields=['full_name', 'default_branch'])
     for repo in OCT_REPOS:
         print(repo)
     print('Total repos: ', len(OCT_REPOS))
-    write_csv(OCT_REPOS, 'OctocatRepos.csv', verbose=True)
+    write_csv(OCT_REPOS, 'OctocatRepos.csv')
 
     print('-'*40 + '\n' + 'get_members() test' + '\n' + '-'*40) #-----------------
-    AD_MEMBERS = get_members(org='AzureADSamples', verbose=True)
+    AD_MEMBERS = get_members(org='AzureADSamples')
     print('Total members in AzureADSamples org: ', len(AD_MEMBERS))
-    write_csv(AD_MEMBERS, 'AzureADSamplesMembers.csv', verbose=True)
+    write_csv(AD_MEMBERS, 'AzureADSamplesMembers.csv')
