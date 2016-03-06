@@ -3,7 +3,7 @@
 basic_auth() --> Credentials for basic authentication.
 get_members() -> Get members of an organization.
 get_repos() ---> Get all public repos for an organization or user.
-link_url() ----> Extract link URL from HTTP header returned by GitHub API.
+pagelinks() ---> Parse values from the 'link' HTTP header returned by GitHub API.
 write_csv() ---> Write a list of namedtuples to a CSV file.
 """
 import collections
@@ -57,7 +57,7 @@ def get_members(org=None, fields=None, verbose=False):
                 member_nt = member_tuple(**values)
                 memberlist.append(member_nt)
 
-        endpoint = link_url(response, 'next') # get URL for next page of results
+        endpoint = pagelinks(response)['nextURL'] # get URL for next page of results
         if verbose:
             print('get_members() ->', 'next page:', endpoint)
         if not endpoint:
@@ -111,7 +111,7 @@ def get_repos(org=None, user=None, fields=None, verbose=False):
                 repo_nt = repo_tuple(**values)
                 repolist.append(repo_nt)
 
-        endpoint = link_url(response, 'next') # get URL for next page of results
+        endpoint = pagelinks(response)['nextURL'] # get URL for next page of results
         if verbose:
             print('get_repos() ->', 'next page:', endpoint)
         if not endpoint:
@@ -126,26 +126,37 @@ def get_repos(org=None, user=None, fields=None, verbose=False):
     return repolist
 
 #------------------------------------------------------------------------------
-def link_url(link_header, linktype='next'):
-    """Extract link URL from the 'link' HTTP header returned by GitHub API.
+def pagelinks(link_header):
+    """Parse values from the 'link' HTTP header returned by GitHub API.
 
     1st parameter = the 'link' HTTP header passed as a string, or a
                     response object returned by the requests module
-    linktype = the desired link type (default = 'next')
+
+    Returns a dictionary with entries for the URLs and page numbers parsed
+    from the link string: firstURL, firstpage, prevURL, prevpage, nextURL,
+    nextpage, lastURL, lastpage.
     """
+    # initialize the dictionary
+    retval = {'firstpage':None, 'firstURL':None, 'prevpage':None,
+              'prevURL':None, 'nextpage':None, 'nextURL':None,
+              'lastpage':None, 'lastURL':None}
+
     if isinstance(link_header, str):
         link_string = link_header
     else:
         try:
             link_string = link_header.headers['Link']
         except KeyError:
-            return None # there is no Link HTTP header, nothing to do
+            return retval # no Link HTTP header found, nothing to parse
 
-    retval = None # default return value if linktype not found
     links = link_string.split(',') # each of these is '<url>; rel="type"'
     for link in links:
-        if '"' + linktype + '"' in link:
-            retval = link.split(';')[0].strip()[1:-1]
+        linktype = link.split(';')[-1].split('=')[-1].strip()[1:-1]
+        url = link.split(';')[0].strip()[1:-1]
+        pageno = url.split('?')[-1].split('=')[-1].strip()
+        retval[linktype + 'page'] = pageno
+        retval[linktype + 'URL'] = url
+
     return retval
 
 #-------------------------------------------------------------------------------
@@ -181,17 +192,15 @@ if __name__ == "__main__":
     print('-'*40 + '\n' + 'basic_auth() test' + '\n' + '-'*40) #----------------
     print(basic_auth())
 
-    print('-'*40 + '\n' + 'link_url() test' + '\n' + '-'*40) #------------------
+    print('-'*40 + '\n' + 'pagelinks() test' + '\n' + '-'*40) #------------------
     TESTLINKS = "<https://api.github.com/organizations/6154722/" + \
         "repos?page=2>; rel=\"next\", <https://api.github.com/" + \
         "organizations/6154722/repos?page=18>; rel=\"last\""
-    for reltype in ['first', 'prev', 'next', 'last']:
-        URL = link_url(TESTLINKS, reltype)
-        print(reltype, URL)
+    print(pagelinks(TESTLINKS))
 
     print('-'*40 + '\n' + 'get_repos() test' + '\n' + '-'*40) #-----------------
     OCT_REPOS = get_repos(user='octocat',
-                         fields=['full_name', 'default_branch'], verbose=True)
+                          fields=['full_name', 'default_branch'], verbose=True)
     for repo in OCT_REPOS:
         print(repo)
     print('Total repos: ', len(OCT_REPOS))
@@ -199,7 +208,5 @@ if __name__ == "__main__":
 
     print('-'*40 + '\n' + 'get_members() test' + '\n' + '-'*40) #-----------------
     AD_MEMBERS = get_members(org='AzureADSamples', verbose=True)
-    for member in AD_MEMBERS:
-        print(member)
     print('Total members in AzureADSamples org: ', len(AD_MEMBERS))
     write_csv(AD_MEMBERS, 'AzureADSamplesMembers.csv', verbose=True)
