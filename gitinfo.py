@@ -29,7 +29,18 @@ def basic_auth():
     Returns the tuple used for API calls. GitHub username and PAT are stored
     in environment variables GitHubUser and GitHubPAT.
     """
-    return (os.getenv('GitHubUser'), os.getenv('GitHubPAT'))
+    # Note that "basic_auth() ->" is explcitly added to the verbose_output()
+    # calls below because basic_auth() is typically used inline from other
+    # functions, so it isn't the caller in the call stack.
+
+    username = os.getenv('GitHubUser')
+    verbose_output('basic_auth() ->', 'username:', username)
+
+    access_token = os.getenv('GitHubPAT')
+    verbose_output('basic_auth() ->', 'PAT found:',
+                   'YES' if access_token else 'NO')
+
+    return (username, access_token)
 
 #-------------------------------------------------------------------------------
 def get_members(org=None, fields=None):
