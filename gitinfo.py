@@ -3,8 +3,10 @@
 basic_auth() -> Credentials for basic authentication.
 get_repos() --> Get all public repos for an organization or user.
 link_url() ---> Extract link URL from HTTP header returned by GitHub API.
+write_csv() --> Write a list of namedtuples to a CSV file.
 """
 import collections
+import csv
 import json
 import os
 import requests
@@ -19,16 +21,19 @@ def basic_auth():
     return (os.getenv('GitHubUser'), os.getenv('GitHubPAT'))
 
 #-------------------------------------------------------------------------------
-def get_repos(org=None, user=None, verbose=False):
+def get_repos(org=None, user=None,
+              fields=['full_name', 'watchers', 'forks', 'open_issues'],
+              verbose=False):
     """Get all public repos for an organization or user.
 
     org = organization
     user = username (ignored if an organization is provided)
+    fields = list of field names to be returned; names must be the same as
+             returned by the GitHub API
     verbose = flag for whether to display status information to console
 
     Returns a list of namedtuple objects, one per repo.
     """
-    FIELDS = ['full_name', 'watchers', 'forks', 'open_issues', 'default_branch']
     if org:
         endpoint = 'https://api.github.com/orgs/' + org + '/repos'
     else:
@@ -38,7 +43,7 @@ def get_repos(org=None, user=None, verbose=False):
         print('get_repo() -> ', 'API endpoint:', endpoint)
 
     repolist = [] # the list that will be returned
-    Repo = collections.namedtuple('Repo', ' '.join(FIELDS)) # namedtuple factory
+    Repo = collections.namedtuple('Repo', ' '.join(fields)) # namedtuple factory
     totpages = 0
 
     while True:
@@ -47,9 +52,10 @@ def get_repos(org=None, user=None, verbose=False):
             totpages += 1
             thispage = json.loads(response.text)
             for repo_json in thispage:
-                repo_nt = Repo(repo_json['full_name'], repo_json['watchers'],
-                               repo_json['forks'], repo_json['open_issues'],
-                               repo_json['default_branch'])
+                values = {}
+                for fldname in fields:
+                    values[fldname] = repo_json[fldname]
+                repo_nt = Repo(**values)
                 repolist.append(repo_nt)
 
         endpoint = link_url(response, 'next') # get URL for next page of results
@@ -87,13 +93,40 @@ def link_url(link_header, linktype='next'):
             retval = link.split(';')[0].strip()[1:-1]
     return retval
 
-# if running standalone, run a few simple tests --------------------------------
+#-------------------------------------------------------------------------------
+def write_csv(listobj, filename, verbose=False):
+    """Write a list of namedtuples to a CSV file.
+
+    1st parameter = the list
+    2nd parameter = name of CSV file to be written
+    verbose = flag for whether to display status information to console
+    """
+    csvfile = open(filename, 'w', newline='')
+    csvwriter = csv.writer(csvfile, dialect='excel')
+    header_row = listobj[0]._fields
+    csvwriter.writerow(header_row)
+
+    if verbose:
+        print('write_csv() ->', 'filename:', filename)
+        print('write_csv() ->', 'columns:', header_row)
+
+    for row in listobj:
+        values = []
+        for fldname in header_row:
+            values.append(getattr(row, fldname))
+        csvwriter.writerow(values)
+    csvfile.close()
+
+    if verbose:
+        print('write_csv() ->', 'total rows:', len(listobj))
+
+# if running standalone, run a few examples/tests ------------------------------
 if __name__ == "__main__":
 
-    print('-'*40 + '\n' + 'basic_auth() test' + '\n' + '-'*40)
+    print('-'*40 + '\n' + 'basic_auth() test' + '\n' + '-'*40) #----------------
     print(basic_auth())
 
-    print('-'*40 + '\n' + 'link_url() test' + '\n' + '-'*40)
+    print('-'*40 + '\n' + 'link_url() test' + '\n' + '-'*40) #------------------
     TESTLINKS = "<https://api.github.com/organizations/6154722/" + \
         "repos?page=2>; rel=\"next\", <https://api.github.com/" + \
         "organizations/6154722/repos?page=18>; rel=\"last\""
@@ -101,8 +134,10 @@ if __name__ == "__main__":
         URL = link_url(TESTLINKS, reltype)
         print(reltype, URL)
 
-    print('-'*40 + '\n' + 'get_repos() test' + '\n' + '-'*40)
-    ms_repos = get_repos(user='octocat', verbose=True)
+    print('-'*40 + '\n' + 'get_repos() test' + '\n' + '-'*40) #-----------------
+    ms_repos = get_repos(user='octocat',
+                         fields=['full_name', 'default_branch'], verbose=True)
     for repo in ms_repos:
         print(repo)
     print('Total repos: ', len(ms_repos))
+    write_csv(ms_repos, 'ms_repos.csv', verbose=True)
