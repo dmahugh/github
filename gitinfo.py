@@ -57,11 +57,12 @@ def get_members(org=None, fields=None, verbose=False):
                 member_nt = member_tuple(**values)
                 memberlist.append(member_nt)
 
-        endpoint = pagelinks(response)['nextURL'] # get URL for next page of results
-        if verbose:
-            print('get_members() ->', 'next page:', endpoint)
+        pagination = pagelinks(response)
+        endpoint = pagination['nextURL']
         if not endpoint:
             break # there are no more results to process
+        if verbose:
+            print('get_members() ->', 'processing page {0} of {1}'.format(pagination['nextpage'], pagination['lastpage']))
 
     if verbose:
         print('get_members() -> ', 'pages processed:', totpages)
@@ -137,9 +138,8 @@ def pagelinks(link_header):
     nextpage, lastURL, lastpage.
     """
     # initialize the dictionary
-    retval = {'firstpage':None, 'firstURL':None, 'prevpage':None,
-              'prevURL':None, 'nextpage':None, 'nextURL':None,
-              'lastpage':None, 'lastURL':None}
+    retval = {'firstpage':0, 'firstURL':None, 'prevpage':0, 'prevURL':None,
+              'nextpage':0, 'nextURL':None, 'lastpage':0, 'lastURL':None}
 
     if isinstance(link_header, str):
         link_string = link_header
