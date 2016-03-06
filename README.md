@@ -23,7 +23,7 @@ And here's the output for that example:
 
 ![MicrosoftReposOutput](images/MicrosoftReposOutput.png)
 
-Here's an example of how to retrieve the public repos for a specified user instead of organization, and how to specify fields to be returned:
+Here's an example of how to retrieve the public repos for a specified user (Octocat) instead of organization, and how to specify fields to be returned (full_name and default_branch):
 
 ![OctocatRepos](images/OctocatRepos.png)
 
