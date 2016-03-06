@@ -22,12 +22,54 @@ def basic_auth():
     return (os.getenv('GitHubUser'), os.getenv('GitHubPAT'))
 
 #-------------------------------------------------------------------------------
-def get_members(org=None, verbose=False):
-    #/// docstring first
-    #/// /orgs/microsoft/members
-    #/// implement first without pagination, then evolve to get_repos approach
-    #/// include verbose flag from the beginning
-    pass
+def get_members(org=None, fields=None, verbose=False):
+    """Get members for an organization.
+
+    org = organization
+    fields = list of field names to be returned; names must be the same as
+             returned by the GitHub API
+    verbose = flag for whether to display status information to console
+
+    Returns a list of namedtuple objects, one per member.
+    """
+    if not fields:
+        # default fields to be returned if none specified
+        fields = ['login', 'id', 'type', 'site_admin']
+
+    endpoint = 'https://api.github.com/orgs/' + org + '/members'
+
+    if verbose:
+        print('get_members() ->', 'API endpoint:', endpoint)
+
+    memberlist = [] # the list that will be returned
+    member_tuple = collections.namedtuple('member_tuple', ' '.join(fields))
+    totpages = 0
+
+    while True:
+        response = requests.get(endpoint, auth=basic_auth())
+        if response.ok:
+            totpages += 1
+            thispage = json.loads(response.text)
+            for member_json in thispage:
+                values = {}
+                for fldname in fields:
+                    values[fldname] = member_json[fldname]
+                member_nt = member_tuple(**values)
+                memberlist.append(member_nt)
+
+        endpoint = link_url(response, 'next') # get URL for next page of results
+        if verbose:
+            print('get_members() ->', 'next page:', endpoint)
+        if not endpoint:
+            break # there are no more results to process
+
+    if verbose:
+        print('get_members() -> ', 'pages processed:', totpages)
+        print('get_members() -> ', 'members returned:', len(memberlist))
+        for header in ['X-RateLimit-Limit', 'X-RateLimit-Remaining']:
+            print('get_members() -> ', header + ':', response.headers[header])
+
+    return memberlist
 
 #-------------------------------------------------------------------------------
 def get_repos(org=None, user=None, fields=None, verbose=False):
@@ -51,7 +93,7 @@ def get_repos(org=None, user=None, fields=None, verbose=False):
         endpoint = 'https://api.github.com/users/' + user + '/repos'
 
     if verbose:
-        print('get_repo() -> ', 'API endpoint:', endpoint)
+        print('get_repos() ->', 'API endpoint:', endpoint)
 
     repolist = [] # the list that will be returned
     repo_tuple = collections.namedtuple('Repo', ' '.join(fields))
@@ -70,14 +112,16 @@ def get_repos(org=None, user=None, fields=None, verbose=False):
                 repolist.append(repo_nt)
 
         endpoint = link_url(response, 'next') # get URL for next page of results
+        if verbose:
+            print('get_repos() ->', 'next page:', endpoint)
         if not endpoint:
             break # there are no more results to process
 
     if verbose:
-        print('get_repo() -> ', 'pages processed:', totpages)
-        print('get_repo() -> ', 'repos returned:', len(repolist))
+        print('get_repos() ->', 'pages processed:', totpages)
+        print('get_repos() ->', 'repos returned:', len(repolist))
         for header in ['X-RateLimit-Limit', 'X-RateLimit-Remaining']:
-            print('get_repo() -> ', header + ':', response.headers[header])
+            print('get_repos() ->', header + ':', response.headers[header])
 
     return repolist
 
@@ -146,16 +190,16 @@ if __name__ == "__main__":
         print(reltype, URL)
 
     print('-'*40 + '\n' + 'get_repos() test' + '\n' + '-'*40) #-----------------
-    MS_REPOS = get_repos(user='octocat',
+    OCT_REPOS = get_repos(user='octocat',
                          fields=['full_name', 'default_branch'], verbose=True)
-    for repo in MS_REPOS:
+    for repo in OCT_REPOS:
         print(repo)
-    print('Total repos: ', len(MS_REPOS))
-    write_csv(MS_REPOS, 'MS_REPOS.csv', verbose=True)
+    print('Total repos: ', len(OCT_REPOS))
+    write_csv(OCT_REPOS, 'OctocatRepos.csv', verbose=True)
 
     print('-'*40 + '\n' + 'get_members() test' + '\n' + '-'*40) #-----------------
-    MS_MEMBERS = get_members(org='microsoft', verbose=True)
-    for member in MS_MEMBERS:
+    AD_MEMBERS = get_members(org='AzureADSamples', verbose=True)
+    for member in AD_MEMBERS:
         print(member)
-    print('Total members in Microsoft org: ', len(MS_MEMBERS))
-    write_csv(MS_MEMBERS, 'MS_MEMBERS.csv', verbose=True)
+    print('Total members in AzureADSamples org: ', len(AD_MEMBERS))
+    write_csv(AD_MEMBERS, 'AzureADSamplesMembers.csv', verbose=True)
