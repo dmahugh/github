@@ -1,9 +1,10 @@
 """Helper functions for retrieving data via the GitHub API.
 
-basic_auth() -> Credentials for basic authentication.
-get_repos() --> Get all public repos for an organization or user.
-link_url() ---> Extract link URL from HTTP header returned by GitHub API.
-write_csv() --> Write a list of namedtuples to a CSV file.
+basic_auth() --> Credentials for basic authentication.
+get_members() -> Get members of an organization.
+get_repos() ---> Get all public repos for an organization or user.
+link_url() ----> Extract link URL from HTTP header returned by GitHub API.
+write_csv() ---> Write a list of namedtuples to a CSV file.
 """
 import collections
 import csv
@@ -21,9 +22,15 @@ def basic_auth():
     return (os.getenv('GitHubUser'), os.getenv('GitHubPAT'))
 
 #-------------------------------------------------------------------------------
-def get_repos(org=None, user=None,
-              fields=['full_name', 'watchers', 'forks', 'open_issues'],
-              verbose=False):
+def get_members(org=None, verbose=False):
+    #/// docstring first
+    #/// /orgs/microsoft/members
+    #/// implement first without pagination, then evolve to get_repos approach
+    #/// include verbose flag from the beginning
+    pass
+
+#-------------------------------------------------------------------------------
+def get_repos(org=None, user=None, fields=None, verbose=False):
     """Get all public repos for an organization or user.
 
     org = organization
@@ -34,6 +41,10 @@ def get_repos(org=None, user=None,
 
     Returns a list of namedtuple objects, one per repo.
     """
+    if not fields:
+        # default fields to be returned if none specified
+        fields = ['full_name', 'watchers', 'forks', 'open_issues']
+
     if org:
         endpoint = 'https://api.github.com/orgs/' + org + '/repos'
     else:
@@ -43,7 +54,7 @@ def get_repos(org=None, user=None,
         print('get_repo() -> ', 'API endpoint:', endpoint)
 
     repolist = [] # the list that will be returned
-    Repo = collections.namedtuple('Repo', ' '.join(fields)) # namedtuple factory
+    repo_tuple = collections.namedtuple('Repo', ' '.join(fields))
     totpages = 0
 
     while True:
@@ -55,7 +66,7 @@ def get_repos(org=None, user=None,
                 values = {}
                 for fldname in fields:
                     values[fldname] = repo_json[fldname]
-                repo_nt = Repo(**values)
+                repo_nt = repo_tuple(**values)
                 repolist.append(repo_nt)
 
         endpoint = link_url(response, 'next') # get URL for next page of results
@@ -135,9 +146,16 @@ if __name__ == "__main__":
         print(reltype, URL)
 
     print('-'*40 + '\n' + 'get_repos() test' + '\n' + '-'*40) #-----------------
-    ms_repos = get_repos(user='octocat',
+    MS_REPOS = get_repos(user='octocat',
                          fields=['full_name', 'default_branch'], verbose=True)
-    for repo in ms_repos:
+    for repo in MS_REPOS:
         print(repo)
-    print('Total repos: ', len(ms_repos))
-    write_csv(ms_repos, 'ms_repos.csv', verbose=True)
+    print('Total repos: ', len(MS_REPOS))
+    write_csv(MS_REPOS, 'MS_REPOS.csv', verbose=True)
+
+    print('-'*40 + '\n' + 'get_members() test' + '\n' + '-'*40) #-----------------
+    MS_MEMBERS = get_members(org='microsoft', verbose=True)
+    for member in MS_MEMBERS:
+        print(member)
+    print('Total members in Microsoft org: ', len(MS_MEMBERS))
+    write_csv(MS_MEMBERS, 'MS_MEMBERS.csv', verbose=True)
