@@ -3,7 +3,7 @@
 basic_auth() --> Credentials for basic authentication.
 get_members() -> Get members of an organization.
 get_repos() ---> Get all public repos for an organization or user.
-pagelinks() ---> Parse values from the 'link' HTTP header returned by GitHub API.
+pagination() --> Parse values from 'link' HTTP header returned by GitHub API.
 write_csv() ---> Write a list of namedtuples to a CSV file.
 """
 import collections
@@ -57,12 +57,13 @@ def get_members(org=None, fields=None, verbose=False):
                 member_nt = member_tuple(**values)
                 memberlist.append(member_nt)
 
-        pagination = pagelinks(response)
-        endpoint = pagination['nextURL']
+        pagelinks = pagination(response)
+        endpoint = pagelinks['nextURL']
         if not endpoint:
             break # there are no more results to process
         if verbose:
-            print('get_members() ->', 'processing page {0} of {1}'.format(pagination['nextpage'], pagination['lastpage']))
+            print('get_members() ->', 'processing page {0} of {1}'. \
+                format(pagelinks['nextpage'], pagelinks['lastpage']))
 
     if verbose:
         print('get_members() -> ', 'pages processed:', totpages)
@@ -112,11 +113,13 @@ def get_repos(org=None, user=None, fields=None, verbose=False):
                 repo_nt = repo_tuple(**values)
                 repolist.append(repo_nt)
 
-        endpoint = pagelinks(response)['nextURL'] # get URL for next page of results
-        if verbose:
-            print('get_repos() ->', 'next page:', endpoint)
+        pagelinks = pagination(response)
+        endpoint = pagelinks['nextURL']
         if not endpoint:
             break # there are no more results to process
+        if verbose:
+            print('get_repos() ->', 'processing page {0} of {1}'. \
+                format(pagelinks['nextpage'], pagelinks['lastpage']))
 
     if verbose:
         print('get_repos() ->', 'pages processed:', totpages)
@@ -127,7 +130,7 @@ def get_repos(org=None, user=None, fields=None, verbose=False):
     return repolist
 
 #------------------------------------------------------------------------------
-def pagelinks(link_header):
+def pagination(link_header):
     """Parse values from the 'link' HTTP header returned by GitHub API.
 
     1st parameter = the 'link' HTTP header passed as a string, or a
@@ -192,11 +195,11 @@ if __name__ == "__main__":
     print('-'*40 + '\n' + 'basic_auth() test' + '\n' + '-'*40) #----------------
     print(basic_auth())
 
-    print('-'*40 + '\n' + 'pagelinks() test' + '\n' + '-'*40) #------------------
+    print('-'*40 + '\n' + 'pagination() test' + '\n' + '-'*40) #------------------
     TESTLINKS = "<https://api.github.com/organizations/6154722/" + \
         "repos?page=2>; rel=\"next\", <https://api.github.com/" + \
         "organizations/6154722/repos?page=18>; rel=\"last\""
-    print(pagelinks(TESTLINKS))
+    print(pagination(TESTLINKS))
 
     print('-'*40 + '\n' + 'get_repos() test' + '\n' + '-'*40) #-----------------
     OCT_REPOS = get_repos(user='octocat',
