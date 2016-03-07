@@ -277,7 +277,7 @@ def test_pagination():
 if __name__ == "__main__":
 
     verbose(True) # turn on verbose mode
-    #test_basic_auth()
-    #test_get_members()
+    test_basic_auth()
+    test_get_members()
     test_get_repos()
-    #test_pagination()
+    test_pagination()
