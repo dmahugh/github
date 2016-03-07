@@ -12,11 +12,12 @@ import collections
 import csv
 import json
 import os
-import requests
 import traceback
 
+import requests
+
 #------------------------------------------------------------------------------
-class _verbose:
+class _verbose: # pylint: disable=R0903
     """Used for the verbose-mode setting. Should not be accessed directly -
     use the verbose() function to change the setting.
     """
@@ -90,7 +91,7 @@ def get_members(org=None, fields=None):
     return memberlist
 
 #-------------------------------------------------------------------------------
-def get_repos(org=None, user=None, fields=None):
+def get_repos(org=None, user=None, fields=None): # pylint: disable=R0914
     """Get all public repos for an organization or user.
 
     org = organization
@@ -184,9 +185,9 @@ def pagination(link_header):
 #-------------------------------------------------------------------------------
 def verbose(*args):
     """Set verbose mode on/off.
-    
+
     1st parameter = True for verbose mode, False to turn verbose mode off.
-    
+
     Returns the current verbose mode setting as True/False. To query the
     current setting, call verbose() with no parameters.
     """
@@ -250,28 +251,28 @@ def test_basic_auth():
 def test_get_members():
     """Simple test for get_members() function. Also tests write_csv().
     """
-    AD_MEMBERS = get_members(org='AzureADSamples')
-    write_csv(AD_MEMBERS, 'AzureADSamplesMembers.csv')
+    ad_members = get_members(org='AzureADSamples')
+    write_csv(ad_members, 'AzureADSamplesMembers.csv')
 
 #-------------------------------------------------------------------------------
 def test_get_repos():
     """Simple test for get_repos() function. Also tests write_csv().
     """
-    OCT_REPOS = get_repos(user='octocat',
+    oct_repos = get_repos(user='octocat',
                           fields=['full_name', 'license'])
-    for repo in OCT_REPOS:
+    for repo in oct_repos:
         print(repo)
-    print('Total repos: ', len(OCT_REPOS))
-    write_csv(OCT_REPOS, 'OctocatRepos.csv')
+    print('Total repos: ', len(oct_repos))
+    write_csv(oct_repos, 'OctocatRepos.csv')
 
 #-------------------------------------------------------------------------------
 def test_pagination():
     """Simple test for pagination() function.
     """
-    TESTLINKS = "<https://api.github.com/organizations/6154722/" + \
+    testlinks = "<https://api.github.com/organizations/6154722/" + \
         "repos?page=2>; rel=\"next\", <https://api.github.com/" + \
         "organizations/6154722/repos?page=18>; rel=\"last\""
-    print(pagination(TESTLINKS))
+    print(pagination(testlinks))
 
 # if running standalone, run tests ---------------------------------------------
 if __name__ == "__main__":
