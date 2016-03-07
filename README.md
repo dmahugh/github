@@ -17,7 +17,12 @@ What it isn't:
 
 Here's an example of how to retrieve all public repos in the Microsoft organization:
 
-![MicrosoftRepos](images/MicrosoftRepos.png)
+```
+import gitinfo as gi
+ms_repos = gi.get_repos(org='microsoft')
+for repo in ms_repos:
+    print(repo)
+```
 
 And here's the output for that example:
 
