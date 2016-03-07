@@ -1,7 +1,6 @@
 """Helper functions for retrieving data via the GitHub API.
 
 basic_auth() -----> Credentials for basic authentication.
-get_license() ----> Get license for a repository.
 get_members() ----> Get members of an organization.
 get_repos() ------> Get all public repos for an organization or user.
 pagination() -----> Parse values from 'link' HTTP header returned by GitHub API.
@@ -42,28 +41,6 @@ def basic_auth():
                    'YES' if access_token else 'NO')
 
     return (username, access_token)
-
-#-------------------------------------------------------------------------------
-def get_license(owner=None, repo=None):
-    """Get license info for a repository.
-    
-    owner = owner of the repo (organization or user)
-    repo = repo Name
-    
-    Many GitHub API calls return the repo as 'owner/repo' in a single string,
-    so this syntax is supported as well for the repo name:
-        license = get_license(repo='owner/repo')
-    """
-    license = '*unknown*' # default if can't determine license type
-    owner_repo = (owner + '/' + repo) if owner else repo
-    endpoint = 'https://api.github.com/repos/' + owner_repo
-
-    response = requests.get(endpoint, headers={'Accept': 'application/vnd.github.drax-preview+json'})
-    #/// why isn't this returning the license info?
-    if response.ok:
-        license = json.loads(response.text)
-    
-    return license
 
 #-------------------------------------------------------------------------------
 def get_members(org=None, fields=None):
@@ -137,15 +114,23 @@ def get_repos(org=None, user=None, fields=None):
     repo_tuple = collections.namedtuple('Repo', ' '.join(fields))
     totpages = 0
 
+    # custom header to retrieve license info while License API is in preview
+    headers = {'Accept': 'application/vnd.github.drax-preview+json'}
+
     while True:
-        response = requests.get(endpoint, auth=basic_auth())
+        response = requests.get(endpoint, auth=basic_auth(), headers=headers)
         if response.ok:
             totpages += 1
             thispage = json.loads(response.text)
             for repo_json in thispage:
                 values = {}
                 for fldname in fields:
-                    values[fldname] = repo_json[fldname]
+                    # the 'license' field is handled as a special case
+                    # returns the 'name' value instead of entire license json
+                    if fldname == 'license' and repo_json[fldname]:
+                        values[fldname] = repo_json[fldname]['name']
+                    else:
+                        values[fldname] = repo_json[fldname]
                 repo_nt = repo_tuple(**values)
                 repolist.append(repo_nt)
 
@@ -262,16 +247,6 @@ def test_basic_auth():
     print(basic_auth())
 
 #-------------------------------------------------------------------------------
-def test_get_license():
-    """Simple test for get_license() function.
-    """
-    for repo in ['microsoft/Angara', 'dmahugh/crawlerino']:
-        print('repo:', repo, ', license:', get_license(repo=repo))
-    owner = 'microsoft'
-    repo = 'Angara'
-    print('owner:', owner, ', repo:', repo, ', license:', get_license(owner=owner, repo=repo))
-
-#-------------------------------------------------------------------------------
 def test_get_members():
     """Simple test for get_members() function. Also tests write_csv().
     """
@@ -283,7 +258,7 @@ def test_get_repos():
     """Simple test for get_repos() function. Also tests write_csv().
     """
     OCT_REPOS = get_repos(user='octocat',
-                          fields=['full_name', 'default_branch'])
+                          fields=['full_name', 'license'])
     for repo in OCT_REPOS:
         print(repo)
     print('Total repos: ', len(OCT_REPOS))
@@ -303,7 +278,6 @@ if __name__ == "__main__":
 
     verbose(True) # turn on verbose mode
     #test_basic_auth()
-    test_get_license()
     #test_get_members()
-    #test_get_repos()
+    test_get_repos()
     #test_pagination()
