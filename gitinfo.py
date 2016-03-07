@@ -132,7 +132,6 @@ def get_repos(org=None, user=None, fields=None): # pylint: disable=R0914
                 values = {}
                 for fldname in fields:
                     if '.' in fldname:
-                        print('>>>>', fldname, '<<<<')
                         # special case - embedded field within a JSON object
                         try:
                             values[fldname.replace('.', '_')] = \
@@ -268,7 +267,7 @@ def test_get_repos():
     """Simple test for get_repos() function. Also tests write_csv().
     """
     oct_repos = get_repos(user='octocat',
-                          fields=['full_name', 'license.name', 'default_branch'])
+                          fields=['full_name', 'license.name', 'license'])
     for repo in oct_repos:
         print(repo)
     print('Total repos: ', len(oct_repos))

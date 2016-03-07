@@ -32,6 +32,10 @@ Here's an example of how to retrieve the public repos for a specified user (Octo
 
 ![OctocatRepos](images/OctocatRepos.png)
 
+Some fields, such as ```license```, return a JSON document, which is inconvenient for saving to a CSV file. You can include a specific subfield instead of the entire JSON document by using dot notation. For example:
+
+![SubfieldExample](images/subfields.png)
+
 ## authentication
 You can use this module to retrieve public information from GitHub without any authentication, but the 60 requests per hour rate limit
 will be enforced. You can bump that up to 5000 requests per hour by using authentication.
