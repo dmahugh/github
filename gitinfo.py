@@ -17,11 +17,11 @@ import traceback
 import requests
 
 #------------------------------------------------------------------------------
-class _verbose: # pylint: disable=R0903
-    """Used for the verbose-mode setting. Should not be accessed directly -
-    use the verbose() function to change the setting.
+class _settings: # pylint: disable=R0903
+    """Used for global settings. Should not be accessed directly - e.g.,
+    use the verbose() function to change _setting.verbose.
     """
-    setting = False # default value
+    verbose = False # default = verbose mode off
 
 #------------------------------------------------------------------------------
 def basic_auth():
@@ -192,8 +192,8 @@ def verbose(*args):
     current setting, call verbose() with no parameters.
     """
     if len(args) == 1:
-        _verbose.setting = args[0]
-    return _verbose.setting
+        _settings.verbose = args[0]
+    return _settings.verbose
 
 #-------------------------------------------------------------------------------
 def verbose_output(*args):
@@ -204,7 +204,7 @@ def verbose_output(*args):
     NOTE: can pass any number of parameters, which will be displayed as a single
     string delimited by spaces.
     """
-    if not _verbose.setting:
+    if not _settings.verbose:
         return # verbose mode is off, nothing to do
 
     # convert all to strings, to allow for non-string parameters
