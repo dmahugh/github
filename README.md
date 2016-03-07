@@ -28,6 +28,21 @@ And here's the output for that example:
 
 ![MicrosoftReposOutput](images/MicrosoftReposOutput.png)
 
+You can set "verbose mode" on to get status information displayed to the console. For example:
+
+```
+import gitinfo as gi
+gi.verbose(True)
+ms_repos = gi.get_repos(org='microsoft')
+for repo in ms_repos:
+    print(repo)
+```
+
+... displays this console output:
+
+![MicrosoftReposOutputVerbose](images/MicrosoftReposOutput2.png)
+
+
 Here's an example of how to retrieve the public repos for a specified user (Octocat) instead of organization, and how to specify fields to be returned (full_name and default_branch):
 
 ![OctocatRepos](images/OctocatRepos.png)
