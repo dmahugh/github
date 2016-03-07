@@ -1,12 +1,13 @@
 """Helper functions for retrieving data via the GitHub API.
 
 basic_auth() -----> Credentials for basic authentication.
+get_license() ----> Get license for a repository.
 get_members() ----> Get members of an organization.
 get_repos() ------> Get all public repos for an organization or user.
 pagination() -----> Parse values from 'link' HTTP header returned by GitHub API.
-write_csv() ------> Write a list of namedtuples to a CSV file.
 verbose() --------> Set verbose mode on/off.
 verbose_output() -> Display status info in verbose mode.
+write_csv() ------> Write a list of namedtuples to a CSV file.
 """
 import collections
 import csv
@@ -41,6 +42,28 @@ def basic_auth():
                    'YES' if access_token else 'NO')
 
     return (username, access_token)
+
+#-------------------------------------------------------------------------------
+def get_license(owner=None, repo=None):
+    """Get license info for a repository.
+    
+    owner = owner of the repo (organization or user)
+    repo = repo Name
+    
+    Many GitHub API calls return the repo as 'owner/repo' in a single string,
+    so this syntax is supported as well for the repo name:
+        license = get_license(repo='owner/repo')
+    """
+    license = '*unknown*' # default if can't determine license type
+    owner_repo = (owner + '/' + repo) if owner else repo
+    endpoint = 'https://api.github.com/repos/' + owner_repo
+
+    response = requests.get(endpoint, headers={'Accept': 'application/vnd.github.drax-preview+json'})
+    #/// why isn't this returning the license info?
+    if response.ok:
+        license = json.loads(response.text)
+    
+    return license
 
 #-------------------------------------------------------------------------------
 def get_members(org=None, fields=None):
@@ -174,30 +197,6 @@ def pagination(link_header):
     return retval
 
 #-------------------------------------------------------------------------------
-def write_csv(listobj, filename):
-    """Write a list of namedtuples to a CSV file.
-
-    1st parameter = the list
-    2nd parameter = name of CSV file to be written
-    """
-    csvfile = open(filename, 'w', newline='')
-    csvwriter = csv.writer(csvfile, dialect='excel')
-    header_row = listobj[0]._fields
-    csvwriter.writerow(header_row)
-
-    verbose_output('filename:', filename)
-    verbose_output('columns:', header_row)
-
-    for row in listobj:
-        values = []
-        for fldname in header_row:
-            values.append(getattr(row, fldname))
-        csvwriter.writerow(values)
-    csvfile.close()
-
-    verbose_output('total rows:', len(listobj))
-
-#-------------------------------------------------------------------------------
 def verbose(*args):
     """Set verbose mode on/off.
     
@@ -228,22 +227,61 @@ def verbose_output(*args):
     caller = traceback.format_stack()[1].split(',')[2].strip().split()[1]
     print(caller + '() ->', ' '.join(string_args))
 
+#-------------------------------------------------------------------------------
+def write_csv(listobj, filename):
+    """Write a list of namedtuples to a CSV file.
 
-# if running standalone, run a few examples/tests ------------------------------
-if __name__ == "__main__":
+    1st parameter = the list
+    2nd parameter = name of CSV file to be written
+    """
+    csvfile = open(filename, 'w', newline='')
+    csvwriter = csv.writer(csvfile, dialect='excel')
+    header_row = listobj[0]._fields
+    csvwriter.writerow(header_row)
 
-    verbose(True) # turn on verbose mode
+    verbose_output('filename:', filename)
+    verbose_output('columns:', header_row)
 
-    print('-'*40 + '\n' + 'basic_auth() test' + '\n' + '-'*40) #----------------
+    for row in listobj:
+        values = []
+        for fldname in header_row:
+            values.append(getattr(row, fldname))
+        csvwriter.writerow(values)
+    csvfile.close()
+
+    verbose_output('total rows:', len(listobj))
+
+#-------------------------------------------------------------------------------
+#------------------------------------ TESTS ------------------------------------
+#-------------------------------------------------------------------------------
+
+#-------------------------------------------------------------------------------
+def test_basic_auth():
+    """Simple test for basic_auth() function.
+    """
     print(basic_auth())
 
-    print('-'*40 + '\n' + 'pagination() test' + '\n' + '-'*40) #------------------
-    TESTLINKS = "<https://api.github.com/organizations/6154722/" + \
-        "repos?page=2>; rel=\"next\", <https://api.github.com/" + \
-        "organizations/6154722/repos?page=18>; rel=\"last\""
-    print(pagination(TESTLINKS))
+#-------------------------------------------------------------------------------
+def test_get_license():
+    """Simple test for get_license() function.
+    """
+    for repo in ['microsoft/Angara', 'dmahugh/crawlerino']:
+        print('repo:', repo, ', license:', get_license(repo=repo))
+    owner = 'microsoft'
+    repo = 'Angara'
+    print('owner:', owner, ', repo:', repo, ', license:', get_license(owner=owner, repo=repo))
 
-    print('-'*40 + '\n' + 'get_repos() test' + '\n' + '-'*40) #-----------------
+#-------------------------------------------------------------------------------
+def test_get_members():
+    """Simple test for get_members() function. Also tests write_csv().
+    """
+    AD_MEMBERS = get_members(org='AzureADSamples')
+    write_csv(AD_MEMBERS, 'AzureADSamplesMembers.csv')
+
+#-------------------------------------------------------------------------------
+def test_get_repos():
+    """Simple test for get_repos() function. Also tests write_csv().
+    """
     OCT_REPOS = get_repos(user='octocat',
                           fields=['full_name', 'default_branch'])
     for repo in OCT_REPOS:
@@ -251,7 +289,21 @@ if __name__ == "__main__":
     print('Total repos: ', len(OCT_REPOS))
     write_csv(OCT_REPOS, 'OctocatRepos.csv')
 
-    print('-'*40 + '\n' + 'get_members() test' + '\n' + '-'*40) #-----------------
-    AD_MEMBERS = get_members(org='AzureADSamples')
-    print('Total members in AzureADSamples org: ', len(AD_MEMBERS))
-    write_csv(AD_MEMBERS, 'AzureADSamplesMembers.csv')
+#-------------------------------------------------------------------------------
+def test_pagination():
+    """Simple test for pagination() function.
+    """
+    TESTLINKS = "<https://api.github.com/organizations/6154722/" + \
+        "repos?page=2>; rel=\"next\", <https://api.github.com/" + \
+        "organizations/6154722/repos?page=18>; rel=\"last\""
+    print(pagination(TESTLINKS))
+
+# if running standalone, run tests ---------------------------------------------
+if __name__ == "__main__":
+
+    verbose(True) # turn on verbose mode
+    #test_basic_auth()
+    test_get_license()
+    #test_get_members()
+    #test_get_repos()
+    #test_pagination()
