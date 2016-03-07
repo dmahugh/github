@@ -97,7 +97,11 @@ def get_repos(org=None, user=None, fields=None): # pylint: disable=R0914
     org = organization
     user = username (ignored if an organization is provided)
     fields = list of field names to be returned; names must be the same as
-             returned by the GitHub API
+             returned by the GitHub API. Embedded elements are also supported:
+             for example, pass a field named 'license.name' and it will
+             return the 'name' element of the 'license' entry for each repo.
+             Namedtuples don't allow embedded periods in identifiers, so in
+             this case the column name will be 'license_name'.
 
     Returns a list of namedtuple objects, one per repo.
     """
@@ -112,7 +116,8 @@ def get_repos(org=None, user=None, fields=None): # pylint: disable=R0914
     verbose_output('API endpoint:', endpoint)
 
     repolist = [] # the list that will be returned
-    repo_tuple = collections.namedtuple('Repo', ' '.join(fields))
+    fldnames = [_.replace('.', '_') for _ in fields] # periods to underscores
+    repo_tuple = collections.namedtuple('Repo', ' '.join(fldnames))
     totpages = 0
 
     # custom header to retrieve license info while License API is in preview
@@ -126,10 +131,14 @@ def get_repos(org=None, user=None, fields=None): # pylint: disable=R0914
             for repo_json in thispage:
                 values = {}
                 for fldname in fields:
-                    # the 'license' field is handled as a special case
-                    # returns the 'name' value instead of entire license json
-                    if fldname == 'license' and repo_json[fldname]:
-                        values[fldname] = repo_json[fldname]['name']
+                    if '.' in fldname:
+                        print('>>>>', fldname, '<<<<')
+                        # special case - embedded field within a JSON object
+                        try:
+                            values[fldname.replace('.', '_')] = \
+                                repo_json[fldname.split('.')[0]][fldname.split('.')[1]]
+                        except TypeError:
+                            values[fldname.replace('.', '_')] = None
                     else:
                         values[fldname] = repo_json[fldname]
                 repo_nt = repo_tuple(**values)
@@ -259,7 +268,7 @@ def test_get_repos():
     """Simple test for get_repos() function. Also tests write_csv().
     """
     oct_repos = get_repos(user='octocat',
-                          fields=['full_name', 'license'])
+                          fields=['full_name', 'license.name', 'default_branch'])
     for repo in oct_repos:
         print(repo)
     print('Total repos: ', len(oct_repos))
@@ -278,7 +287,7 @@ def test_pagination():
 if __name__ == "__main__":
 
     verbose(True) # turn on verbose mode
-    test_basic_auth()
-    test_get_members()
+    #test_basic_auth()
+    #test_get_members()
     test_get_repos()
-    test_pagination()
+    #test_pagination()
