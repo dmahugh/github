@@ -1,9 +1,15 @@
 """Helper functions for retrieving data via the GitHub API.
 
-basic_auth() -----> Credentials for basic authentication.
+Classes:
+_settings --------> Used for global settings.
+
+Functions:
+auth() -----------> Return credentials for authentication.
+auth_reset() -----> Reset authorization settings to default values.
 get_members() ----> Get members of an organization.
 get_repos() ------> Get all public repos for an organization or user.
 pagination() -----> Parse values from 'link' HTTP header returned by GitHub API.
+user() -----------> Set GitHub user for subsequent API calls.
 verbose() --------> Set verbose mode on/off.
 verbose_output() -> Display status info in verbose mode.
 write_csv() ------> Write a list of namedtuples to a CSV file.
@@ -19,29 +25,44 @@ import requests
 #------------------------------------------------------------------------------
 class _settings: # pylint: disable=R0903
     """Used for global settings. Should not be accessed directly - e.g.,
-    use the verbose() function to change _setting.verbose.
+    use the verbose() function to change _settings.verbose, or the user()
+    function to change _settings.github_username / _settings.github_accesstoken.
     """
     verbose = False # default = verbose mode off
+    github_username = None
+    github_accesstoken = None
 
 #------------------------------------------------------------------------------
-def basic_auth():
+def auth():
     """Credentials for basic authentication.
 
-    Returns the tuple used for API calls. GitHub username and PAT are stored
-    in environment variables GitHubUser and GitHubPAT.
+    Returns the tuple used for API calls. If the GitHub username and PAT have
+    not been set, reads them from environment variables GitHubUser/GitHubPAT.
     """
-    # Note that "basic_auth() ->" is explcitly added to the verbose_output()
-    # calls below because basic_auth() is typically used inline from other
+    # Note that "auth() ->" is explcitly added to the verbose_output()
+    # calls below because auth() is typically used inline from other
     # functions, so it isn't the caller in the call stack.
 
-    username = os.getenv('GitHubUser')
-    verbose_output('basic_auth() ->', 'username:', username)
+    if not _settings.github_username:
+        auth_reset()
 
-    access_token = os.getenv('GitHubPAT')
-    verbose_output('basic_auth() ->', 'PAT found:',
-                   'YES' if access_token else 'NO')
+    username = _settings.github_username
+    access_token = _settings.github_accesstoken
+
+    verbose_output('auth() ->', 'username:', username)
+    verbose_output('auth() ->', 'PAT:', access_token[0:2] + '...' + access_token[-2:])
 
     return (username, access_token)
+
+#-------------------------------------------------------------------------------
+def auth_reset():
+    """Reset authorization settings to default values.
+    
+    Sets username and acccess_token to the values stored in the  GitHubUser and
+    GitHubPAT environment variables.
+    """
+    _settings.github_username = os.getenv('GitHubUser')
+    _settings.github_accesstoken = os.getenv('GitHubPAT')
 
 #-------------------------------------------------------------------------------
 def get_members(org=None, fields=None):
@@ -65,7 +86,7 @@ def get_members(org=None, fields=None):
     totpages = 0
 
     while True:
-        response = requests.get(endpoint, auth=basic_auth())
+        response = requests.get(endpoint, auth=auth())
         if response.ok:
             totpages += 1
             thispage = json.loads(response.text)
@@ -124,7 +145,7 @@ def get_repos(org=None, user=None, fields=None): # pylint: disable=R0914
     headers = {'Accept': 'application/vnd.github.drax-preview+json'}
 
     while True:
-        response = requests.get(endpoint, auth=basic_auth(), headers=headers)
+        response = requests.get(endpoint, auth=auth(), headers=headers)
         if response.ok:
             totpages += 1
             thispage = json.loads(response.text)
@@ -191,6 +212,23 @@ def pagination(link_header):
     return retval
 
 #-------------------------------------------------------------------------------
+def user(username=None):
+    """Set GitHub user for subsequent API calls.
+
+    username = a GitHub username stored in github_users.json in the
+               /private subfolder. If omitted, the GitHub user settings are
+               initialized from the GitHubUser/GitHubPAT environment variables.
+    """
+    if username:
+        with open('private/github_users.json', 'r') as jsonfile:
+            github_users = json.load(jsonfile)
+            _settings.github_username = username
+            _settings.github_accesstoken = github_users[username]
+    else:
+        # no username specified, so reset to defaults
+        auth_reset()
+
+#-------------------------------------------------------------------------------
 def verbose(*args):
     """Set verbose mode on/off.
 
@@ -245,15 +283,15 @@ def write_csv(listobj, filename):
 
     verbose_output('total rows:', len(listobj))
 
-#-------------------------------------------------------------------------------
+#===============================================================================
 #------------------------------------ TESTS ------------------------------------
-#-------------------------------------------------------------------------------
+#===============================================================================
 
 #-------------------------------------------------------------------------------
-def test_basic_auth():
-    """Simple test for basic_auth() function.
+def test_auth():
+    """Simple test for auth() function.
     """
-    print(basic_auth())
+    print(auth())
 
 #-------------------------------------------------------------------------------
 def test_get_members():
@@ -286,7 +324,7 @@ def test_pagination():
 if __name__ == "__main__":
 
     verbose(True) # turn on verbose mode
-    #test_basic_auth()
+    #test_auth()
     #test_get_members()
     test_get_repos()
     #test_pagination()
