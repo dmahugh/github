@@ -11,10 +11,16 @@
 ><font color="#ffffff" face="helvetica, arial"><a href=".">index</a><br><a href="file:c%3A%5Cusers%5Cdmahugh%5Cdropbox%5Cpython%5Cgitinfo%5Cgitinfo.py">c:\users\dmahugh\dropbox\python\gitinfo\gitinfo.py</a></font></td></tr></table>
     <p><tt>Helper&nbsp;functions&nbsp;for&nbsp;retrieving&nbsp;data&nbsp;via&nbsp;the&nbsp;GitHub&nbsp;API.<br>
 &nbsp;<br>
-<a href="#-basic_auth">basic_auth</a>()&nbsp;-----&gt;&nbsp;Credentials&nbsp;for&nbsp;basic&nbsp;authentication.<br>
+Classes:<br>
+_settings&nbsp;--------&gt;&nbsp;Used&nbsp;for&nbsp;global&nbsp;settings.<br>
+&nbsp;<br>
+Functions:<br>
+<a href="#-auth">auth</a>()&nbsp;-----------&gt;&nbsp;Return&nbsp;credentials&nbsp;for&nbsp;authentication.<br>
+<a href="#-auth_reset">auth_reset</a>()&nbsp;-----&gt;&nbsp;Reset&nbsp;authorization&nbsp;settings&nbsp;to&nbsp;default&nbsp;values.<br>
 <a href="#-get_members">get_members</a>()&nbsp;----&gt;&nbsp;Get&nbsp;members&nbsp;of&nbsp;an&nbsp;organization.<br>
 <a href="#-get_repos">get_repos</a>()&nbsp;------&gt;&nbsp;Get&nbsp;all&nbsp;public&nbsp;repos&nbsp;for&nbsp;an&nbsp;organization&nbsp;or&nbsp;user.<br>
 <a href="#-pagination">pagination</a>()&nbsp;-----&gt;&nbsp;Parse&nbsp;values&nbsp;from&nbsp;'link'&nbsp;HTTP&nbsp;header&nbsp;returned&nbsp;by&nbsp;GitHub&nbsp;API.<br>
+<a href="#-user">user</a>()&nbsp;-----------&gt;&nbsp;Set&nbsp;GitHub&nbsp;user&nbsp;for&nbsp;subsequent&nbsp;API&nbsp;calls.<br>
 <a href="#-verbose">verbose</a>()&nbsp;--------&gt;&nbsp;Set&nbsp;verbose&nbsp;mode&nbsp;on/off.<br>
 <a href="#-verbose_output">verbose_output</a>()&nbsp;-&gt;&nbsp;Display&nbsp;status&nbsp;info&nbsp;in&nbsp;verbose&nbsp;mode.<br>
 <a href="#-write_csv">write_csv</a>()&nbsp;------&gt;&nbsp;Write&nbsp;a&nbsp;list&nbsp;of&nbsp;namedtuples&nbsp;to&nbsp;a&nbsp;CSV&nbsp;file.</tt></p>
@@ -38,10 +44,14 @@
 <font color="#ffffff" face="helvetica, arial"><big><strong>Functions</strong></big></font></td></tr>
     
 <tr><td bgcolor="#eeaa77"><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</tt></td><td>&nbsp;</td>
-<td width="100%"><dl><dt><a name="-basic_auth"><strong>basic_auth</strong></a>()</dt><dd><tt>Credentials&nbsp;for&nbsp;basic&nbsp;authentication.<br>
+<td width="100%"><dl><dt><a name="-auth"><strong>auth</strong></a>()</dt><dd><tt>Credentials&nbsp;for&nbsp;basic&nbsp;authentication.<br>
 &nbsp;<br>
-Returns&nbsp;the&nbsp;tuple&nbsp;used&nbsp;for&nbsp;API&nbsp;calls.&nbsp;GitHub&nbsp;username&nbsp;and&nbsp;PAT&nbsp;are&nbsp;stored<br>
-in&nbsp;environment&nbsp;variables&nbsp;GitHubUser&nbsp;and&nbsp;GitHubPAT.</tt></dd></dl>
+Returns&nbsp;the&nbsp;tuple&nbsp;used&nbsp;for&nbsp;API&nbsp;calls.&nbsp;If&nbsp;the&nbsp;GitHub&nbsp;username&nbsp;and&nbsp;PAT&nbsp;have<br>
+not&nbsp;been&nbsp;set,&nbsp;reads&nbsp;them&nbsp;from&nbsp;environment&nbsp;variables&nbsp;GitHubUser/GitHubPAT.</tt></dd></dl>
+ <dl><dt><a name="-auth_reset"><strong>auth_reset</strong></a>()</dt><dd><tt>Reset&nbsp;authorization&nbsp;settings&nbsp;to&nbsp;default&nbsp;values.<br>
+&nbsp;<br>
+Sets&nbsp;username&nbsp;and&nbsp;acccess_token&nbsp;to&nbsp;the&nbsp;values&nbsp;stored&nbsp;in&nbsp;the&nbsp;&nbsp;GitHubUser&nbsp;and<br>
+GitHubPAT&nbsp;environment&nbsp;variables.</tt></dd></dl>
  <dl><dt><a name="-get_members"><strong>get_members</strong></a>(org=None, fields=None)</dt><dd><tt>Get&nbsp;members&nbsp;for&nbsp;an&nbsp;organization.<br>
 &nbsp;<br>
 org&nbsp;=&nbsp;organization<br>
@@ -69,10 +79,15 @@ Returns&nbsp;a&nbsp;list&nbsp;of&nbsp;namedtuple&nbsp;objects,&nbsp;one&nbsp;per
 Returns&nbsp;a&nbsp;dictionary&nbsp;with&nbsp;entries&nbsp;for&nbsp;the&nbsp;URLs&nbsp;and&nbsp;page&nbsp;numbers&nbsp;parsed<br>
 from&nbsp;the&nbsp;link&nbsp;string:&nbsp;firstURL,&nbsp;firstpage,&nbsp;prevURL,&nbsp;prevpage,&nbsp;nextURL,<br>
 nextpage,&nbsp;lastURL,&nbsp;lastpage.</tt></dd></dl>
- <dl><dt><a name="-test_basic_auth"><strong>test_basic_auth</strong></a>()</dt><dd><tt>Simple&nbsp;test&nbsp;for&nbsp;<a href="#-basic_auth">basic_auth</a>()&nbsp;function.</tt></dd></dl>
+ <dl><dt><a name="-test_auth"><strong>test_auth</strong></a>()</dt><dd><tt>Simple&nbsp;test&nbsp;for&nbsp;<a href="#-auth">auth</a>()&nbsp;function.</tt></dd></dl>
  <dl><dt><a name="-test_get_members"><strong>test_get_members</strong></a>()</dt><dd><tt>Simple&nbsp;test&nbsp;for&nbsp;<a href="#-get_members">get_members</a>()&nbsp;function.&nbsp;Also&nbsp;tests&nbsp;<a href="#-write_csv">write_csv</a>().</tt></dd></dl>
  <dl><dt><a name="-test_get_repos"><strong>test_get_repos</strong></a>()</dt><dd><tt>Simple&nbsp;test&nbsp;for&nbsp;<a href="#-get_repos">get_repos</a>()&nbsp;function.&nbsp;Also&nbsp;tests&nbsp;<a href="#-write_csv">write_csv</a>().</tt></dd></dl>
  <dl><dt><a name="-test_pagination"><strong>test_pagination</strong></a>()</dt><dd><tt>Simple&nbsp;test&nbsp;for&nbsp;<a href="#-pagination">pagination</a>()&nbsp;function.</tt></dd></dl>
+ <dl><dt><a name="-user"><strong>user</strong></a>(username=None)</dt><dd><tt>Set&nbsp;GitHub&nbsp;user&nbsp;for&nbsp;subsequent&nbsp;API&nbsp;calls.<br>
+&nbsp;<br>
+username&nbsp;=&nbsp;a&nbsp;GitHub&nbsp;username&nbsp;stored&nbsp;in&nbsp;github_users.json&nbsp;in&nbsp;the<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;/private&nbsp;subfolder.&nbsp;If&nbsp;omitted,&nbsp;the&nbsp;GitHub&nbsp;user&nbsp;settings&nbsp;are<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;initialized&nbsp;from&nbsp;the&nbsp;GitHubUser/GitHubPAT&nbsp;environment&nbsp;variables.</tt></dd></dl>
  <dl><dt><a name="-verbose"><strong>verbose</strong></a>(*args)</dt><dd><tt>Set&nbsp;verbose&nbsp;mode&nbsp;on/off.<br>
 &nbsp;<br>
 1st&nbsp;parameter&nbsp;=&nbsp;True&nbsp;for&nbsp;verbose&nbsp;mode,&nbsp;False&nbsp;to&nbsp;turn&nbsp;verbose&nbsp;mode&nbsp;off.<br>
