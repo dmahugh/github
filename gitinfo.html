@@ -1,0 +1,93 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html><head><title>Python: module gitinfo</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+</head><body bgcolor="#f0f0f8">
+
+<table width="100%" cellspacing=0 cellpadding=2 border=0 summary="heading">
+<tr bgcolor="#7799ee">
+<td valign=bottom>&nbsp;<br>
+<font color="#ffffff" face="helvetica, arial">&nbsp;<br><big><big><strong>gitinfo</strong></big></big></font></td
+><td align=right valign=bottom
+><font color="#ffffff" face="helvetica, arial"><a href=".">index</a><br><a href="file:c%3A%5Cusers%5Cdmahugh%5Cdropbox%5Cpython%5Cgitinfo%5Cgitinfo.py">c:\users\dmahugh\dropbox\python\gitinfo\gitinfo.py</a></font></td></tr></table>
+    <p><tt>Helper&nbsp;functions&nbsp;for&nbsp;retrieving&nbsp;data&nbsp;via&nbsp;the&nbsp;GitHub&nbsp;API.<br>
+&nbsp;<br>
+<a href="#-basic_auth">basic_auth</a>()&nbsp;-----&gt;&nbsp;Credentials&nbsp;for&nbsp;basic&nbsp;authentication.<br>
+<a href="#-get_members">get_members</a>()&nbsp;----&gt;&nbsp;Get&nbsp;members&nbsp;of&nbsp;an&nbsp;organization.<br>
+<a href="#-get_repos">get_repos</a>()&nbsp;------&gt;&nbsp;Get&nbsp;all&nbsp;public&nbsp;repos&nbsp;for&nbsp;an&nbsp;organization&nbsp;or&nbsp;user.<br>
+<a href="#-pagination">pagination</a>()&nbsp;-----&gt;&nbsp;Parse&nbsp;values&nbsp;from&nbsp;'link'&nbsp;HTTP&nbsp;header&nbsp;returned&nbsp;by&nbsp;GitHub&nbsp;API.<br>
+<a href="#-verbose">verbose</a>()&nbsp;--------&gt;&nbsp;Set&nbsp;verbose&nbsp;mode&nbsp;on/off.<br>
+<a href="#-verbose_output">verbose_output</a>()&nbsp;-&gt;&nbsp;Display&nbsp;status&nbsp;info&nbsp;in&nbsp;verbose&nbsp;mode.<br>
+<a href="#-write_csv">write_csv</a>()&nbsp;------&gt;&nbsp;Write&nbsp;a&nbsp;list&nbsp;of&nbsp;namedtuples&nbsp;to&nbsp;a&nbsp;CSV&nbsp;file.</tt></p>
+<p>
+<table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
+<tr bgcolor="#aa55cc">
+<td colspan=3 valign=bottom>&nbsp;<br>
+<font color="#ffffff" face="helvetica, arial"><big><strong>Modules</strong></big></font></td></tr>
+    
+<tr><td bgcolor="#aa55cc"><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</tt></td><td>&nbsp;</td>
+<td width="100%"><table width="100%" summary="list"><tr><td width="25%" valign=top><a href="collections.html">collections</a><br>
+<a href="csv.html">csv</a><br>
+</td><td width="25%" valign=top><a href="json.html">json</a><br>
+<a href="os.html">os</a><br>
+</td><td width="25%" valign=top><a href="requests.html">requests</a><br>
+<a href="traceback.html">traceback</a><br>
+</td><td width="25%" valign=top></td></tr></table></td></tr></table><p>
+<table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
+<tr bgcolor="#eeaa77">
+<td colspan=3 valign=bottom>&nbsp;<br>
+<font color="#ffffff" face="helvetica, arial"><big><strong>Functions</strong></big></font></td></tr>
+    
+<tr><td bgcolor="#eeaa77"><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</tt></td><td>&nbsp;</td>
+<td width="100%"><dl><dt><a name="-basic_auth"><strong>basic_auth</strong></a>()</dt><dd><tt>Credentials&nbsp;for&nbsp;basic&nbsp;authentication.<br>
+&nbsp;<br>
+Returns&nbsp;the&nbsp;tuple&nbsp;used&nbsp;for&nbsp;API&nbsp;calls.&nbsp;GitHub&nbsp;username&nbsp;and&nbsp;PAT&nbsp;are&nbsp;stored<br>
+in&nbsp;environment&nbsp;variables&nbsp;GitHubUser&nbsp;and&nbsp;GitHubPAT.</tt></dd></dl>
+ <dl><dt><a name="-get_members"><strong>get_members</strong></a>(org=None, fields=None)</dt><dd><tt>Get&nbsp;members&nbsp;for&nbsp;an&nbsp;organization.<br>
+&nbsp;<br>
+org&nbsp;=&nbsp;organization<br>
+fields&nbsp;=&nbsp;list&nbsp;of&nbsp;field&nbsp;names&nbsp;to&nbsp;be&nbsp;returned;&nbsp;names&nbsp;must&nbsp;be&nbsp;the&nbsp;same&nbsp;as<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;returned&nbsp;by&nbsp;the&nbsp;GitHub&nbsp;API<br>
+&nbsp;<br>
+Returns&nbsp;a&nbsp;list&nbsp;of&nbsp;namedtuple&nbsp;objects,&nbsp;one&nbsp;per&nbsp;member.</tt></dd></dl>
+ <dl><dt><a name="-get_repos"><strong>get_repos</strong></a>(org=None, user=None, fields=None)</dt><dd><tt>Get&nbsp;all&nbsp;public&nbsp;repos&nbsp;for&nbsp;an&nbsp;organization&nbsp;or&nbsp;user.<br>
+&nbsp;<br>
+org&nbsp;=&nbsp;organization<br>
+user&nbsp;=&nbsp;username&nbsp;(ignored&nbsp;if&nbsp;an&nbsp;organization&nbsp;is&nbsp;provided)<br>
+fields&nbsp;=&nbsp;list&nbsp;of&nbsp;field&nbsp;names&nbsp;to&nbsp;be&nbsp;returned;&nbsp;names&nbsp;must&nbsp;be&nbsp;the&nbsp;same&nbsp;as<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;returned&nbsp;by&nbsp;the&nbsp;GitHub&nbsp;API.&nbsp;Embedded&nbsp;elements&nbsp;are&nbsp;also&nbsp;supported:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;for&nbsp;example,&nbsp;pass&nbsp;a&nbsp;field&nbsp;named&nbsp;'license.name'&nbsp;and&nbsp;it&nbsp;will<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return&nbsp;the&nbsp;'name'&nbsp;element&nbsp;of&nbsp;the&nbsp;'license'&nbsp;entry&nbsp;for&nbsp;each&nbsp;repo.<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Namedtuples&nbsp;don't&nbsp;allow&nbsp;embedded&nbsp;periods&nbsp;in&nbsp;identifiers,&nbsp;so&nbsp;in<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;this&nbsp;case&nbsp;the&nbsp;column&nbsp;name&nbsp;will&nbsp;be&nbsp;'license_name'.<br>
+&nbsp;<br>
+Returns&nbsp;a&nbsp;list&nbsp;of&nbsp;namedtuple&nbsp;objects,&nbsp;one&nbsp;per&nbsp;repo.</tt></dd></dl>
+ <dl><dt><a name="-pagination"><strong>pagination</strong></a>(link_header)</dt><dd><tt>Parse&nbsp;values&nbsp;from&nbsp;the&nbsp;'link'&nbsp;HTTP&nbsp;header&nbsp;returned&nbsp;by&nbsp;GitHub&nbsp;API.<br>
+&nbsp;<br>
+1st&nbsp;parameter&nbsp;=&nbsp;the&nbsp;'link'&nbsp;HTTP&nbsp;header&nbsp;passed&nbsp;as&nbsp;a&nbsp;string,&nbsp;or&nbsp;a<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;response&nbsp;object&nbsp;returned&nbsp;by&nbsp;the&nbsp;requests&nbsp;module<br>
+&nbsp;<br>
+Returns&nbsp;a&nbsp;dictionary&nbsp;with&nbsp;entries&nbsp;for&nbsp;the&nbsp;URLs&nbsp;and&nbsp;page&nbsp;numbers&nbsp;parsed<br>
+from&nbsp;the&nbsp;link&nbsp;string:&nbsp;firstURL,&nbsp;firstpage,&nbsp;prevURL,&nbsp;prevpage,&nbsp;nextURL,<br>
+nextpage,&nbsp;lastURL,&nbsp;lastpage.</tt></dd></dl>
+ <dl><dt><a name="-test_basic_auth"><strong>test_basic_auth</strong></a>()</dt><dd><tt>Simple&nbsp;test&nbsp;for&nbsp;<a href="#-basic_auth">basic_auth</a>()&nbsp;function.</tt></dd></dl>
+ <dl><dt><a name="-test_get_members"><strong>test_get_members</strong></a>()</dt><dd><tt>Simple&nbsp;test&nbsp;for&nbsp;<a href="#-get_members">get_members</a>()&nbsp;function.&nbsp;Also&nbsp;tests&nbsp;<a href="#-write_csv">write_csv</a>().</tt></dd></dl>
+ <dl><dt><a name="-test_get_repos"><strong>test_get_repos</strong></a>()</dt><dd><tt>Simple&nbsp;test&nbsp;for&nbsp;<a href="#-get_repos">get_repos</a>()&nbsp;function.&nbsp;Also&nbsp;tests&nbsp;<a href="#-write_csv">write_csv</a>().</tt></dd></dl>
+ <dl><dt><a name="-test_pagination"><strong>test_pagination</strong></a>()</dt><dd><tt>Simple&nbsp;test&nbsp;for&nbsp;<a href="#-pagination">pagination</a>()&nbsp;function.</tt></dd></dl>
+ <dl><dt><a name="-verbose"><strong>verbose</strong></a>(*args)</dt><dd><tt>Set&nbsp;verbose&nbsp;mode&nbsp;on/off.<br>
+&nbsp;<br>
+1st&nbsp;parameter&nbsp;=&nbsp;True&nbsp;for&nbsp;verbose&nbsp;mode,&nbsp;False&nbsp;to&nbsp;turn&nbsp;verbose&nbsp;mode&nbsp;off.<br>
+&nbsp;<br>
+Returns&nbsp;the&nbsp;current&nbsp;verbose&nbsp;mode&nbsp;setting&nbsp;as&nbsp;True/False.&nbsp;To&nbsp;query&nbsp;the<br>
+current&nbsp;setting,&nbsp;call&nbsp;<a href="#-verbose">verbose</a>()&nbsp;with&nbsp;no&nbsp;parameters.</tt></dd></dl>
+ <dl><dt><a name="-verbose_output"><strong>verbose_output</strong></a>(*args)</dt><dd><tt>Display&nbsp;status&nbsp;information&nbsp;in&nbsp;verbose&nbsp;mode.<br>
+&nbsp;<br>
+parameters&nbsp;=&nbsp;message&nbsp;to&nbsp;be&nbsp;displayed&nbsp;if&nbsp;<a href="#-verbose">verbose</a>(True)&nbsp;is&nbsp;set.<br>
+&nbsp;<br>
+NOTE:&nbsp;can&nbsp;pass&nbsp;any&nbsp;number&nbsp;of&nbsp;parameters,&nbsp;which&nbsp;will&nbsp;be&nbsp;displayed&nbsp;as&nbsp;a&nbsp;single<br>
+string&nbsp;delimited&nbsp;by&nbsp;spaces.</tt></dd></dl>
+ <dl><dt><a name="-write_csv"><strong>write_csv</strong></a>(listobj, filename)</dt><dd><tt>Write&nbsp;a&nbsp;list&nbsp;of&nbsp;namedtuples&nbsp;to&nbsp;a&nbsp;CSV&nbsp;file.<br>
+&nbsp;<br>
+1st&nbsp;parameter&nbsp;=&nbsp;the&nbsp;list<br>
+2nd&nbsp;parameter&nbsp;=&nbsp;name&nbsp;of&nbsp;CSV&nbsp;file&nbsp;to&nbsp;be&nbsp;written</tt></dd></dl>
+</td></tr></table>
+</body></html>
