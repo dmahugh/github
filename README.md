@@ -55,7 +55,25 @@ Some fields, such as ```license```, return a JSON document, which is inconvenien
 You can use this module to retrieve public information from GitHub without any authentication, but the 60 requests per hour rate limit
 will be enforced. You can bump that up to 5000 requests per hour by using authentication.
 
-Only basic authentication via username and PAT (Personal Access Token) is supported at this time. To use it, put your GitHub username and a PAT in environment variables named *GitHubUser* and *GitHubPAT*, respectively.
+Only basic authentication via username and PAT (Personal Access Token) is supported at this time. To set up a default user for API calls, put the GitHub username and a PAT in environment variables named *GitHubUser* and *GitHubPAT*, respectively.
+
+You can also store GitHub usernames and PATs in a ```github_users.json``` file in the ```private``` subfolder. For example:
+
+```
+{
+    "user1": "Personal Access Token for user1",
+    "user2": "Personal Access Token for user2"
+}
+```
+Then you can use the user() function to set the username for subsquent operations. For example:
+
+```
+import gitingo as gi
+gi.user('user1')
+# make GitHub API calls as user1
+gi.user('user2')
+# make GitHub API calls as user2
+```
 
 ## saving results
 The ```get_members()``` and ```get_repos()``` functions return a list of _namedtuple_ objects. The ```write_csv()``` function can be used to write these lists to a CSV file:
