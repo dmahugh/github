@@ -5,7 +5,8 @@ auth_reset() -----> Reset authentication settings to default values.
 auth_user() ------> Set GitHub user for subsequent API calls.
 
 memberfields() ---> Get field values for a member/user.
-members() --------> Get members of an organization.
+members() --------> Get members of one or more organizations.
+membersget() -----> Get member info from specified API endpoint.
 
 pagination() -----> Parse values from 'link' HTTP header returned by GitHub API.
 
@@ -103,7 +104,7 @@ def memberfields(member_json, fields):
 
 #-------------------------------------------------------------------------------
 def members(org=None, fields=None):
-    """Get members for an organization.
+    """Get members for one or more organizations.
 
     org = organization
     fields = list of field names to be returned; names must be the same as
@@ -115,11 +116,30 @@ def members(org=None, fields=None):
         # default fields to be returned if none specified
         fields = ['login', 'id', 'type', 'site_admin']
 
-    endpoint = 'https://api.github.com/orgs/' + org + '/members'
-    verbose_output('API endpoint:', endpoint)
-
     memberlist = [] # the list that will be returned
+
+    if isinstance(org, str):
+        # one org ID passed as a string
+        endpoint = 'https://api.github.com/orgs/' + org + '/members'
+        memberlist.extend(membersget(endpoint, fields))
+    else:
+        # list of org IDs passed
+        for orgid in org:
+            endpoint = 'https://api.github.com/orgs/' + orgid + '/members'
+            memberlist.extend(membersget(endpoint, fields))
+
+    return memberlist
+
+#------------------------------------------------------------------------------
+def membersget(endpoint, fields):
+    """Get member info from specified API endpoint.
+
+    1st parameter = GitHub API endpoint2nd parameter = list of fields to be returned
+
+    Returns a list of namedtuples containing the specified fields.
+    """
     totpages = 0
+    retval = [] # the list to be returned
 
     while True:
         response = requests.get(endpoint, auth=auth())
@@ -127,7 +147,7 @@ def members(org=None, fields=None):
             totpages += 1
             thispage = json.loads(response.text)
             for member_json in thispage:
-                memberlist.append(memberfields(member_json, fields))
+                retval.append(memberfields(member_json, fields))
         pagelinks = pagination(response)
         endpoint = pagelinks['nextURL']
         if not endpoint:
@@ -136,11 +156,11 @@ def members(org=None, fields=None):
                        format(pagelinks['nextpage'], pagelinks['lastpage']))
 
     verbose_output('pages processed:', totpages)
-    verbose_output('members returned:', len(memberlist))
+    verbose_output('members returned:', len(retval))
     for header in ['X-RateLimit-Limit', 'X-RateLimit-Remaining']:
         verbose_output(header + ':', response.headers[header])
 
-    return memberlist
+    return retval
 
 #------------------------------------------------------------------------------
 def pagination(link_header):
@@ -353,8 +373,10 @@ def test_auth():
 def test_members():
     """Simple test for members() function. Also tests write_csv().
     """
-    ad_members = members(org='AzureADSamples')
-    write_csv(ad_members, 'AzureADSamplesMembers.csv')
+    test_results = members(org=['bitstadium', 'manifoldjs'])
+    for member in test_results:
+        print(member)
+    print('Total members:', len(test_results))
 
 #-------------------------------------------------------------------------------
 def test_repos():
@@ -381,6 +403,6 @@ if __name__ == "__main__":
 
     verbose(True) # turn on verbose mode
     #test_auth()
-    #test_members()
-    test_repos()
+    test_members()
+    #test_repos()
     #test_pagination()
