@@ -6,10 +6,11 @@ _settings --------> Used for global settings.
 Functions:
 auth() -----------> Return credentials for authentication.
 auth_reset() -----> Reset authorization settings to default values.
-get_members() ----> Get members of an organization.
-get_repos() ------> Get all public repos for an organization or user.
+memberfields() ---> Get field values for a member/user.
+members() --------> Get members of an organization.
 pagination() -----> Parse values from 'link' HTTP header returned by GitHub API.
 repofields() -----> Get field values for a repo.
+repos() ----------> Get all public repos for an organization or user.
 user() -----------> Set GitHub user for subsequent API calls.
 verbose() --------> Set verbose mode on/off.
 verbose_output() -> Display status info in verbose mode.
@@ -66,7 +67,22 @@ def auth_reset():
     _settings.github_accesstoken = os.getenv('GitHubPAT')
 
 #-------------------------------------------------------------------------------
-def get_members(org=None, fields=None):
+def memberfields(member_json, fields):
+    """Get field values for a member/user.
+
+    1st parameter = member's json representation as returned by GitHub API
+    2nd parameter = list of names of desired fields
+
+    Returns a namedtuple containing the desired fields and their values.
+    """
+    member_tuple = collections.namedtuple('member_tuple', ' '.join(fields))
+    values = {}
+    for fldname in fields:
+        values[fldname] = member_json[fldname]
+    return member_tuple(**values)
+
+#-------------------------------------------------------------------------------
+def members(org=None, fields=None):
     """Get members for an organization.
 
     org = organization
@@ -83,7 +99,6 @@ def get_members(org=None, fields=None):
     verbose_output('API endpoint:', endpoint)
 
     memberlist = [] # the list that will be returned
-    member_tuple = collections.namedtuple('member_tuple', ' '.join(fields))
     totpages = 0
 
     while True:
@@ -92,12 +107,7 @@ def get_members(org=None, fields=None):
             totpages += 1
             thispage = json.loads(response.text)
             for member_json in thispage:
-                values = {}
-                for fldname in fields:
-                    values[fldname] = member_json[fldname]
-                member_nt = member_tuple(**values)
-                memberlist.append(member_nt)
-
+                memberlist.append(memberfields(member_json, fields))
         pagelinks = pagination(response)
         endpoint = pagelinks['nextURL']
         if not endpoint:
@@ -112,8 +122,65 @@ def get_members(org=None, fields=None):
 
     return memberlist
 
+#------------------------------------------------------------------------------
+def pagination(link_header):
+    """Parse values from the 'link' HTTP header returned by GitHub API.
+
+    1st parameter = the 'link' HTTP header passed as a string, or a
+                    response object returned by the requests module
+
+    Returns a dictionary with entries for the URLs and page numbers parsed
+    from the link string: firstURL, firstpage, prevURL, prevpage, nextURL,
+    nextpage, lastURL, lastpage.
+    """
+    # initialize the dictionary
+    retval = {'firstpage':0, 'firstURL':None, 'prevpage':0, 'prevURL':None,
+              'nextpage':0, 'nextURL':None, 'lastpage':0, 'lastURL':None}
+
+    if isinstance(link_header, str):
+        link_string = link_header
+    else:
+        try:
+            link_string = link_header.headers['Link']
+        except KeyError:
+            return retval # no Link HTTP header found, nothing to parse
+
+    links = link_string.split(',') # each of these is '<url>; rel="type"'
+    for link in links:
+        linktype = link.split(';')[-1].split('=')[-1].strip()[1:-1]
+        url = link.split(';')[0].strip()[1:-1]
+        pageno = url.split('?')[-1].split('=')[-1].strip()
+        retval[linktype + 'page'] = pageno
+        retval[linktype + 'URL'] = url
+
+    return retval
+
 #-------------------------------------------------------------------------------
-def get_repos(org=None, user=None, fields=None): # pylint: disable=R0914
+def repofields(repo_json, fields):
+    """Get field values for a repo.
+
+    1st parameter = repo's json representation as returned by GitHub API
+    2nd parameter = list of names of desired fields
+
+    Returns a namedtuple containing the desired fields and their values.
+    """
+    fldnames = [_.replace('.', '_') for _ in fields] # periods to underscores
+    repo_tuple = collections.namedtuple('Repo', ' '.join(fldnames))
+    values = {}
+    for fldname in fields:
+        if '.' in fldname:
+            # special case - embedded field within a JSON object
+            try:
+                values[fldname.replace('.', '_')] = \
+                    repo_json[fldname.split('.')[0]][fldname.split('.')[1]]
+            except TypeError:
+                values[fldname.replace('.', '_')] = None
+        else:
+            values[fldname] = repo_json[fldname]
+    return repo_tuple(**values)
+
+#-------------------------------------------------------------------------------
+def repos(org=None, user=None, fields=None): # pylint: disable=R0914
     """Get all public repos for an organization or user.
 
     org = organization
@@ -163,63 +230,6 @@ def get_repos(org=None, user=None, fields=None): # pylint: disable=R0914
         verbose_output(header + ':', response.headers[header])
 
     return repolist
-
-#------------------------------------------------------------------------------
-def pagination(link_header):
-    """Parse values from the 'link' HTTP header returned by GitHub API.
-
-    1st parameter = the 'link' HTTP header passed as a string, or a
-                    response object returned by the requests module
-
-    Returns a dictionary with entries for the URLs and page numbers parsed
-    from the link string: firstURL, firstpage, prevURL, prevpage, nextURL,
-    nextpage, lastURL, lastpage.
-    """
-    # initialize the dictionary
-    retval = {'firstpage':0, 'firstURL':None, 'prevpage':0, 'prevURL':None,
-              'nextpage':0, 'nextURL':None, 'lastpage':0, 'lastURL':None}
-
-    if isinstance(link_header, str):
-        link_string = link_header
-    else:
-        try:
-            link_string = link_header.headers['Link']
-        except KeyError:
-            return retval # no Link HTTP header found, nothing to parse
-
-    links = link_string.split(',') # each of these is '<url>; rel="type"'
-    for link in links:
-        linktype = link.split(';')[-1].split('=')[-1].strip()[1:-1]
-        url = link.split(';')[0].strip()[1:-1]
-        pageno = url.split('?')[-1].split('=')[-1].strip()
-        retval[linktype + 'page'] = pageno
-        retval[linktype + 'URL'] = url
-
-    return retval
-
-#-------------------------------------------------------------------------------
-def repofields(repo_json, fields):
-    """Get field values for a repo.
-
-    1st parameter = repo's json representation as returned by GitHub API
-    2nd parameter = list of names of desired fields
-    
-    Returns a namedtuple containing the desired fields and their values.
-    """
-    fldnames = [_.replace('.', '_') for _ in fields] # periods to underscores
-    repo_tuple = collections.namedtuple('Repo', ' '.join(fldnames))
-    values = {}
-    for fldname in fields:
-        if '.' in fldname:
-            # special case - embedded field within a JSON object
-            try:
-                values[fldname.replace('.', '_')] = \
-                    repo_json[fldname.split('.')[0]][fldname.split('.')[1]]
-            except TypeError:
-                values[fldname.replace('.', '_')] = None
-        else:
-            values[fldname] = repo_json[fldname]
-    return repo_tuple(**values)
 
 #-------------------------------------------------------------------------------
 def user(username=None):
@@ -304,18 +314,18 @@ def test_auth():
     print(auth())
 
 #-------------------------------------------------------------------------------
-def test_get_members():
-    """Simple test for get_members() function. Also tests write_csv().
+def test_members():
+    """Simple test for members() function. Also tests write_csv().
     """
-    ad_members = get_members(org='AzureADSamples')
+    ad_members = members(org='AzureADSamples')
     write_csv(ad_members, 'AzureADSamplesMembers.csv')
 
 #-------------------------------------------------------------------------------
-def test_get_repos():
-    """Simple test for get_repos() function. Also tests write_csv().
+def test_repos():
+    """Simple test for repos() function. Also tests write_csv().
     """
-    oct_repos = get_repos(user='octocat',
-                          fields=['full_name', 'license.name', 'license'])
+    oct_repos = repos(user='octocat',
+                      fields=['full_name', 'license.name', 'license'])
     for repo in oct_repos:
         print(repo)
     print('Total repos: ', len(oct_repos))
@@ -335,6 +345,6 @@ if __name__ == "__main__":
 
     verbose(True) # turn on verbose mode
     #test_auth()
-    #test_get_members()
-    test_get_repos()
+    test_members()
+    #test_repos()
     #test_pagination()
