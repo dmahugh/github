@@ -4,14 +4,14 @@ Classes:
 _settings --------> Used for global settings.
 
 Functions:
-auth() -----------> Return credentials for authentication.
-auth_reset() -----> Reset authorization settings to default values.
+auth() -----------> Return credentials for use in GitHub API calls.
+auth_reset() -----> Reset authentication settings to default values.
+auth_user() ------> Set GitHub user for subsequent API calls.
 memberfields() ---> Get field values for a member/user.
 members() --------> Get members of an organization.
 pagination() -----> Parse values from 'link' HTTP header returned by GitHub API.
 repofields() -----> Get field values for a repo.
 repos() ----------> Get all public repos for an organization or user.
-user() -----------> Set GitHub user for subsequent API calls.
 verbose() --------> Set verbose mode on/off.
 verbose_output() -> Display status info in verbose mode.
 write_csv() ------> Write a list of namedtuples to a CSV file.
@@ -28,7 +28,7 @@ import requests
 class _settings: # pylint: disable=R0903
     """Used for global settings. Should not be accessed directly - e.g.,
     use the verbose() function to change _settings.verbose, or the user()
-    function to change _settings.github_username / _settings.github_accesstoken.
+    function to change _settings.github_username/accesstoken.
     """
     verbose = False # default = verbose mode off
     github_username = None
@@ -52,7 +52,8 @@ def auth():
     access_token = _settings.github_accesstoken
 
     verbose_output('auth() ->', 'username:', username)
-    verbose_output('auth() ->', 'PAT:', access_token[0:2] + '...' + access_token[-2:])
+    verbose_output('auth() ->',
+                   'PAT:', access_token[0:2] + '...' + access_token[-2:])
 
     return (username, access_token)
 
@@ -65,6 +66,23 @@ def auth_reset():
     """
     _settings.github_username = os.getenv('GitHubUser')
     _settings.github_accesstoken = os.getenv('GitHubPAT')
+
+#-------------------------------------------------------------------------------
+def auth_user(username=None):
+    """Set GitHub user for subsequent API calls.
+
+    username = a GitHub username stored in github_users.json in the
+               /private subfolder. If omitted, the GitHub user settings are
+               initialized from the GitHubUser/GitHubPAT environment variables.
+    """
+    if username:
+        with open('private/github_users.json', 'r') as jsonfile:
+            github_users = json.load(jsonfile)
+            _settings.github_username = username
+            _settings.github_accesstoken = github_users[username]
+    else:
+        # no username specified, so reset to defaults
+        auth_reset()
 
 #-------------------------------------------------------------------------------
 def memberfields(member_json, fields):
@@ -180,7 +198,7 @@ def repofields(repo_json, fields):
     return repo_tuple(**values)
 
 #-------------------------------------------------------------------------------
-def repos(org=None, user=None, fields=None): # pylint: disable=R0914
+def repos(org=None, user=None, fields=None):
     """Get all public repos for an organization or user.
 
     org = organization
@@ -230,23 +248,6 @@ def repos(org=None, user=None, fields=None): # pylint: disable=R0914
         verbose_output(header + ':', response.headers[header])
 
     return repolist
-
-#-------------------------------------------------------------------------------
-def user(username=None):
-    """Set GitHub user for subsequent API calls.
-
-    username = a GitHub username stored in github_users.json in the
-               /private subfolder. If omitted, the GitHub user settings are
-               initialized from the GitHubUser/GitHubPAT environment variables.
-    """
-    if username:
-        with open('private/github_users.json', 'r') as jsonfile:
-            github_users = json.load(jsonfile)
-            _settings.github_username = username
-            _settings.github_accesstoken = github_users[username]
-    else:
-        # no username specified, so reset to defaults
-        auth_reset()
 
 #-------------------------------------------------------------------------------
 def verbose(*args):
@@ -345,6 +346,6 @@ if __name__ == "__main__":
 
     verbose(True) # turn on verbose mode
     #test_auth()
-    test_members()
-    #test_repos()
+    #test_members()
+    test_repos()
     #test_pagination()
