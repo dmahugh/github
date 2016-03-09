@@ -19,6 +19,7 @@ And here's the output for that example:
 
 ![MicrosoftReposOutput](images/MicrosoftReposOutput.png)
 
+### verbose() setting
 You can set "verbose mode" on to get status information displayed to the console. For example:
 
 ```
@@ -33,7 +34,7 @@ for repo in ms_repos:
 
 ![MicrosoftReposOutputVerbose](images/MicrosoftReposOutput2.png)
 
-
+### retrieving repos by user, specifying fields
 Here's an example of how to retrieve the public repos for a specified user (Octocat) instead of organization, and how to specify fields to be returned (full_name and default_branch):
 
 ![OctocatRepos](images/OctocatRepos.png)
@@ -41,6 +42,15 @@ Here's an example of how to retrieve the public repos for a specified user (Octo
 Some fields, such as ```license```, return a JSON document, which is inconvenient for saving to a CSV file. You can include a specific subfield instead of the entire JSON document by using dot notation. For example:
 
 ![SubfieldExample](images/subfields.png)
+
+### retrieving repos for multiple orgs or users
+If you want to get a list of all repos in multiple org or under multiple users, you can simply pass a list instead of a single value for the ```org=``` or ```user=``` parameter in the ```repos()``` function. For example, these sorts of syntax return what you'd expect:
+
+```
+import gitinfo as gi
+repos = gi.repos(user=['octocat', 'dmahugh'])
+repos = gi.repos(org=['Azure', 'dotnet', 'Microsoft', 'OfficeDev'])
+```
 
 ## authentication
 You can use this module to retrieve public information from GitHub without any authentication, but the 60 requests per hour rate limit
