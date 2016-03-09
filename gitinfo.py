@@ -9,6 +9,7 @@ auth_reset() -----> Reset authorization settings to default values.
 get_members() ----> Get members of an organization.
 get_repos() ------> Get all public repos for an organization or user.
 pagination() -----> Parse values from 'link' HTTP header returned by GitHub API.
+repofields() -----> Get field values for a repo.
 user() -----------> Set GitHub user for subsequent API calls.
 verbose() --------> Set verbose mode on/off.
 verbose_output() -> Display status info in verbose mode.
@@ -57,7 +58,7 @@ def auth():
 #-------------------------------------------------------------------------------
 def auth_reset():
     """Reset authorization settings to default values.
-    
+
     Sets username and acccess_token to the values stored in the  GitHubUser and
     GitHubPAT environment variables.
     """
@@ -137,8 +138,6 @@ def get_repos(org=None, user=None, fields=None): # pylint: disable=R0914
     verbose_output('API endpoint:', endpoint)
 
     repolist = [] # the list that will be returned
-    fldnames = [_.replace('.', '_') for _ in fields] # periods to underscores
-    repo_tuple = collections.namedtuple('Repo', ' '.join(fldnames))
     totpages = 0
 
     # custom header to retrieve license info while License API is in preview
@@ -150,20 +149,7 @@ def get_repos(org=None, user=None, fields=None): # pylint: disable=R0914
             totpages += 1
             thispage = json.loads(response.text)
             for repo_json in thispage:
-                values = {}
-                for fldname in fields:
-                    if '.' in fldname:
-                        # special case - embedded field within a JSON object
-                        try:
-                            values[fldname.replace('.', '_')] = \
-                                repo_json[fldname.split('.')[0]][fldname.split('.')[1]]
-                        except TypeError:
-                            values[fldname.replace('.', '_')] = None
-                    else:
-                        values[fldname] = repo_json[fldname]
-                repo_nt = repo_tuple(**values)
-                repolist.append(repo_nt)
-
+                repolist.append(repofields(repo_json, fields))
         pagelinks = pagination(response)
         endpoint = pagelinks['nextURL']
         if not endpoint:
@@ -210,6 +196,30 @@ def pagination(link_header):
         retval[linktype + 'URL'] = url
 
     return retval
+
+#-------------------------------------------------------------------------------
+def repofields(repo_json, fields):
+    """Get field values for a repo.
+
+    1st parameter = repo's json representation as returned by GitHub API
+    2nd parameter = list of names of desired fields
+    
+    Returns a namedtuple containing the desired fields and their values.
+    """
+    fldnames = [_.replace('.', '_') for _ in fields] # periods to underscores
+    repo_tuple = collections.namedtuple('Repo', ' '.join(fldnames))
+    values = {}
+    for fldname in fields:
+        if '.' in fldname:
+            # special case - embedded field within a JSON object
+            try:
+                values[fldname.replace('.', '_')] = \
+                    repo_json[fldname.split('.')[0]][fldname.split('.')[1]]
+            except TypeError:
+                values[fldname.replace('.', '_')] = None
+        else:
+            values[fldname] = repo_json[fldname]
+    return repo_tuple(**values)
 
 #-------------------------------------------------------------------------------
 def user(username=None):
