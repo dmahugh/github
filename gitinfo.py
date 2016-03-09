@@ -6,7 +6,7 @@ auth_user() ------> Set GitHub user for subsequent API calls.
 
 memberfields() ---> Get field values for a member/user.
 members() --------> Get members of one or more organizations.
-membersget() -----> Get member info from specified API endpoint.
+membersget() -----> Get member info for a specified organization.
 
 pagination() -----> Parse values from 'link' HTTP header returned by GitHub API.
 
@@ -88,16 +88,20 @@ def auth_user(username=None):
         auth_reset()
 
 #-------------------------------------------------------------------------------
-def memberfields(member_json, fields):
+def memberfields(member_json, fields, org):
     """Get field values for a member/user.
 
     1st parameter = member's json representation as returned by GitHub API
     2nd parameter = list of names of desired fields
+    3rd parameter = organization ID
 
     Returns a namedtuple containing the desired fields and their values.
+    NOTE: in addition to the specified fields, always returns an 'org' field
+    to distinguish between organizations in lists returned by members().
     """
-    member_tuple = collections.namedtuple('member_tuple', ' '.join(fields))
+    member_tuple = collections.namedtuple('member_tuple', 'org ' + ' '.join(fields))
     values = {}
+    values['org'] = org
     for fldname in fields:
         values[fldname] = member_json[fldname]
     return member_tuple(**values)
@@ -119,33 +123,35 @@ def members(org=None, fields=None, audit2fa=False):
         # default fields to be returned if none specified
         fields = ['login', 'id', 'type', 'site_admin']
 
-    # set endpoint suffix for audit2fa option
-    suffix = '?filter=2fa_disabled' if audit2fa else ''
-
     memberlist = [] # the list that will be returned
 
     if isinstance(org, str):
         # one org ID passed as a string
-        endpoint = 'https://api.github.com/orgs/' + org + '/members' + suffix
-        memberlist.extend(membersget(endpoint, fields))
+        memberlist.extend(membersget(org, fields, audit2fa))
     else:
         # list of org IDs passed
         for orgid in org:
-            endpoint = 'https://api.github.com/orgs/' + orgid + '/members' + suffix
-            memberlist.extend(membersget(endpoint, fields))
+            memberlist.extend(membersget(orgid, fields, audit2fa))
 
     return memberlist
 
 #------------------------------------------------------------------------------
-def membersget(endpoint, fields):
-    """Get member info from specified API endpoint.
+def membersget(org, fields, audit2fa):
+    """Get member info for a specified organization.
 
-    1st parameter = GitHub API endpoint2nd parameter = list of fields to be returned
+    1st parameter = organization ID
+    2nd parameter = list of fields to be returned
+    3rd parameter = whether to only return members with 2FA disabled. You must
+                    be authenticated via auth_user() as a member of the org(s)
+                    to use this option.
 
     Returns a list of namedtuples containing the specified fields.
     """
     totpages = 0
     retval = [] # the list to be returned
+
+    suffix = '?filter=2fa_disabled' if audit2fa else ''
+    endpoint = 'https://api.github.com/orgs/' + org + '/members' + suffix
 
     while True:
         response = requests.get(endpoint, auth=auth())
@@ -153,7 +159,7 @@ def membersget(endpoint, fields):
             totpages += 1
             thispage = json.loads(response.text)
             for member_json in thispage:
-                retval.append(memberfields(member_json, fields))
+                retval.append(memberfields(member_json, fields, org))
         pagelinks = pagination(response)
         endpoint = pagelinks['nextURL']
         if not endpoint:
@@ -377,10 +383,10 @@ def test_auth():
 
 #-------------------------------------------------------------------------------
 def test_members():
-    """Simple test for members() function. Also tests write_csv().
+    """Simple test for members() function.
     """
     auth_user('msftgits')
-    test_results = members(org='microsoft', audit2fa=True)
+    test_results = members(org=['bitstadium', 'liveservices'])
     for member in test_results:
         print(member)
     print('Total members:', len(test_results))
@@ -394,7 +400,7 @@ def test_repos():
     for repo in oct_repos:
         print(repo)
     print('Total repos: ', len(oct_repos))
-    write_csv(oct_repos, 'OctocatRepos.csv')
+    write_csv(oct_repos, 'data\OctocatRepos.csv')
 
 #-------------------------------------------------------------------------------
 def test_pagination():
