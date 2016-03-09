@@ -103,13 +103,13 @@ def memberfields(member_json, fields):
     return member_tuple(**values)
 
 #-------------------------------------------------------------------------------
-def members(org=None, fields=None, audit2FA=False):
+def members(org=None, fields=None, audit2fa=False):
     """Get members for one or more organizations.
 
     org = organization
     fields = list of field names to be returned; names must be the same as
              returned by the GitHub API
-    audit2FA = whether to only return members with 2FA disabled. You must be
+    audit2fa = whether to only return members with 2FA disabled. You must be
                authenticated via auth_user() as a member of the org(s) to use
                this option.
 
@@ -119,8 +119,8 @@ def members(org=None, fields=None, audit2FA=False):
         # default fields to be returned if none specified
         fields = ['login', 'id', 'type', 'site_admin']
 
-    # set endpoint suffix for audit2FA option
-    suffix = '?filter=2fa_disabled' if audit2FA else ''
+    # set endpoint suffix for audit2fa option
+    suffix = '?filter=2fa_disabled' if audit2fa else ''
 
     memberlist = [] # the list that will be returned
 
@@ -379,7 +379,8 @@ def test_auth():
 def test_members():
     """Simple test for members() function. Also tests write_csv().
     """
-    test_results = members(org=['bitstadium', 'manifoldjs'], audit2FA=True)
+    auth_user('msftgits')
+    test_results = members(org='microsoft', audit2fa=True)
     for member in test_results:
         print(member)
     print('Total members:', len(test_results))

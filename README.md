@@ -65,6 +65,17 @@ import gitinfo as gi
 memberlist = gi.members(org=['Azure', 'dotnet', 'Microsoft', 'OfficeDev'])
 ```
 
+## auditing members for 2FA
+One specific use case I wanted to support is auditing the members of organizations to determine who doesn't have GitHub two-factor authentication (2FA) enabled. The ```members()``` function supports an optional ```audit2fa=``` parameter for this purpose.
+
+You must be *authenticated as an owner of an organization* to get this information. For example, if you've configured PAT for ```admin-user``` (as described in the next section below), and that user is an owner of organzation ```org-name```, here's how you would get a list of members who don't have 2FA enabled:
+
+```
+import gitinfo as gi
+gi.auth_user('admin-user')
+no2fa = gi.members(org='org-name', audit2fa=True)
+```
+
 ## authentication
 You can use this module to retrieve public information from GitHub without any authentication, but the 60 requests per hour rate limit
 will be enforced. You can bump that up to 5000 requests per hour by using authentication.
