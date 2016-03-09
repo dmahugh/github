@@ -49,13 +49,20 @@ Some fields, such as ```license```, return a JSON document, which is inconvenien
 
 ![SubfieldExample](images/subfields.png)
 
-## retrieving repos for multiple orgs or users
+## retrieving information for multiple orgs or users
 If you want to get a list of all repos in multiple org or under multiple users, you can simply pass a list instead of a single value for the ```org=``` or ```user=``` parameter in the ```repos()``` function. For example, these sorts of syntax return what you'd expect:
 
 ```
 import gitinfo as gi
-repos = gi.repos(user=['octocat', 'dmahugh'])
-repos = gi.repos(org=['Azure', 'dotnet', 'Microsoft', 'OfficeDev'])
+repolist = gi.repos(user=['octocat', 'dmahugh'])
+repolist = gi.repos(org=['Azure', 'dotnet', 'Microsoft', 'OfficeDev'])
+```
+
+Note that you can also pass a list of orgs to the ```members()``` function, the return member information for multiple organizations:
+
+```
+import gitinfo as gi
+memberlist = gi.members(org=['Azure', 'dotnet', 'Microsoft', 'OfficeDev'])
 ```
 
 ## authentication
