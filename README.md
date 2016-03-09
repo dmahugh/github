@@ -1,17 +1,8 @@
 # gitinfo
 
-Python 3.x helper functions to make it easy to retrieve information via the GitHub API.
-
-What it is:
-
-* Optimized for ease of use.
-* A module with one external dependency - the [requests](https://pypi.python.org/pypi/requests) library.
-* Work in progress; much more to come.
-
-What it isn't:
-
-* A complete wrapper for the GitHub API - many calls not supported (yet).
-* A way to do automated updates and changes; all functions are read-only.
+Python 3.x helper functions to make it easy to retrieve information via the
+GitHub API. Optimized for ease of use. One external dependency - the
+[requests](https://pypi.python.org/pypi/requests) library.
 
 ## sample usage
 
