@@ -17,10 +17,12 @@ _settings&nbsp;--------&gt;&nbsp;Used&nbsp;for&nbsp;global&nbsp;settings.<br>
 Functions:<br>
 <a href="#-auth">auth</a>()&nbsp;-----------&gt;&nbsp;Return&nbsp;credentials&nbsp;for&nbsp;authentication.<br>
 <a href="#-auth_reset">auth_reset</a>()&nbsp;-----&gt;&nbsp;Reset&nbsp;authorization&nbsp;settings&nbsp;to&nbsp;default&nbsp;values.<br>
-<a href="#-get_members">get_members</a>()&nbsp;----&gt;&nbsp;Get&nbsp;members&nbsp;of&nbsp;an&nbsp;organization.<br>
-<a href="#-get_repos">get_repos</a>()&nbsp;------&gt;&nbsp;Get&nbsp;all&nbsp;public&nbsp;repos&nbsp;for&nbsp;an&nbsp;organization&nbsp;or&nbsp;user.<br>
+<a href="#-auth_user">auth_user</a>()&nbsp;------&gt;&nbsp;Set&nbsp;GitHub&nbsp;user&nbsp;for&nbsp;subsequent&nbsp;API&nbsp;calls.<br>
+<a href="#-memberfields">memberfields</a>()&nbsp;---&gt;&nbsp;Get&nbsp;field&nbsp;values&nbsp;for&nbsp;a&nbsp;member/user.<br>
+<a href="#-members">members</a>()&nbsp;--------&gt;&nbsp;Get&nbsp;members&nbsp;of&nbsp;an&nbsp;organization.<br>
 <a href="#-pagination">pagination</a>()&nbsp;-----&gt;&nbsp;Parse&nbsp;values&nbsp;from&nbsp;'link'&nbsp;HTTP&nbsp;header&nbsp;returned&nbsp;by&nbsp;GitHub&nbsp;API.<br>
-<a href="#-user">user</a>()&nbsp;-----------&gt;&nbsp;Set&nbsp;GitHub&nbsp;user&nbsp;for&nbsp;subsequent&nbsp;API&nbsp;calls.<br>
+<a href="#-repofields">repofields</a>()&nbsp;-----&gt;&nbsp;Get&nbsp;field&nbsp;values&nbsp;for&nbsp;a&nbsp;repo.<br>
+<a href="#-repos">repos</a>()&nbsp;----------&gt;&nbsp;Get&nbsp;all&nbsp;public&nbsp;repos&nbsp;for&nbsp;an&nbsp;organization&nbsp;or&nbsp;user.<br>
 <a href="#-verbose">verbose</a>()&nbsp;--------&gt;&nbsp;Set&nbsp;verbose&nbsp;mode&nbsp;on/off.<br>
 <a href="#-verbose_output">verbose_output</a>()&nbsp;-&gt;&nbsp;Display&nbsp;status&nbsp;info&nbsp;in&nbsp;verbose&nbsp;mode.<br>
 <a href="#-write_csv">write_csv</a>()&nbsp;------&gt;&nbsp;Write&nbsp;a&nbsp;list&nbsp;of&nbsp;namedtuples&nbsp;to&nbsp;a&nbsp;CSV&nbsp;file.</tt></p>
@@ -52,14 +54,39 @@ not&nbsp;been&nbsp;set,&nbsp;reads&nbsp;them&nbsp;from&nbsp;environment&nbsp;var
 &nbsp;<br>
 Sets&nbsp;username&nbsp;and&nbsp;acccess_token&nbsp;to&nbsp;the&nbsp;values&nbsp;stored&nbsp;in&nbsp;the&nbsp;&nbsp;GitHubUser&nbsp;and<br>
 GitHubPAT&nbsp;environment&nbsp;variables.</tt></dd></dl>
- <dl><dt><a name="-get_members"><strong>get_members</strong></a>(org=None, fields=None)</dt><dd><tt>Get&nbsp;members&nbsp;for&nbsp;an&nbsp;organization.<br>
+ <dl><dt><a name="-auth_user"><strong>auth_user</strong></a>(username=None)</dt><dd><tt>Set&nbsp;GitHub&nbsp;user&nbsp;for&nbsp;subsequent&nbsp;API&nbsp;calls.<br>
+&nbsp;<br>
+username&nbsp;=&nbsp;a&nbsp;GitHub&nbsp;username&nbsp;stored&nbsp;in&nbsp;github_users.json&nbsp;in&nbsp;the<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;/private&nbsp;subfolder.&nbsp;If&nbsp;omitted,&nbsp;the&nbsp;GitHub&nbsp;user&nbsp;settings&nbsp;are<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;initialized&nbsp;from&nbsp;the&nbsp;GitHubUser/GitHubPAT&nbsp;environment&nbsp;variables.</tt></dd></dl>
+ <dl><dt><a name="-memberfields"><strong>memberfields</strong></a>(member_json, fields)</dt><dd><tt>Get&nbsp;field&nbsp;values&nbsp;for&nbsp;a&nbsp;member/user.<br>
+&nbsp;<br>
+1st&nbsp;parameter&nbsp;=&nbsp;member's&nbsp;json&nbsp;representation&nbsp;as&nbsp;returned&nbsp;by&nbsp;GitHub&nbsp;API<br>
+2nd&nbsp;parameter&nbsp;=&nbsp;list&nbsp;of&nbsp;names&nbsp;of&nbsp;desired&nbsp;fields<br>
+&nbsp;<br>
+Returns&nbsp;a&nbsp;namedtuple&nbsp;containing&nbsp;the&nbsp;desired&nbsp;fields&nbsp;and&nbsp;their&nbsp;values.</tt></dd></dl>
+ <dl><dt><a name="-members"><strong>members</strong></a>(org=None, fields=None)</dt><dd><tt>Get&nbsp;members&nbsp;for&nbsp;an&nbsp;organization.<br>
 &nbsp;<br>
 org&nbsp;=&nbsp;organization<br>
 fields&nbsp;=&nbsp;list&nbsp;of&nbsp;field&nbsp;names&nbsp;to&nbsp;be&nbsp;returned;&nbsp;names&nbsp;must&nbsp;be&nbsp;the&nbsp;same&nbsp;as<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;returned&nbsp;by&nbsp;the&nbsp;GitHub&nbsp;API<br>
 &nbsp;<br>
 Returns&nbsp;a&nbsp;list&nbsp;of&nbsp;namedtuple&nbsp;objects,&nbsp;one&nbsp;per&nbsp;member.</tt></dd></dl>
- <dl><dt><a name="-get_repos"><strong>get_repos</strong></a>(org=None, user=None, fields=None)</dt><dd><tt>Get&nbsp;all&nbsp;public&nbsp;repos&nbsp;for&nbsp;an&nbsp;organization&nbsp;or&nbsp;user.<br>
+ <dl><dt><a name="-pagination"><strong>pagination</strong></a>(link_header)</dt><dd><tt>Parse&nbsp;values&nbsp;from&nbsp;the&nbsp;'link'&nbsp;HTTP&nbsp;header&nbsp;returned&nbsp;by&nbsp;GitHub&nbsp;API.<br>
+&nbsp;<br>
+1st&nbsp;parameter&nbsp;=&nbsp;the&nbsp;'link'&nbsp;HTTP&nbsp;header&nbsp;passed&nbsp;as&nbsp;a&nbsp;string,&nbsp;or&nbsp;a<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;response&nbsp;object&nbsp;returned&nbsp;by&nbsp;the&nbsp;requests&nbsp;module<br>
+&nbsp;<br>
+Returns&nbsp;a&nbsp;dictionary&nbsp;with&nbsp;entries&nbsp;for&nbsp;the&nbsp;URLs&nbsp;and&nbsp;page&nbsp;numbers&nbsp;parsed<br>
+from&nbsp;the&nbsp;link&nbsp;string:&nbsp;firstURL,&nbsp;firstpage,&nbsp;prevURL,&nbsp;prevpage,&nbsp;nextURL,<br>
+nextpage,&nbsp;lastURL,&nbsp;lastpage.</tt></dd></dl>
+ <dl><dt><a name="-repofields"><strong>repofields</strong></a>(repo_json, fields)</dt><dd><tt>Get&nbsp;field&nbsp;values&nbsp;for&nbsp;a&nbsp;repo.<br>
+&nbsp;<br>
+1st&nbsp;parameter&nbsp;=&nbsp;repo's&nbsp;json&nbsp;representation&nbsp;as&nbsp;returned&nbsp;by&nbsp;GitHub&nbsp;API<br>
+2nd&nbsp;parameter&nbsp;=&nbsp;list&nbsp;of&nbsp;names&nbsp;of&nbsp;desired&nbsp;fields<br>
+&nbsp;<br>
+Returns&nbsp;a&nbsp;namedtuple&nbsp;containing&nbsp;the&nbsp;desired&nbsp;fields&nbsp;and&nbsp;their&nbsp;values.</tt></dd></dl>
+ <dl><dt><a name="-repos"><strong>repos</strong></a>(org=None, user=None, fields=None)</dt><dd><tt>Get&nbsp;all&nbsp;public&nbsp;repos&nbsp;for&nbsp;an&nbsp;organization&nbsp;or&nbsp;user.<br>
 &nbsp;<br>
 org&nbsp;=&nbsp;organization<br>
 user&nbsp;=&nbsp;username&nbsp;(ignored&nbsp;if&nbsp;an&nbsp;organization&nbsp;is&nbsp;provided)<br>
@@ -71,23 +98,10 @@ fields&nbsp;=&nbsp;list&nbsp;of&nbsp;field&nbsp;names&nbsp;to&nbsp;be&nbsp;retur
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;this&nbsp;case&nbsp;the&nbsp;column&nbsp;name&nbsp;will&nbsp;be&nbsp;'license_name'.<br>
 &nbsp;<br>
 Returns&nbsp;a&nbsp;list&nbsp;of&nbsp;namedtuple&nbsp;objects,&nbsp;one&nbsp;per&nbsp;repo.</tt></dd></dl>
- <dl><dt><a name="-pagination"><strong>pagination</strong></a>(link_header)</dt><dd><tt>Parse&nbsp;values&nbsp;from&nbsp;the&nbsp;'link'&nbsp;HTTP&nbsp;header&nbsp;returned&nbsp;by&nbsp;GitHub&nbsp;API.<br>
-&nbsp;<br>
-1st&nbsp;parameter&nbsp;=&nbsp;the&nbsp;'link'&nbsp;HTTP&nbsp;header&nbsp;passed&nbsp;as&nbsp;a&nbsp;string,&nbsp;or&nbsp;a<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;response&nbsp;object&nbsp;returned&nbsp;by&nbsp;the&nbsp;requests&nbsp;module<br>
-&nbsp;<br>
-Returns&nbsp;a&nbsp;dictionary&nbsp;with&nbsp;entries&nbsp;for&nbsp;the&nbsp;URLs&nbsp;and&nbsp;page&nbsp;numbers&nbsp;parsed<br>
-from&nbsp;the&nbsp;link&nbsp;string:&nbsp;firstURL,&nbsp;firstpage,&nbsp;prevURL,&nbsp;prevpage,&nbsp;nextURL,<br>
-nextpage,&nbsp;lastURL,&nbsp;lastpage.</tt></dd></dl>
  <dl><dt><a name="-test_auth"><strong>test_auth</strong></a>()</dt><dd><tt>Simple&nbsp;test&nbsp;for&nbsp;<a href="#-auth">auth</a>()&nbsp;function.</tt></dd></dl>
- <dl><dt><a name="-test_get_members"><strong>test_get_members</strong></a>()</dt><dd><tt>Simple&nbsp;test&nbsp;for&nbsp;<a href="#-get_members">get_members</a>()&nbsp;function.&nbsp;Also&nbsp;tests&nbsp;<a href="#-write_csv">write_csv</a>().</tt></dd></dl>
- <dl><dt><a name="-test_get_repos"><strong>test_get_repos</strong></a>()</dt><dd><tt>Simple&nbsp;test&nbsp;for&nbsp;<a href="#-get_repos">get_repos</a>()&nbsp;function.&nbsp;Also&nbsp;tests&nbsp;<a href="#-write_csv">write_csv</a>().</tt></dd></dl>
+ <dl><dt><a name="-test_members"><strong>test_members</strong></a>()</dt><dd><tt>Simple&nbsp;test&nbsp;for&nbsp;<a href="#-members">members</a>()&nbsp;function.&nbsp;Also&nbsp;tests&nbsp;<a href="#-write_csv">write_csv</a>().</tt></dd></dl>
  <dl><dt><a name="-test_pagination"><strong>test_pagination</strong></a>()</dt><dd><tt>Simple&nbsp;test&nbsp;for&nbsp;<a href="#-pagination">pagination</a>()&nbsp;function.</tt></dd></dl>
- <dl><dt><a name="-user"><strong>user</strong></a>(username=None)</dt><dd><tt>Set&nbsp;GitHub&nbsp;user&nbsp;for&nbsp;subsequent&nbsp;API&nbsp;calls.<br>
-&nbsp;<br>
-username&nbsp;=&nbsp;a&nbsp;GitHub&nbsp;username&nbsp;stored&nbsp;in&nbsp;github_users.json&nbsp;in&nbsp;the<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;/private&nbsp;subfolder.&nbsp;If&nbsp;omitted,&nbsp;the&nbsp;GitHub&nbsp;user&nbsp;settings&nbsp;are<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;initialized&nbsp;from&nbsp;the&nbsp;GitHubUser/GitHubPAT&nbsp;environment&nbsp;variables.</tt></dd></dl>
+ <dl><dt><a name="-test_repos"><strong>test_repos</strong></a>()</dt><dd><tt>Simple&nbsp;test&nbsp;for&nbsp;<a href="#-repos">repos</a>()&nbsp;function.&nbsp;Also&nbsp;tests&nbsp;<a href="#-write_csv">write_csv</a>().</tt></dd></dl>
  <dl><dt><a name="-verbose"><strong>verbose</strong></a>(*args)</dt><dd><tt>Set&nbsp;verbose&nbsp;mode&nbsp;on/off.<br>
 &nbsp;<br>
 1st&nbsp;parameter&nbsp;=&nbsp;True&nbsp;for&nbsp;verbose&nbsp;mode,&nbsp;False&nbsp;to&nbsp;turn&nbsp;verbose&nbsp;mode&nbsp;off.<br>
