@@ -1,12 +1,18 @@
-# gitinfo
+# gitinfo - Python 3.x wrapper for GitHub REST API
 
-Python 3.x helper functions to make it easy to retrieve information via the
-GitHub API. Optimized for ease of use. One external dependency - the
-[requests](https://pypi.python.org/pypi/requests) library.
+This is a simple wrapper optimized for ease of use, supporting a subset of the GitHub API. (Ony repo and member info at this time.)
+
+## installation
+
+Gitinfo has one external dependency - the [requests](https://pypi.python.org/pypi/requests) library. Follow these steps to get up and running:
+
+* Install Python 3.5 from [Python.org](https://www.python.org/).
+* Clone the [Gitinfo repo](https://github.com/dmahugh/gitinfo).
+* Install requests: ```pip install requests```
 
 ## sample usage
 
-Here's an example of how to retrieve all public repos in the Microsoft organization:
+Here's an example of Python code to retrieve and display all public repos in the Microsoft organization:
 
 ```
 import gitinfo as gi
@@ -19,7 +25,7 @@ And here's the output for that example:
 
 ![MicrosoftReposOutput](images/MicrosoftReposOutput.png)
 
-### verbose() setting
+## verbose() setting
 You can set "verbose mode" on to get status information displayed to the console. For example:
 
 ```
@@ -34,7 +40,7 @@ for repo in ms_repos:
 
 ![MicrosoftReposOutputVerbose](images/MicrosoftReposOutput2.png)
 
-### retrieving repos by user, specifying fields
+## retrieving repos by user, specifying fields
 Here's an example of how to retrieve the public repos for a specified user (Octocat) instead of organization, and how to specify fields to be returned (full_name and default_branch):
 
 ![OctocatRepos](images/OctocatRepos.png)
@@ -43,7 +49,7 @@ Some fields, such as ```license```, return a JSON document, which is inconvenien
 
 ![SubfieldExample](images/subfields.png)
 
-### retrieving repos for multiple orgs or users
+## retrieving repos for multiple orgs or users
 If you want to get a list of all repos in multiple org or under multiple users, you can simply pass a list instead of a single value for the ```org=``` or ```user=``` parameter in the ```repos()``` function. For example, these sorts of syntax return what you'd expect:
 
 ```
