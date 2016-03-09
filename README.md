@@ -58,7 +58,7 @@ repolist = gi.repos(user=['octocat', 'dmahugh'])
 repolist = gi.repos(org=['Azure', 'dotnet', 'Microsoft', 'OfficeDev'])
 ```
 
-Note that you can also pass a list of orgs to the ```members()``` function, the return member information for multiple organizations:
+Note that you can also pass a list of orgs to the ```members()``` function, to return member information for multiple organizations:
 
 ```
 import gitinfo as gi
