@@ -80,9 +80,7 @@ no2fa = gi.members(org='org-name', audit2fa=True)
 You can use this module to retrieve public information from GitHub without any authentication, but the 60 requests per hour rate limit
 will be enforced. You can bump that up to 5000 requests per hour by using authentication.
 
-Only basic authentication via username and PAT (Personal Access Token) is supported at this time. To set up a default user for API calls, put the GitHub username and a PAT in environment variables named *GitHubUser* and *GitHubPAT*, respectively.
-
-You can also store GitHub usernames and PATs in a ```github_users.json``` file in the ```private``` subfolder. For example:
+GitHub credentials (username/PAT) are stored in a ```github_users.json``` file in the ```private``` subfolder. Here's the format to use:
 
 ```
 {
@@ -98,7 +96,10 @@ gi.auth_user('user1')
 # make GitHub API calls as user1
 gi.auth_user('user2')
 # make GitHub API calls as user2
+gi.auth_user(None)
+# make GitHub API calls without authentication
 ```
+Only basic authentication via username and PAT (Personal Access Token) is supported at this time.
 
 ## saving results
 The ```members()``` and ```repos()``` functions return a list of _namedtuple_ objects. The ```write_csv()``` function can be used to write these lists to a CSV file:

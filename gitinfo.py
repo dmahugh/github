@@ -1,7 +1,6 @@
 """Helper functions for retrieving data via the GitHub API.
 
 auth() -----------> Return credentials for use in GitHub API calls.
-auth_reset() -----> Reset authentication settings to default values.
 auth_user() ------> Set GitHub user for subsequent API calls.
 
 memberfields() ---> Get field values for a member/user.
@@ -22,7 +21,6 @@ write_csv() ------> Write a list of namedtuples to a CSV file.
 import collections
 import csv
 import json
-import os
 import traceback
 
 import requests
@@ -34,22 +32,22 @@ class _settings: # pylint: disable=R0903
     function to change _settings.github_username/accesstoken.
     """
     verbose = False # default = verbose mode off
-    github_username = None
+    github_username = None # default = no GitHub authentication
     github_accesstoken = None
 
 #------------------------------------------------------------------------------
 def auth():
     """Credentials for basic authentication.
 
-    Returns the tuple used for API calls. If the GitHub username and PAT have
-    not been set, reads them from environment variables GitHubUser/GitHubPAT.
+    Returns the tuple used for API calls, based on current settings.
+    Returns None if no GitHub username/PAT is current set.
     """
     # Note that "auth() ->" is explcitly added to the verbose_output()
     # calls below because auth() is typically used inline from other
     # functions, so it isn't the caller in the call stack.
 
     if not _settings.github_username:
-        auth_reset()
+        return None
 
     username = _settings.github_username
     access_token = _settings.github_accesstoken
@@ -59,22 +57,12 @@ def auth():
     return (username, access_token)
 
 #-------------------------------------------------------------------------------
-def auth_reset():
-    """Reset authorization settings to default values.
-
-    Sets username and acccess_token to the values stored in the  GitHubUser and
-    GitHubPAT environment variables.
-    """
-    _settings.github_username = os.getenv('GitHubUser')
-    _settings.github_accesstoken = os.getenv('GitHubPAT')
-
-#-------------------------------------------------------------------------------
 def auth_user(username=None):
     """Set GitHub user for subsequent API calls.
 
     username = a GitHub username stored in github_users.json in the
-               /private subfolder. If omitted, the GitHub user settings are
-               initialized from the GitHubUser/GitHubPAT environment variables.
+               /private subfolder. If omitted or None, resets GitHub user to
+               no authentication.
     """
     if username:
         with open('private/github_users.json', 'r') as jsonfile:
@@ -82,8 +70,9 @@ def auth_user(username=None):
             _settings.github_username = username
             _settings.github_accesstoken = github_users[username]
     else:
-        # no username specified, so reset to defaults
-        auth_reset()
+        # no username specified, so reset to default of no authentication
+        _settings.github_username = None
+        _settings.github_accesstoken = None
 
 #-------------------------------------------------------------------------------
 def memberfields(member_json, fields, org):
@@ -393,8 +382,10 @@ def test_members():
 def test_repos():
     """Simple test for repos() function.
     """
-    oct_repos = repos(user=['octocat', 'dmahugh'],
+    oct_repos = repos(user=['octocat'],
                       fields=['full_name', 'license.name', 'license'])
+    for repo in oct_repos:
+        print(repo)
 
 #-------------------------------------------------------------------------------
 def test_pagination():
@@ -409,6 +400,7 @@ def test_pagination():
 if __name__ == "__main__":
 
     verbose(True) # turn on verbose mode
+    auth_user('dmahugh')
     #test_auth()
     #test_members()
     test_repos()
