@@ -221,16 +221,30 @@ def repos(org=None, user=None, fields=None):
         # default fields to be returned if none specified
         fields = ['full_name', 'watchers', 'forks', 'open_issues']
 
-    #/// make a list of the endpoints to be hit; just one if org/user is a string
-    #/// scan through the list of endpoints, processing each one
-    if org:
-        endpoint = 'https://api.github.com/orgs/' + org + '/repos'
-    else:
-        endpoint = 'https://api.github.com/users/' + user + '/repos'
-    verbose_output('API endpoint:', endpoint)
-
     repolist = [] # the list that will be returned
-    repolist.extend(reposget(endpoint, fields))
+
+    if org:
+        # get repos by org
+        if isinstance(org, str):
+            # one org ID passed as a string
+            endpoint = 'https://api.github.com/orgs/' + org + '/repos'
+            repolist.extend(reposget(endpoint, fields))
+        else:
+            # list of org IDs passed
+            for orgid in org:
+                endpoint = 'https://api.github.com/orgs/' + orgid + '/repos'
+                repolist.extend(reposget(endpoint, fields))
+    else:
+        # get repos by user
+        if isinstance(user, str):
+            # one user ID passed as a string
+            endpoint = 'https://api.github.com/users/' + user + '/repos'
+            repolist.extend(reposget(endpoint, fields))
+        else:
+            # list of user IDs passed
+            for userid in user:
+                endpoint = 'https://api.github.com/users/' + userid + '/repos'
+                repolist.extend(reposget(endpoint, fields))
 
     return repolist
 
@@ -346,7 +360,7 @@ def test_members():
 def test_repos():
     """Simple test for repos() function. Also tests write_csv().
     """
-    oct_repos = repos(user='octocat',
+    oct_repos = repos(user=['octocat', 'dmahugh'],
                       fields=['full_name', 'license.name', 'license'])
     for repo in oct_repos:
         print(repo)
