@@ -1,19 +1,21 @@
 """Helper functions for retrieving data via the GitHub API.
 
-Classes:
-_settings --------> Used for global settings.
-
-Functions:
 auth() -----------> Return credentials for use in GitHub API calls.
 auth_reset() -----> Reset authentication settings to default values.
 auth_user() ------> Set GitHub user for subsequent API calls.
+
 memberfields() ---> Get field values for a member/user.
 members() --------> Get members of an organization.
+
 pagination() -----> Parse values from 'link' HTTP header returned by GitHub API.
+
 repofields() -----> Get field values for a repo.
-repos() ----------> Get all public repos for an organization or user.
+repos() ----------> Get repo information for organization(s) or user(s).
+reposget() -------> Get repo information from specified API endpoint.
+
 verbose() --------> Set verbose mode on/off.
 verbose_output() -> Display status info in verbose mode.
+
 write_csv() ------> Write a list of namedtuples to a CSV file.
 """
 import collections
@@ -199,10 +201,13 @@ def repofields(repo_json, fields):
 
 #-------------------------------------------------------------------------------
 def repos(org=None, user=None, fields=None):
-    """Get all public repos for an organization or user.
+    """Get repo information for organization(s) or user(s).
 
-    org = organization
-    user = username (ignored if an organization is provided)
+    org = organization; either a string containing a single organization ID, or
+          a list of organization IDs to be included
+    user = username (ignored if org argument is provided); either a string
+           containing a single organization ID, or a list of organization IDs
+           to be included
     fields = list of field names to be returned; names must be the same as
              returned by the GitHub API. Embedded elements are also supported:
              for example, pass a field named 'license.name' and it will
@@ -216,6 +221,8 @@ def repos(org=None, user=None, fields=None):
         # default fields to be returned if none specified
         fields = ['full_name', 'watchers', 'forks', 'open_issues']
 
+    #/// make a list of the endpoints to be hit; just one if org/user is a string
+    #/// scan through the list of endpoints, processing each one
     if org:
         endpoint = 'https://api.github.com/orgs/' + org + '/repos'
     else:
@@ -223,7 +230,21 @@ def repos(org=None, user=None, fields=None):
     verbose_output('API endpoint:', endpoint)
 
     repolist = [] # the list that will be returned
+    repolist.extend(reposget(endpoint, fields))
+
+    return repolist
+
+#-------------------------------------------------------------------------------
+def reposget(endpoint, fields):
+    """Get repo information from specified API endpoint.
+
+    1st parameter = GitHub API endpoint
+    2nd parameter = list of fields to be returned
+
+    Returns a list of namedtuples containing the specified fields.
+    """
     totpages = 0
+    retval = [] # the list to be returned
 
     # custom header to retrieve license info while License API is in preview
     headers = {'Accept': 'application/vnd.github.drax-preview+json'}
@@ -234,7 +255,7 @@ def repos(org=None, user=None, fields=None):
             totpages += 1
             thispage = json.loads(response.text)
             for repo_json in thispage:
-                repolist.append(repofields(repo_json, fields))
+                retval.append(repofields(repo_json, fields))
         pagelinks = pagination(response)
         endpoint = pagelinks['nextURL']
         if not endpoint:
@@ -243,11 +264,11 @@ def repos(org=None, user=None, fields=None):
                        format(pagelinks['nextpage'], pagelinks['lastpage']))
 
     verbose_output('pages processed:', totpages)
-    verbose_output('repos returned:', len(repolist))
+    verbose_output('repos returned:', len(retval))
     for header in ['X-RateLimit-Limit', 'X-RateLimit-Remaining']:
         verbose_output(header + ':', response.headers[header])
 
-    return repolist
+    return retval
 
 #-------------------------------------------------------------------------------
 def verbose(*args):
