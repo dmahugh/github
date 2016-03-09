@@ -19,7 +19,7 @@ Here's an example of how to retrieve all public repos in the Microsoft organizat
 
 ```
 import gitinfo as gi
-ms_repos = gi.get_repos(org='microsoft')
+ms_repos = gi.repos(org='microsoft')
 for repo in ms_repos:
     print(repo)
 ```
@@ -33,7 +33,7 @@ You can set "verbose mode" on to get status information displayed to the console
 ```
 import gitinfo as gi
 gi.verbose(True)
-ms_repos = gi.get_repos(org='microsoft')
+ms_repos = gi.repos(org='microsoft')
 for repo in ms_repos:
     print(repo)
 ```
@@ -65,21 +65,21 @@ You can also store GitHub usernames and PATs in a ```github_users.json``` file i
     "user2": "Personal Access Token for user2"
 }
 ```
-Then you can use the user() function to set the username for subsquent operations. For example:
+Then you can use the ```auth_user()``` function to set the username for subsquent operations. For example:
 
 ```
 import gitingo as gi
-gi.user('user1')
+gi.auth_user('user1')
 # make GitHub API calls as user1
-gi.user('user2')
+gi.auth_user('user2')
 # make GitHub API calls as user2
 ```
 
 ## saving results
-The ```get_members()``` and ```get_repos()``` functions return a list of _namedtuple_ objects. The ```write_csv()``` function can be used to write these lists to a CSV file:
+The ```members()``` and ```repos()``` functions return a list of _namedtuple_ objects. The ```write_csv()``` function can be used to write these lists to a CSV file:
 
 ```
 import gitinfo as gi
-ms_members = gi.get_members(org='microsoft')
+ms_members = gi.members(org='microsoft')
 gi.write_csv(ms_members, 'MicrosoftMembers.csv')
 ```
