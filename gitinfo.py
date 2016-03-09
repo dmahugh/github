@@ -103,12 +103,15 @@ def memberfields(member_json, fields):
     return member_tuple(**values)
 
 #-------------------------------------------------------------------------------
-def members(org=None, fields=None):
+def members(org=None, fields=None, audit2FA=False):
     """Get members for one or more organizations.
 
     org = organization
     fields = list of field names to be returned; names must be the same as
              returned by the GitHub API
+    audit2FA = whether to only return members with 2FA disabled. You must be
+               authenticated via auth_user() as a member of the org(s) to use
+               this option.
 
     Returns a list of namedtuple objects, one per member.
     """
@@ -116,16 +119,19 @@ def members(org=None, fields=None):
         # default fields to be returned if none specified
         fields = ['login', 'id', 'type', 'site_admin']
 
+    # set endpoint suffix for audit2FA option
+    suffix = '?filter=2fa_disabled' if audit2FA else ''
+
     memberlist = [] # the list that will be returned
 
     if isinstance(org, str):
         # one org ID passed as a string
-        endpoint = 'https://api.github.com/orgs/' + org + '/members'
+        endpoint = 'https://api.github.com/orgs/' + org + '/members' + suffix
         memberlist.extend(membersget(endpoint, fields))
     else:
         # list of org IDs passed
         for orgid in org:
-            endpoint = 'https://api.github.com/orgs/' + orgid + '/members'
+            endpoint = 'https://api.github.com/orgs/' + orgid + '/members' + suffix
             memberlist.extend(membersget(endpoint, fields))
 
     return memberlist
@@ -373,7 +379,7 @@ def test_auth():
 def test_members():
     """Simple test for members() function. Also tests write_csv().
     """
-    test_results = members(org=['bitstadium', 'manifoldjs'])
+    test_results = members(org=['bitstadium', 'manifoldjs'], audit2FA=True)
     for member in test_results:
         print(member)
     print('Total members:', len(test_results))
