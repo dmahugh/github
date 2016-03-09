@@ -54,9 +54,7 @@ def auth():
     username = _settings.github_username
     access_token = _settings.github_accesstoken
 
-    verbose_output('auth() ->', 'username:', username)
-    verbose_output('auth() ->',
-                   'PAT:', access_token[0:2] + '...' + access_token[-2:])
+    verbose_output('auth() ->', 'username:', username + ', PAT:', access_token[0:2] + '...' + access_token[-2:])
 
     return (username, access_token)
 
@@ -155,6 +153,10 @@ def membersget(org, fields, audit2fa):
 
     while True:
         response = requests.get(endpoint, auth=auth())
+        verbose_output('API rate limit: {0}, remaining: {1}'. \
+            format(response.headers['X-RateLimit-Limit'],
+                   response.headers['X-RateLimit-Remaining']))
+
         if response.ok:
             totpages += 1
             thispage = json.loads(response.text)
@@ -167,10 +169,8 @@ def membersget(org, fields, audit2fa):
         verbose_output('processing page {0} of {1}'. \
                        format(pagelinks['nextpage'], pagelinks['lastpage']))
 
-    verbose_output('pages processed:', totpages)
-    verbose_output('members returned:', len(retval))
-    for header in ['X-RateLimit-Limit', 'X-RateLimit-Remaining']:
-        verbose_output(header + ':', response.headers[header])
+    verbose_output('pages processed: {0}, total members: {1}'. \
+        format(totpages, len(retval)))
 
     return retval
 
@@ -297,6 +297,10 @@ def reposget(endpoint, fields):
 
     while True:
         response = requests.get(endpoint, auth=auth(), headers=headers)
+        verbose_output('API rate limit: {0}, remaining: {1}'. \
+            format(response.headers['X-RateLimit-Limit'],
+                   response.headers['X-RateLimit-Remaining']))
+
         if response.ok:
             totpages += 1
             thispage = json.loads(response.text)
@@ -309,10 +313,8 @@ def reposget(endpoint, fields):
         verbose_output('processing page {0} of {1}'. \
                        format(pagelinks['nextpage'], pagelinks['lastpage']))
 
-    verbose_output('pages processed:', totpages)
-    verbose_output('repos returned:', len(retval))
-    for header in ['X-RateLimit-Limit', 'X-RateLimit-Remaining']:
-        verbose_output(header + ':', response.headers[header])
+    verbose_output('pages processed: {0}, total members: {1}'. \
+        format(totpages, len(retval)))
 
     return retval
 
@@ -385,22 +387,14 @@ def test_auth():
 def test_members():
     """Simple test for members() function.
     """
-    auth_user('msftgits')
     test_results = members(org=['bitstadium', 'liveservices'])
-    for member in test_results:
-        print(member)
-    print('Total members:', len(test_results))
 
 #-------------------------------------------------------------------------------
 def test_repos():
-    """Simple test for repos() function. Also tests write_csv().
+    """Simple test for repos() function.
     """
     oct_repos = repos(user=['octocat', 'dmahugh'],
                       fields=['full_name', 'license.name', 'license'])
-    for repo in oct_repos:
-        print(repo)
-    print('Total repos: ', len(oct_repos))
-    write_csv(oct_repos, 'data\OctocatRepos.csv')
 
 #-------------------------------------------------------------------------------
 def test_pagination():
@@ -416,6 +410,6 @@ if __name__ == "__main__":
 
     verbose(True) # turn on verbose mode
     #test_auth()
-    test_members()
-    #test_repos()
+    #test_members()
+    test_repos()
     #test_pagination()
