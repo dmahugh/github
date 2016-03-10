@@ -52,7 +52,8 @@ def auth():
     username = _settings.github_username
     access_token = _settings.github_accesstoken
 
-    verbose_output('auth() ->', 'username:', username + ', PAT:', access_token[0:2] + '...' + access_token[-2:])
+    verbose_output('auth() ->', 'username:', username + ', PAT:',
+                   access_token[0:2] + '...' + access_token[-2:])
 
     return (username, access_token)
 
@@ -86,11 +87,13 @@ def memberfields(member_json, fields, org):
     NOTE: in addition to the specified fields, always returns an 'org' field
     to distinguish between organizations in lists returned by members().
     """
-    member_tuple = collections.namedtuple('member_tuple', 'org ' + ' '.join(fields))
     values = {}
     values['org'] = org
     for fldname in fields:
         values[fldname] = member_json[fldname]
+
+    member_tuple = collections.namedtuple('member_tuple',
+                                          'org ' + ' '.join(fields))
     return member_tuple(**values)
 
 #-------------------------------------------------------------------------------
@@ -101,46 +104,45 @@ def members(org=None, fields=None, audit2fa=False):
     fields = list of field names to be returned; names must be the same as
              returned by the GitHub API
     audit2fa = whether to only return members with 2FA disabled. You must be
-               authenticated via auth_user() as a member of the org(s) to use
+               authenticated via auth_user() as an admin of the org(s) to use
                this option.
 
     Returns a list of namedtuple objects, one per member.
     """
     if not fields:
-        # default fields to be returned if none specified
-        fields = ['login', 'id', 'type', 'site_admin']
+        fields = ['login', 'id', 'type', 'site_admin'] # default field list
 
-    memberlist = [] # the list that will be returned
+    memberlist = [] # the list of members that will be returned
 
+    # org may be a single value as a string, or a list of values
     if isinstance(org, str):
-        # one org ID passed as a string
         memberlist.extend(membersget(org, fields, audit2fa))
     else:
-        # list of org IDs passed
         for orgid in org:
             memberlist.extend(membersget(orgid, fields, audit2fa))
 
     return memberlist
 
 #------------------------------------------------------------------------------
-def membersget(org, fields, audit2fa):
+def membersget(org, fields, audit2fa=False):
     """Get member info for a specified organization.
 
     1st parameter = organization ID
     2nd parameter = list of fields to be returned
-    3rd parameter = whether to only return members with 2FA disabled. You must
-                    be authenticated via auth_user() as a member of the org(s)
-                    to use this option.
+    audit2fa = whether to only return members with 2FA disabled.
+               Note: for audit2fa=True, you must be authenticated via
+               auth_user() as an admin of the org(s).
 
     Returns a list of namedtuples containing the specified fields.
     """
-    totpages = 0
+    endpoint = 'https://api.github.com/orgs/' + org + '/members' + \
+        ('?filter=2fa_disabled' if audit2fa else '')
     retval = [] # the list to be returned
-
-    suffix = '?filter=2fa_disabled' if audit2fa else ''
-    endpoint = 'https://api.github.com/orgs/' + org + '/members' + suffix
+    totpages = 0
 
     while True:
+
+        # GitHub API call
         response = requests.get(endpoint, auth=auth())
         verbose_output('API rate limit: {0}, remaining: {1}'. \
             format(response.headers['X-RateLimit-Limit'],
@@ -151,10 +153,12 @@ def membersget(org, fields, audit2fa):
             thispage = json.loads(response.text)
             for member_json in thispage:
                 retval.append(memberfields(member_json, fields, org))
+
         pagelinks = pagination(response)
         endpoint = pagelinks['nextURL']
         if not endpoint:
-            break # there are no more results to process
+            break # no more results to process
+
         verbose_output('processing page {0} of {1}'. \
                        format(pagelinks['nextpage'], pagelinks['lastpage']))
 
@@ -167,8 +171,9 @@ def membersget(org, fields, audit2fa):
 def pagination(link_header):
     """Parse values from the 'link' HTTP header returned by GitHub API.
 
-    1st parameter = the 'link' HTTP header passed as a string, or a
-                    response object returned by the requests module
+    1st parameter = either of these options ...
+                    - 'link' HTTP header passed as a string
+                    - response object returned by requests.get()
 
     Returns a dictionary with entries for the URLs and page numbers parsed
     from the link string: firstURL, firstpage, prevURL, prevpage, nextURL,
@@ -181,16 +186,19 @@ def pagination(link_header):
     if isinstance(link_header, str):
         link_string = link_header
     else:
+        # link_header is a response object, get its 'link' HTTP header
         try:
             link_string = link_header.headers['Link']
         except KeyError:
             return retval # no Link HTTP header found, nothing to parse
 
-    links = link_string.split(',') # each of these is '<url>; rel="type"'
+    links = link_string.split(',')
     for link in links:
+        # link format = '<url>; rel="type"'
         linktype = link.split(';')[-1].split('=')[-1].strip()[1:-1]
         url = link.split(';')[0].strip()[1:-1]
         pageno = url.split('?')[-1].split('=')[-1].strip()
+
         retval[linktype + 'page'] = pageno
         retval[linktype + 'URL'] = url
 
@@ -205,8 +213,12 @@ def repofields(repo_json, fields):
 
     Returns a namedtuple containing the desired fields and their values.
     """
-    fldnames = [_.replace('.', '_') for _ in fields] # periods to underscores
+
+    # change '.' to '_' because can't have '.' in an identifier
+    fldnames = [_.replace('.', '_') for _ in fields]
+
     repo_tuple = collections.namedtuple('Repo', ' '.join(fldnames))
+
     values = {}
     for fldname in fields:
         if '.' in fldname:
@@ -217,52 +229,49 @@ def repofields(repo_json, fields):
             except TypeError:
                 values[fldname.replace('.', '_')] = None
         else:
+            # simple case: copy a value from the JSON to the namedtuple
             values[fldname] = repo_json[fldname]
+
     return repo_tuple(**values)
 
 #-------------------------------------------------------------------------------
 def repos(org=None, user=None, fields=None):
     """Get repo information for organization(s) or user(s).
 
-    org = organization; either a string containing a single organization ID, or
-          a list of organization IDs to be included
-    user = username (ignored if org argument is provided); either a string
-           containing a single organization ID, or a list of organization IDs
-           to be included
-    fields = list of field names to be returned; names must be the same as
-             returned by the GitHub API. Embedded elements are also supported:
-             for example, pass a field named 'license.name' and it will
-             return the 'name' element of the 'license' entry for each repo.
-             Namedtuples don't allow embedded periods in identifiers, so in
-             this case the column name will be 'license_name'.
+    org    = organization; an organization or list of organizations
+    user   = username; a username or list of usernames
+    fields = list of fields to be returned; names must be the same as
+             returned by the GitHub API.
+             Note: dot notation for embedded elements is supported.
+             For example, pass a field named 'license.name' to get the 'name'
+             element of the 'license' entry for each repo.
 
     Returns a list of namedtuple objects, one per repo.
     """
     if not fields:
-        # default fields to be returned if none specified
-        fields = ['full_name', 'watchers', 'forks', 'open_issues']
+        fields = ['full_name', 'watchers', 'forks', 'open_issues'] # default
 
     repolist = [] # the list that will be returned
 
     if org:
-        # get repos by org
+        # get repos by organization
         if isinstance(org, str):
-            # one org ID passed as a string
+            # one organization
             endpoint = 'https://api.github.com/orgs/' + org + '/repos'
             repolist.extend(reposget(endpoint, fields))
         else:
-            # list of org IDs passed
+            # list of organizations
             for orgid in org:
                 endpoint = 'https://api.github.com/orgs/' + orgid + '/repos'
                 repolist.extend(reposget(endpoint, fields))
     else:
         # get repos by user
         if isinstance(user, str):
-            # one user ID passed as a string
+            # one user
             endpoint = 'https://api.github.com/users/' + user + '/repos'
             repolist.extend(reposget(endpoint, fields))
         else:
-            # list of user IDs passed
+            # list of users
             for userid in user:
                 endpoint = 'https://api.github.com/users/' + userid + '/repos'
                 repolist.extend(reposget(endpoint, fields))
@@ -285,6 +294,8 @@ def reposget(endpoint, fields):
     headers = {'Accept': 'application/vnd.github.drax-preview+json'}
 
     while True:
+
+        # GitHub API call
         response = requests.get(endpoint, auth=auth(), headers=headers)
         verbose_output('API rate limit: {0}, remaining: {1}'. \
             format(response.headers['X-RateLimit-Limit'],
@@ -295,10 +306,12 @@ def reposget(endpoint, fields):
             thispage = json.loads(response.text)
             for repo_json in thispage:
                 retval.append(repofields(repo_json, fields))
+
         pagelinks = pagination(response)
         endpoint = pagelinks['nextURL']
         if not endpoint:
             break # there are no more results to process
+
         verbose_output('processing page {0} of {1}'. \
                        format(pagelinks['nextpage'], pagelinks['lastpage']))
 
@@ -318,6 +331,7 @@ def verbose(*args):
     """
     if len(args) == 1:
         _settings.verbose = args[0]
+
     return _settings.verbose
 
 #-------------------------------------------------------------------------------
@@ -330,12 +344,14 @@ def verbose_output(*args):
     string delimited by spaces.
     """
     if not _settings.verbose:
-        return # verbose mode is off, nothing to do
+        return # verbose mode is off
 
-    # convert all to strings, to allow for non-string parameters
+    # convert all arguments to strings. so they can be .join()ed
     string_args = [str(_) for _ in args]
 
+    # get the caller of verbose_output(), which is displayed with the message
     caller = traceback.format_stack()[1].split(',')[2].strip().split()[1]
+
     print(caller + '() ->', ' '.join(string_args))
 
 #-------------------------------------------------------------------------------
@@ -346,20 +362,21 @@ def write_csv(listobj, filename):
     2nd parameter = name of CSV file to be written
     """
     csvfile = open(filename, 'w', newline='')
+
     csvwriter = csv.writer(csvfile, dialect='excel')
     header_row = listobj[0]._fields
     csvwriter.writerow(header_row)
-
-    verbose_output('filename:', filename)
-    verbose_output('columns:', header_row)
 
     for row in listobj:
         values = []
         for fldname in header_row:
             values.append(getattr(row, fldname))
         csvwriter.writerow(values)
+
     csvfile.close()
 
+    verbose_output('filename:', filename)
+    verbose_output('columns:', header_row)
     verbose_output('total rows:', len(listobj))
 
 #===============================================================================
@@ -376,13 +393,14 @@ def test_auth():
 def test_members():
     """Simple test for members() function.
     """
-    test_results = members(org=['bitstadium', 'liveservices'])
+    print(members(org=['bitstadium', 'liveservices']))
+    print('total members returned:', len(members(org=['bitstadium', 'liveservices'])))
 
 #-------------------------------------------------------------------------------
 def test_repos():
     """Simple test for repos() function.
     """
-    oct_repos = repos(user=['octocat'],
+    oct_repos = repos(user=['octocat', 'dmahugh'],
                       fields=['full_name', 'license.name', 'license'])
     for repo in oct_repos:
         print(repo)
