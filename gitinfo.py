@@ -102,12 +102,20 @@ def members(org=None, fields=None, audit2fa=False):
 
     org = organization
     fields = list of field names to be returned; names must be the same as
-             returned by the GitHub API
+             returned by the GitHub API (see below).
     audit2fa = whether to only return members with 2FA disabled. You must be
                authenticated via auth_user() as an admin of the org(s) to use
                this option.
 
     Returns a list of namedtuple objects, one per member.
+
+    GitHub API fields (as of March 2016):
+    id                  events_url          organizations_url
+    login               followers_url       received_events_url
+    site_admin          following_url       repos_url
+    type                gists_url           starred_url
+    url                 gravatar_id         subscriptions_url
+    avatar_url          html_url
     """
     if not fields:
         fields = ['login', 'id', 'type', 'site_admin'] # default field list
@@ -241,12 +249,52 @@ def repos(org=None, user=None, fields=None):
     org    = organization; an organization or list of organizations
     user   = username; a username or list of usernames
     fields = list of fields to be returned; names must be the same as
-             returned by the GitHub API.
+             returned by the GitHub API (see below).
              Note: dot notation for embedded elements is supported.
              For example, pass a field named 'license.name' to get the 'name'
              element of the 'license' entry for each repo.
 
     Returns a list of namedtuple objects, one per repo.
+
+    GitHub API fields (as of March 2016):
+    archive_url         git_tags_url         open_issues
+    assignees_url       git_url              open_issues_count
+    blobs_url           has_downloads        private
+    branches_url        has_issues           pulls_url
+    clone_url           has_pages            pushed_at
+    collaborators_url   has_wiki             releases_url
+    commits_url         homepage             size
+    compare_url         hooks_url            ssh_url
+    contents_url        html_url             stargazers_count
+    contributors_url    id                   stargazers_url
+    created_at          issue_comment_url    statuses_url
+    default_branch      issue_events_url     subscribers_url
+    deployments_url     issues_url           subscription_url
+    description         keys_url             svn_url
+    downloads_url       labels_url           tags_url
+    events_url          language             teams_url
+    fork                languages_url        trees_url
+    forks               master_branch        updated_at
+    forks_count         merges_url           url
+    forks_url           milestones_url       watchers
+    full_name           mirror_url           watchers_count
+    git_commits_url     name
+    git_refs_url        notifications_url
+    -------------------------------------------------------------
+    license.featured              permissions.admin
+    license.key                   permissions.pull
+    license.name                  permissions.push
+    license.url
+    -------------------------------------------------------------
+    owner.avatar_url              owner.organizations_url
+    owner.events_url              owner.received_events_url
+    owner.followers_url           owner.repos_url
+    owner.following_url           owner.site_admin
+    owner.gists_url               owner.starred_url
+    owner.gravatar_id             owner.subscriptions_url
+    owner.html_url                owner.type
+    owner.id                      owner.url
+    owner.login
     """
     if not fields:
         fields = ['full_name', 'watchers', 'forks', 'open_issues'] # default
@@ -400,8 +448,8 @@ def test_members():
 def test_repos():
     """Simple test for repos() function.
     """
-    oct_repos = repos(user=['octocat', 'dmahugh'],
-                      fields=['full_name', 'license.name', 'license'])
+    oct_repos = repos(user=['octocat'],
+                      fields=['full_name', 'license.name', 'license', 'permissions.admin'])
     for repo in oct_repos:
         print(repo)
 
