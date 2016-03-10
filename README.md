@@ -12,7 +12,7 @@ Gitinfo has one external dependency - the [requests](https://pypi.python.org/pyp
 
 ## sample usage
 
-Here's an example of Python code to retrieve and display all public repos in the Microsoft organization:
+Here's an example of code to retrieve and display repos by *organization*:
 
 ```
 import gitinfo as gi
@@ -24,6 +24,19 @@ for repo in ms_repos:
 And here's the output for that example:
 
 ![MicrosoftReposOutput](images/MicrosoftReposOutput.png)
+
+Similar syntax to get repos by *user*:
+
+```
+import gitinfo as gi
+oct_repos = gi.repos(user='octocat')
+for repo in oct_repos:
+    print(repo)
+```
+
+And here's the output for that example:
+
+![OctocatRepos2](images/OctocatRepos2.png)
 
 ## verbose() setting
 You can set "verbose mode" on to get status information displayed to the console. For example:
