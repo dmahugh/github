@@ -3,6 +3,7 @@
 auth_config() ----> Configure authentication settings.
 auth_user() ------> Return credentials for use in GitHub API calls.
 github_api() -----> Call the GitHub API (wrapper for requests.get())
+log_apistatus() --> Display the rate-limit status after the last API call.
 log_config() -----> Configure message logging settings.
 log_msg() --------> Log a status message.
 memberfields() ---> Get field values for a member/user.
@@ -13,7 +14,7 @@ repofields() -----> Get field values for a repo.
 repos() ----------> Get repo information for organization(s) or user(s).
 reposget() -------> Get repo information from specified API endpoint.
 session_end() ----> Log summary of completed gitinfo "session."
-session_start() --> Initiate a gitinfo "session" for logging/tracking purposes.
+session_start() --> Initiate a gitinfo session for logging/tracking purposes.
 timestamp() ------> Return current timestamp as a string - YYYY-MM-DD HH:MM:SS
 write_csv() ------> Write a list of namedtuples to a CSV file.
 """
@@ -21,6 +22,8 @@ import collections
 import csv
 import datetime
 import json
+import os
+import time
 import traceback
 
 import requests
@@ -39,7 +42,8 @@ class _settings: # pylint: disable=R0903
     verbose = True # default = messages displayed to console
     logfile = None # default = messages not logged to a file
 
-    # "gitinfo session" settings
+    # initialize gitinfo session settings
+    start_time = time.time() # session start time (seconds)
     tot_api_calls = 0 # number of API calls made through gitinfo
     tot_api_bytes = 0 # total bytes returned by these API calls
     last_ratelimit = 0 # API rate limit for the most recent API call
@@ -125,11 +129,16 @@ def github_api(endpoint=None, auth=None, headers=None):
     _settings.last_ratelimit = int(response.headers['X-RateLimit-Limit'])
     _settings.last_remaining = int(response.headers['X-RateLimit-Remaining'])
 
-    log_msg('API rate limit: {0}, remaining = {1}'. \
-        format(response.headers['X-RateLimit-Limit'],
-               response.headers['X-RateLimit-Remaining']))
-
     return response
+
+#-------------------------------------------------------------------------------
+def log_apistatus():
+    """Display (via log_msg()) the rate-limit status after the last API call.
+    """
+    remaining = _settings.last_remaining
+    used = _settings.last_ratelimit - remaining
+    log_msg('API rate limit = {0}/hour ({1} used, {2} remaining)'. \
+        format(_settings.last_ratelimit, used, remaining))
 
 #-------------------------------------------------------------------------------
 def log_config(settings=None):
@@ -461,12 +470,18 @@ def reposget(endpoint, fields):
 
 #-------------------------------------------------------------------------------
 def session_end(msg=None):
-    """Log summary of completed gitinfo "session."
+    """Log summary of completed gitinfo session.
 
     1st parameter = optional message to include in logfile/console output
     """
-    #/// display elapsed time, API calls, API bytes
-    #/// show most recent rate-limit and remaining
+    log_msg('Elapsed time (seconds): {0}'. \
+        format(time.time() - _settings.start_time))
+
+    log_msg('Total API calls: {0}, total bytes returned: {1}'. \
+        format(_settings.tot_api_calls, _settings.tot_api_bytes))
+
+    log_apistatus()
+
     msgline = 60*'-' if not msg else (' ' + msg + ' ').center(60, '-')
     log_msg(msgline)
 
@@ -476,10 +491,16 @@ def session_start(msg=None):
 
     1st parameter = optional message to include in logfile/console output
     """
+    # initialize gitinfo session settings
+    _settings.start_time = time.time() # session start time (seconds)
+    _settings.tot_api_calls = 0 # number of API calls made through gitinfo
+    _settings.tot_api_bytes = 0 # total bytes returned by these API calls
+    _settings.last_ratelimit = 0 # API rate limit for the most recent API call
+    _settings.last_remaining = 0 # remaining portion of rate limit after last API call
+
     msgline = 60*'-' if not msg else (' ' + msg + ' ').center(60, '-')
     log_msg(msgline)
-    log_msg('source file:', '///sourcefile///')
-    #/// initialize _settings: api_calls, api_bytes, start_time
+    log_msg('filename:', os.path.abspath(__file__))
 
 #-------------------------------------------------------------------------------
 def timestamp():
