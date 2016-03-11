@@ -217,10 +217,11 @@ def memberfields(member_json, fields, org):
     return member_tuple(**values)
 
 #-------------------------------------------------------------------------------
-def members(org=None, fields=None, audit2fa=False):
-    """Get members for one or more organizations.
+def members(org=None, team=None, fields=None, audit2fa=False):
+    """Get members for one or more teams or organizations.
 
     org = an organization ID or list of organizations
+    team = a team ID or list of teams; if provided, org is ignored
     fields = list of field names to be returned; names must be the same as
              returned by the GitHub API (see below).
     audit2fa = whether to only return members with 2FA disabled. You must be
@@ -242,29 +243,47 @@ def members(org=None, fields=None, audit2fa=False):
 
     memberlist = [] # the list of members that will be returned
 
-    # org may be a single value as a string, or a list of values
-    if isinstance(org, str):
-        memberlist.extend(membersget(org, fields, audit2fa))
+    if team:
+        # get members by team
+        if isinstance(team, str):
+            # one team
+            memberlist.extend(membersget(team=team, fields=fields))
+        else:
+            # list of teams
+            for teamid in team:
+                memberlist.extend(membersget(team=teamid, fields=fields))
     else:
-        for orgid in org:
-            memberlist.extend(membersget(orgid, fields, audit2fa))
+        # get members by organization
+        if isinstance(org, str):
+            # one organization
+            memberlist.extend(membersget(org=org, fields=fields, audit2fa=audit2fa))
+        else:
+            # list of organizations
+            for orgid in org:
+                memberlist.extend(membersget(org=orgid, fields=fields, audit2fa=audit2fa))
 
     return memberlist
 
 #------------------------------------------------------------------------------
-def membersget(org, fields, audit2fa=False):
+def membersget(org=None, team=None, fields=None, audit2fa=False):
     """Get member info for a specified organization.
 
-    1st parameter = organization ID
-    2nd parameter = list of fields to be returned
-    audit2fa = whether to only return members with 2FA disabled.
+    org = organization ID (ignored if a team is specified)
+    team = team ID
+    fields = list of fields to be returned
+    audit2fa = whether to only return members with 2FA disabled. This option
+               is only available when retrieving members by organization.
                Note: for audit2fa=True, you must be authenticated via
                auth_config() as an admin of the org(s).
 
     Returns a list of namedtuples containing the specified fields.
     """
-    endpoint = 'https://api.github.com/orgs/' + org + '/members' + \
-        ('?filter=2fa_disabled' if audit2fa else '')
+    if team:
+        endpoint = 'https://api.github.com/teams/' + team + '/members'
+    else:
+        endpoint = 'https://api.github.com/orgs/' + org + '/members' + \
+            ('?filter=2fa_disabled' if audit2fa else '')
+
     retval = [] # the list to be returned
     totpages = 0
 
@@ -359,10 +378,11 @@ def repofields(repo_json, fields):
 
 #-------------------------------------------------------------------------------
 def repos(org=None, user=None, fields=None):
-    """Get repo information for organization(s) or user(s).
+    """Get repo information for one or more organizations or users.
 
     org    = organization; an organization or list of organizations
-    user   = username; a username or list of usernames
+    user   = username; a username or list of usernames (if org is provided,
+             user is ignored)
     fields = list of fields to be returned; names must be the same as
              returned by the GitHub API (see below).
              Note: dot notation for embedded elements is supported.
@@ -651,7 +671,9 @@ def test_auth_user():
 def test_members():
     """Simple test for members() function.
     """
-    membertest = members(org=['bitstadium', 'ms-iot'])
+    membertest = members(org=['bitstadium', 'ms-iot'], audit2fa=True)
+    for member in membertest:
+        print(member)
     print('total members returned:', len(membertest))
 
 #-------------------------------------------------------------------------------
@@ -681,6 +703,7 @@ def test_teams():
         print(team)
     print('total teams returned:', len(teamtest))
 
+
 # if running standalone, run tests ---------------------------------------------
 if __name__ == "__main__":
 
@@ -688,8 +711,8 @@ if __name__ == "__main__":
     auth_config({'username': 'msftgits'})
     session_start('inline tests')
     #test_auth_user()
-    #test_members()
+    test_members()
     #test_repos()
     #test_pagination()
-    test_teams()
+    #test_teams()
     session_end()
