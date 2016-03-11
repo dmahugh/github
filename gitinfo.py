@@ -1,16 +1,16 @@
 """Helper functions for retrieving data via the GitHub API.
 
-auth() -----------> Return credentials for use in GitHub API calls.
-auth_user() ------> Set GitHub user for subsequent API calls.
+auth_config() ----> Configure authentication settings.
+auth_user() ------> Return credentials for use in GitHub API calls.
 
-log_config() -----> Change message logging settings.
+log_config() -----> Configure message logging settings.
 log_msg() --------> Log a status message.
 
 memberfields() ---> Get field values for a member/user.
 members() --------> Get members of one or more organizations.
 membersget() -----> Get member info for a specified organization.
 
-pagination() -----> Parse values from 'link' HTTP header returned by GitHub API.
+pagination() -----> Parse 'link' HTTP header returned by GitHub API.
 
 repofields() -----> Get field values for a repo.
 repos() ----------> Get repo information for organization(s) or user(s).
@@ -28,76 +28,92 @@ import requests
 
 #------------------------------------------------------------------------------
 class _settings: # pylint: disable=R0903
-    """Used for global settings. Should not be accessed directly - e.g.,
-    use the log_config() function to change _settings.verbose, or the user()
-    function to change _settings.github_username/accesstoken.
+    """Used for global settings. Should not be accessed directly - use
+    the auth_config() or log_config() functions to change settings.
     """
 
     # authentication settings used by auth_*() functions
-    github_username = None # default = no GitHub authentication
-    github_accesstoken = None
+    username = None # default = no GitHub authentication
+    accesstoken = None
 
     # logging settings used by log_*() functions
     verbose = True # default = messages displayed to console
     logfile = None # default = messages not logged to a file
 
+#-------------------------------------------------------------------------------
+def auth_config(settings=None):
+    """Configure authentication settings.
+
+    1st parameter = dictionary of configuration settings; see config_settings
+                    below for settings managed by this function.
+
+    Returns dictionary of current settings - call auth_config() with no
+    parameters to get status.
+    """
+    config_settings = ['username', 'accesstoken']
+
+    # if username is specified but no accesstoken specified, look up this
+    # user's PAT in github_users.json
+    if settings and 'username' in settings and not 'accesstoken' in settings:
+        with open('private/github_users.json', 'r') as jsonfile:
+            github_users = json.load(jsonfile)
+            settings['accesstoken'] = github_users[settings['username']]
+
+    if settings:
+        for setting in config_settings:
+            if setting in settings:
+                setattr(_settings, setting, settings[setting])
+
+    retval = dict()
+    for setting in config_settings:
+        retval[setting] = getattr(_settings, setting)
+
+    return retval
+
 #------------------------------------------------------------------------------
-def auth():
+def auth_user():
     """Credentials for basic authentication.
 
     Returns the tuple used for API calls, based on current settings.
     Returns None if no GitHub username/PAT is currently set.
     """
-    # Note that "auth() ->" is explcitly added to the log_msg()
-    # calls below because auth() is typically used inline from other
+    # Note that "auth_user() ->" is explcitly added to the log_msg()
+    # calls below because auth_user() is typically used inline from other
     # functions, so it isn't the caller in the call stack.
 
-    if not _settings.github_username:
+    if not _settings.username:
         return None
 
-    username = _settings.github_username
-    access_token = _settings.github_accesstoken
+    username = _settings.username
+    access_token = _settings.accesstoken
 
-    log_msg('auth() ->', 'username:', username + ', PAT:',
+    log_msg('auth_user() ->', 'username:', username + ', PAT:',
                    access_token[0:2] + '...' + access_token[-2:])
 
     return (username, access_token)
 
 #-------------------------------------------------------------------------------
-def auth_user(username=None):
-    """Set GitHub user for subsequent API calls.
-
-    username = a GitHub username stored in github_users.json in the
-               /private subfolder. If omitted or None, resets GitHub user to
-               no authentication.
-    """
-    if username:
-        with open('private/github_users.json', 'r') as jsonfile:
-            github_users = json.load(jsonfile)
-            _settings.github_username = username
-            _settings.github_accesstoken = github_users[username]
-    else:
-        # no username specified, so reset to default of no authentication
-        _settings.github_username = None
-        _settings.github_accesstoken = None
-
-#-------------------------------------------------------------------------------
 def log_config(settings=None):
-    """Change message logging settings.
+    """Configure message logging settings.
 
-    1st parameter = dictionary of configuration settings; my include entries
-                    for "verbose" and/or "logfile"
+    1st parameter = dictionary of configuration settings; see config_settings
+                    below for settings managed by this function.
 
     Returns dictionary of current settings - call log_config() with no
     parameters to get status.
     """
+    config_settings = ['verbose', 'logfile']
+
     if settings:
-        for setting in ['verbose', 'logfile']:
+        for setting in config_settings:
             if setting in settings:
                 setattr(_settings, setting, settings[setting])
 
-    return {'verbose': _settings.verbose, 'logfile': _settings.logfile}
+    retval = dict()
+    for setting in config_settings:
+        retval[setting] = getattr(_settings, setting)
 
+    return retval
 #-------------------------------------------------------------------------------
 def log_msg(*args):
     """Log a status message.
@@ -151,7 +167,7 @@ def members(org=None, fields=None, audit2fa=False):
     fields = list of field names to be returned; names must be the same as
              returned by the GitHub API (see below).
     audit2fa = whether to only return members with 2FA disabled. You must be
-               authenticated via auth_user() as an admin of the org(s) to use
+               authenticated via auth_config() as an admin of the org(s) to use
                this option.
 
     Returns a list of namedtuple objects, one per member.
@@ -186,7 +202,7 @@ def membersget(org, fields, audit2fa=False):
     2nd parameter = list of fields to be returned
     audit2fa = whether to only return members with 2FA disabled.
                Note: for audit2fa=True, you must be authenticated via
-               auth_user() as an admin of the org(s).
+               auth_config() as an admin of the org(s).
 
     Returns a list of namedtuples containing the specified fields.
     """
@@ -198,7 +214,7 @@ def membersget(org, fields, audit2fa=False):
     while True:
 
         # GitHub API call
-        response = requests.get(endpoint, auth=auth())
+        response = requests.get(endpoint, auth=auth_user())
         log_msg('API rate limit: {0}, remaining: {1}'. \
             format(response.headers['X-RateLimit-Limit'],
                    response.headers['X-RateLimit-Remaining']))
@@ -391,7 +407,7 @@ def reposget(endpoint, fields):
     while True:
 
         # GitHub API call
-        response = requests.get(endpoint, auth=auth(), headers=headers)
+        response = requests.get(endpoint, auth=auth_user(), headers=headers)
         log_msg('API rate limit: {0}, remaining: {1}'. \
             format(response.headers['X-RateLimit-Limit'],
                    response.headers['X-RateLimit-Remaining']))
@@ -445,10 +461,10 @@ def write_csv(listobj, filename):
 #===============================================================================
 
 #-------------------------------------------------------------------------------
-def test_auth():
-    """Simple test for auth() function.
+def test_auth_user():
+    """Simple test for auth_user() function.
     """
-    print(auth())
+    print(auth_user())
 
 #-------------------------------------------------------------------------------
 def test_members():
@@ -479,8 +495,8 @@ def test_pagination():
 if __name__ == "__main__":
 
     log_config({'verbose': True, 'logfile': 'gitinfo.log'})
-    auth_user('dmahugh')
-    #test_auth()
-    #test_members()
-    test_repos()
+    auth_config({'username': 'dmahugh'})
+    #test_auth_user()
+    test_members()
+    #test_repos()
     #test_pagination()
