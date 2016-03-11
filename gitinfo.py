@@ -15,6 +15,9 @@ repos() ----------> Get repo information for organization(s) or user(s).
 reposget() -------> Get repo information from specified API endpoint.
 session_end() ----> Log summary of completed gitinfo "session."
 session_start() --> Initiate a gitinfo session for logging/tracking purposes.
+teamfields() -----> Get field values for a team.
+teams() ----------> Get teams for one or more organizations.
+teamsget() -------> Get team info for a specified organization.
 timestamp() ------> Return current timestamp as a string - YYYY-MM-DD HH:MM:SS
 write_csv() ------> Write a list of namedtuples to a CSV file.
 """
@@ -31,13 +34,13 @@ import requests
 
 #------------------------------------------------------------------------------
 class _settings: # pylint: disable=R0903
-    """Used for global settings. Should not be accessed directly - use
-    the auth_config() or log_config() functions to change settings.
+    """This class is just a namespace used for global settings.
+    Use auth_config() or log_config() to change these settings.
     """
 
     # authentication settings used by auth_*() functions
     username = None # default = no GitHub authentication
-    accesstoken = None
+    accesstoken = None # auth_config() may set this from the 'private' folder
 
     # logging settings used by log_*() functions
     verbose = True # default = messages displayed to console
@@ -202,7 +205,7 @@ def memberfields(member_json, fields, org):
 
     Returns a namedtuple containing the desired fields and their values.
     NOTE: in addition to the specified fields, always returns an 'org' field
-    to distinguish between organizations in lists returned by members().
+    to distinguish between orgs in multi-org lists returned by members().
     """
     values = {}
     values['org'] = org
@@ -217,7 +220,7 @@ def memberfields(member_json, fields, org):
 def members(org=None, fields=None, audit2fa=False):
     """Get members for one or more organizations.
 
-    org = organization
+    org = an organization ID or list of organizations
     fields = list of field names to be returned; names must be the same as
              returned by the GitHub API (see below).
     audit2fa = whether to only return members with 2FA disabled. You must be
@@ -510,6 +513,100 @@ def session_start(msg=None):
     log_msg('filename:', os.path.abspath(__file__))
 
 #-------------------------------------------------------------------------------
+def teamfields(team_json, fields, org):
+    """Get field values for a team.
+
+    1st parameter = team's json representation as returned by GitHub API
+    2nd parameter = list of names of desired fields
+    3rd parameter = organization ID
+
+    Returns a namedtuple containing the desired fields and their values.
+    NOTE: in addition to the specified fields, always returns an 'org' field
+    to distinguish between orgs in multi-org lists returned by teams().
+    """
+    values = {}
+    values['org'] = org
+    for fldname in fields:
+        values[fldname] = team_json[fldname]
+
+    team_tuple = collections.namedtuple('team_tuple',
+                                        'org ' + ' '.join(fields))
+    return team_tuple(**values)
+
+#-------------------------------------------------------------------------------
+def teams(org=None, fields=None):
+    """Get teams for one or more organizations.
+
+    org = organization ID, or a list of organizations
+    fields = list of field names to be returned; names must be the same as
+             returned by the GitHub API (see below).
+
+    Note: to access team information, you must be authenticated as a member of
+    the Owners team for the team's organization.
+
+    Returns a list of namedtuple objects, one per team.
+
+    GitHub API fields (as of March 2016):
+    description
+    id
+    members_url
+    name
+    permission
+    privacy
+    repositories_url
+    slug
+    url
+    """
+    if not fields:
+        fields = ['name', 'id', 'privacy', 'permission'] # default field list
+
+    teamlist = [] # the list of members that will be returned
+
+    # org may be a single value as a string, or a list of values
+    if isinstance(org, str):
+        teamlist.extend(teamsget(org, fields))
+    else:
+        for orgid in org:
+            teamlist.extend(teamsget(orgid, fields))
+
+    return teamlist
+
+#------------------------------------------------------------------------------
+def teamsget(org, fields):
+    """Get team info for a specified organization.
+
+    1st parameter = organization ID
+    2nd parameter = list of fields to be returned
+
+    Returns a list of namedtuples containing the specified fields.
+    """
+    endpoint = 'https://api.github.com/orgs/' + org + '/teams'
+    retval = [] # the list to be returned
+    totpages = 0
+
+    while True:
+
+        response = github_api(endpoint, auth=auth_user())
+        if response.ok:
+            totpages += 1
+            thispage = json.loads(response.text)
+            for team_json in thispage:
+                retval.append(teamfields(team_json, fields, org))
+
+        pagelinks = pagination(response)
+        endpoint = pagelinks['nextURL']
+        if not endpoint:
+            break # no more results to process
+
+        log_msg('processing page {0} of {1}'. \
+                       format(pagelinks['nextpage'], pagelinks['lastpage']))
+
+    log_msg('pages processed: {0}, total members: {1}'. \
+        format(totpages, len(retval)))
+
+    return retval
+
+#-------------------------------------------------------------------------------
 def timestamp():
     """Return current timestamp as a string - YYYY-MM-DD HH:MM:SS
     """
@@ -575,14 +672,24 @@ def test_pagination():
         "organizations/6154722/repos?page=18>; rel=\"last\""
     print(pagination(testlinks))
 
+#-------------------------------------------------------------------------------
+def test_teams():
+    """Simple test for teams() function.
+    """
+    teamtest = teams(org=['bitstadium', 'ms-iot'])
+    for team in teamtest:
+        print(team)
+    print('total teams returned:', len(teamtest))
+
 # if running standalone, run tests ---------------------------------------------
 if __name__ == "__main__":
 
     log_config({'verbose': True, 'logfile': 'gitinfo.log'})
-    auth_config({'username': 'dmahugh'})
+    auth_config({'username': 'msftgits'})
     session_start('inline tests')
     #test_auth_user()
-    test_members()
+    #test_members()
     #test_repos()
     #test_pagination()
+    test_teams()
     session_end()
