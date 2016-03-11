@@ -11,20 +11,22 @@
 ><font color="#ffffff" face="helvetica, arial"><a href=".">index</a><br><a href="file:c%3A%5Cusers%5Cdmahugh%5Cdropbox%5Cpython%5Cgitinfo%5Cgitinfo.py">c:\users\dmahugh\dropbox\python\gitinfo\gitinfo.py</a></font></td></tr></table>
     <p><tt>Helper&nbsp;functions&nbsp;for&nbsp;retrieving&nbsp;data&nbsp;via&nbsp;the&nbsp;GitHub&nbsp;API.<br>
 &nbsp;<br>
-Classes:<br>
-_settings&nbsp;--------&gt;&nbsp;Used&nbsp;for&nbsp;global&nbsp;settings.<br>
-&nbsp;<br>
-Functions:<br>
-<a href="#-auth">auth</a>()&nbsp;-----------&gt;&nbsp;Return&nbsp;credentials&nbsp;for&nbsp;authentication.<br>
-<a href="#-auth_reset">auth_reset</a>()&nbsp;-----&gt;&nbsp;Reset&nbsp;authorization&nbsp;settings&nbsp;to&nbsp;default&nbsp;values.<br>
-<a href="#-auth_user">auth_user</a>()&nbsp;------&gt;&nbsp;Set&nbsp;GitHub&nbsp;user&nbsp;for&nbsp;subsequent&nbsp;API&nbsp;calls.<br>
+<a href="#-auth_config">auth_config</a>()&nbsp;----&gt;&nbsp;Configure&nbsp;authentication&nbsp;settings.<br>
+<a href="#-auth_user">auth_user</a>()&nbsp;------&gt;&nbsp;Return&nbsp;credentials&nbsp;for&nbsp;use&nbsp;in&nbsp;GitHub&nbsp;API&nbsp;calls.<br>
+<a href="#-github_api">github_api</a>()&nbsp;-----&gt;&nbsp;Call&nbsp;the&nbsp;GitHub&nbsp;API&nbsp;(wrapper&nbsp;for&nbsp;requests.get())<br>
+<a href="#-log_apistatus">log_apistatus</a>()&nbsp;--&gt;&nbsp;Display&nbsp;the&nbsp;rate-limit&nbsp;status&nbsp;after&nbsp;the&nbsp;last&nbsp;API&nbsp;call.<br>
+<a href="#-log_config">log_config</a>()&nbsp;-----&gt;&nbsp;Configure&nbsp;message&nbsp;logging&nbsp;settings.<br>
+<a href="#-log_msg">log_msg</a>()&nbsp;--------&gt;&nbsp;Log&nbsp;a&nbsp;status&nbsp;message.<br>
 <a href="#-memberfields">memberfields</a>()&nbsp;---&gt;&nbsp;Get&nbsp;field&nbsp;values&nbsp;for&nbsp;a&nbsp;member/user.<br>
-<a href="#-members">members</a>()&nbsp;--------&gt;&nbsp;Get&nbsp;members&nbsp;of&nbsp;an&nbsp;organization.<br>
-<a href="#-pagination">pagination</a>()&nbsp;-----&gt;&nbsp;Parse&nbsp;values&nbsp;from&nbsp;'link'&nbsp;HTTP&nbsp;header&nbsp;returned&nbsp;by&nbsp;GitHub&nbsp;API.<br>
+<a href="#-members">members</a>()&nbsp;--------&gt;&nbsp;Get&nbsp;members&nbsp;of&nbsp;one&nbsp;or&nbsp;more&nbsp;organizations.<br>
+<a href="#-membersget">membersget</a>()&nbsp;-----&gt;&nbsp;Get&nbsp;member&nbsp;info&nbsp;for&nbsp;a&nbsp;specified&nbsp;organization.<br>
+<a href="#-pagination">pagination</a>()&nbsp;-----&gt;&nbsp;Parse&nbsp;'link'&nbsp;HTTP&nbsp;header&nbsp;returned&nbsp;by&nbsp;GitHub&nbsp;API.<br>
 <a href="#-repofields">repofields</a>()&nbsp;-----&gt;&nbsp;Get&nbsp;field&nbsp;values&nbsp;for&nbsp;a&nbsp;repo.<br>
-<a href="#-repos">repos</a>()&nbsp;----------&gt;&nbsp;Get&nbsp;all&nbsp;public&nbsp;repos&nbsp;for&nbsp;an&nbsp;organization&nbsp;or&nbsp;user.<br>
-<a href="#-verbose">verbose</a>()&nbsp;--------&gt;&nbsp;Set&nbsp;verbose&nbsp;mode&nbsp;on/off.<br>
-<a href="#-verbose_output">verbose_output</a>()&nbsp;-&gt;&nbsp;Display&nbsp;status&nbsp;info&nbsp;in&nbsp;verbose&nbsp;mode.<br>
+<a href="#-repos">repos</a>()&nbsp;----------&gt;&nbsp;Get&nbsp;repo&nbsp;information&nbsp;for&nbsp;organization(s)&nbsp;or&nbsp;user(s).<br>
+<a href="#-reposget">reposget</a>()&nbsp;-------&gt;&nbsp;Get&nbsp;repo&nbsp;information&nbsp;from&nbsp;specified&nbsp;API&nbsp;endpoint.<br>
+<a href="#-session_end">session_end</a>()&nbsp;----&gt;&nbsp;Log&nbsp;summary&nbsp;of&nbsp;completed&nbsp;gitinfo&nbsp;"session."<br>
+<a href="#-session_start">session_start</a>()&nbsp;--&gt;&nbsp;Initiate&nbsp;a&nbsp;gitinfo&nbsp;session&nbsp;for&nbsp;logging/tracking&nbsp;purposes.<br>
+<a href="#-timestamp">timestamp</a>()&nbsp;------&gt;&nbsp;Return&nbsp;current&nbsp;timestamp&nbsp;as&nbsp;a&nbsp;string&nbsp;-&nbsp;YYYY-MM-DD&nbsp;HH:MM:SS<br>
 <a href="#-write_csv">write_csv</a>()&nbsp;------&gt;&nbsp;Write&nbsp;a&nbsp;list&nbsp;of&nbsp;namedtuples&nbsp;to&nbsp;a&nbsp;CSV&nbsp;file.</tt></p>
 <p>
 <table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
@@ -35,9 +37,12 @@ Functions:<br>
 <tr><td bgcolor="#aa55cc"><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</tt></td><td>&nbsp;</td>
 <td width="100%"><table width="100%" summary="list"><tr><td width="25%" valign=top><a href="collections.html">collections</a><br>
 <a href="csv.html">csv</a><br>
-</td><td width="25%" valign=top><a href="json.html">json</a><br>
+<a href="datetime.html">datetime</a><br>
+</td><td width="25%" valign=top><a href="inspect.html">inspect</a><br>
+<a href="json.html">json</a><br>
 <a href="os.html">os</a><br>
 </td><td width="25%" valign=top><a href="requests.html">requests</a><br>
+<a href="time.html">time</a><br>
 <a href="traceback.html">traceback</a><br>
 </td><td width="25%" valign=top></td></tr></table></td></tr></table><p>
 <table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
@@ -46,36 +51,77 @@ Functions:<br>
 <font color="#ffffff" face="helvetica, arial"><big><strong>Functions</strong></big></font></td></tr>
     
 <tr><td bgcolor="#eeaa77"><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</tt></td><td>&nbsp;</td>
-<td width="100%"><dl><dt><a name="-auth"><strong>auth</strong></a>()</dt><dd><tt>Credentials&nbsp;for&nbsp;basic&nbsp;authentication.<br>
+<td width="100%"><dl><dt><a name="-auth_config"><strong>auth_config</strong></a>(settings=None)</dt><dd><tt>Configure&nbsp;authentication&nbsp;settings.<br>
 &nbsp;<br>
-Returns&nbsp;the&nbsp;tuple&nbsp;used&nbsp;for&nbsp;API&nbsp;calls.&nbsp;If&nbsp;the&nbsp;GitHub&nbsp;username&nbsp;and&nbsp;PAT&nbsp;have<br>
-not&nbsp;been&nbsp;set,&nbsp;reads&nbsp;them&nbsp;from&nbsp;environment&nbsp;variables&nbsp;GitHubUser/GitHubPAT.</tt></dd></dl>
- <dl><dt><a name="-auth_reset"><strong>auth_reset</strong></a>()</dt><dd><tt>Reset&nbsp;authorization&nbsp;settings&nbsp;to&nbsp;default&nbsp;values.<br>
+1st&nbsp;parameter&nbsp;=&nbsp;dictionary&nbsp;of&nbsp;configuration&nbsp;settings;&nbsp;see&nbsp;config_settings<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;below&nbsp;for&nbsp;settings&nbsp;managed&nbsp;by&nbsp;this&nbsp;function.<br>
 &nbsp;<br>
-Sets&nbsp;username&nbsp;and&nbsp;acccess_token&nbsp;to&nbsp;the&nbsp;values&nbsp;stored&nbsp;in&nbsp;the&nbsp;&nbsp;GitHubUser&nbsp;and<br>
-GitHubPAT&nbsp;environment&nbsp;variables.</tt></dd></dl>
- <dl><dt><a name="-auth_user"><strong>auth_user</strong></a>(username=None)</dt><dd><tt>Set&nbsp;GitHub&nbsp;user&nbsp;for&nbsp;subsequent&nbsp;API&nbsp;calls.<br>
+Returns&nbsp;dictionary&nbsp;of&nbsp;current&nbsp;settings&nbsp;-&nbsp;call&nbsp;<a href="#-auth_config">auth_config</a>()&nbsp;with&nbsp;no<br>
+parameters&nbsp;to&nbsp;get&nbsp;status.</tt></dd></dl>
+ <dl><dt><a name="-auth_user"><strong>auth_user</strong></a>()</dt><dd><tt>Credentials&nbsp;for&nbsp;basic&nbsp;authentication.<br>
 &nbsp;<br>
-username&nbsp;=&nbsp;a&nbsp;GitHub&nbsp;username&nbsp;stored&nbsp;in&nbsp;github_users.json&nbsp;in&nbsp;the<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;/private&nbsp;subfolder.&nbsp;If&nbsp;omitted,&nbsp;the&nbsp;GitHub&nbsp;user&nbsp;settings&nbsp;are<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;initialized&nbsp;from&nbsp;the&nbsp;GitHubUser/GitHubPAT&nbsp;environment&nbsp;variables.</tt></dd></dl>
- <dl><dt><a name="-memberfields"><strong>memberfields</strong></a>(member_json, fields)</dt><dd><tt>Get&nbsp;field&nbsp;values&nbsp;for&nbsp;a&nbsp;member/user.<br>
+Returns&nbsp;the&nbsp;tuple&nbsp;used&nbsp;for&nbsp;API&nbsp;calls,&nbsp;based&nbsp;on&nbsp;current&nbsp;settings.<br>
+Returns&nbsp;None&nbsp;if&nbsp;no&nbsp;GitHub&nbsp;username/PAT&nbsp;is&nbsp;currently&nbsp;set.</tt></dd></dl>
+ <dl><dt><a name="-github_api"><strong>github_api</strong></a>(endpoint=None, auth=None, headers=None)</dt><dd><tt>Call&nbsp;the&nbsp;GitHub&nbsp;API&nbsp;(wrapper&nbsp;for&nbsp;requests.get()).<br>
+&nbsp;<br>
+endpoint&nbsp;=&nbsp;the&nbsp;HTTP&nbsp;endpoint&nbsp;to&nbsp;call<br>
+auth&nbsp;=&nbsp;optional&nbsp;tuple&nbsp;for&nbsp;authentication<br>
+headers&nbsp;=&nbsp;optional&nbsp;dictionary&nbsp;of&nbsp;HTTP&nbsp;headers&nbsp;to&nbsp;pass</tt></dd></dl>
+ <dl><dt><a name="-log_apistatus"><strong>log_apistatus</strong></a>()</dt><dd><tt>Display&nbsp;(via&nbsp;<a href="#-log_msg">log_msg</a>())&nbsp;the&nbsp;rate-limit&nbsp;status&nbsp;after&nbsp;the&nbsp;last&nbsp;API&nbsp;call.</tt></dd></dl>
+ <dl><dt><a name="-log_config"><strong>log_config</strong></a>(settings=None)</dt><dd><tt>Configure&nbsp;message&nbsp;logging&nbsp;settings.<br>
+&nbsp;<br>
+1st&nbsp;parameter&nbsp;=&nbsp;dictionary&nbsp;of&nbsp;configuration&nbsp;settings;&nbsp;see&nbsp;config_settings<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;below&nbsp;for&nbsp;settings&nbsp;managed&nbsp;by&nbsp;this&nbsp;function.<br>
+&nbsp;<br>
+Returns&nbsp;dictionary&nbsp;of&nbsp;current&nbsp;settings&nbsp;-&nbsp;call&nbsp;<a href="#-log_config">log_config</a>()&nbsp;with&nbsp;no<br>
+parameters&nbsp;to&nbsp;get&nbsp;status.</tt></dd></dl>
+ <dl><dt><a name="-log_msg"><strong>log_msg</strong></a>(*args)</dt><dd><tt>Log&nbsp;a&nbsp;status&nbsp;message.<br>
+&nbsp;<br>
+parameters&nbsp;=&nbsp;message&nbsp;to&nbsp;be&nbsp;displayed&nbsp;if&nbsp;<a href="#-log_config">log_config</a>(True)&nbsp;is&nbsp;set.<br>
+&nbsp;<br>
+NOTE:&nbsp;can&nbsp;pass&nbsp;any&nbsp;number&nbsp;of&nbsp;parameters,&nbsp;which&nbsp;will&nbsp;be&nbsp;displayed&nbsp;as&nbsp;a&nbsp;single<br>
+string&nbsp;delimited&nbsp;by&nbsp;spaces.</tt></dd></dl>
+ <dl><dt><a name="-memberfields"><strong>memberfields</strong></a>(member_json, fields, org)</dt><dd><tt>Get&nbsp;field&nbsp;values&nbsp;for&nbsp;a&nbsp;member/user.<br>
 &nbsp;<br>
 1st&nbsp;parameter&nbsp;=&nbsp;member's&nbsp;json&nbsp;representation&nbsp;as&nbsp;returned&nbsp;by&nbsp;GitHub&nbsp;API<br>
 2nd&nbsp;parameter&nbsp;=&nbsp;list&nbsp;of&nbsp;names&nbsp;of&nbsp;desired&nbsp;fields<br>
+3rd&nbsp;parameter&nbsp;=&nbsp;organization&nbsp;ID<br>
 &nbsp;<br>
-Returns&nbsp;a&nbsp;namedtuple&nbsp;containing&nbsp;the&nbsp;desired&nbsp;fields&nbsp;and&nbsp;their&nbsp;values.</tt></dd></dl>
- <dl><dt><a name="-members"><strong>members</strong></a>(org=None, fields=None)</dt><dd><tt>Get&nbsp;members&nbsp;for&nbsp;an&nbsp;organization.<br>
+Returns&nbsp;a&nbsp;namedtuple&nbsp;containing&nbsp;the&nbsp;desired&nbsp;fields&nbsp;and&nbsp;their&nbsp;values.<br>
+NOTE:&nbsp;in&nbsp;addition&nbsp;to&nbsp;the&nbsp;specified&nbsp;fields,&nbsp;always&nbsp;returns&nbsp;an&nbsp;'org'&nbsp;field<br>
+to&nbsp;distinguish&nbsp;between&nbsp;organizations&nbsp;in&nbsp;lists&nbsp;returned&nbsp;by&nbsp;<a href="#-members">members</a>().</tt></dd></dl>
+ <dl><dt><a name="-members"><strong>members</strong></a>(org=None, fields=None, audit2fa=False)</dt><dd><tt>Get&nbsp;members&nbsp;for&nbsp;one&nbsp;or&nbsp;more&nbsp;organizations.<br>
 &nbsp;<br>
 org&nbsp;=&nbsp;organization<br>
 fields&nbsp;=&nbsp;list&nbsp;of&nbsp;field&nbsp;names&nbsp;to&nbsp;be&nbsp;returned;&nbsp;names&nbsp;must&nbsp;be&nbsp;the&nbsp;same&nbsp;as<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;returned&nbsp;by&nbsp;the&nbsp;GitHub&nbsp;API<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;returned&nbsp;by&nbsp;the&nbsp;GitHub&nbsp;API&nbsp;(see&nbsp;below).<br>
+audit2fa&nbsp;=&nbsp;whether&nbsp;to&nbsp;only&nbsp;return&nbsp;members&nbsp;with&nbsp;2FA&nbsp;disabled.&nbsp;You&nbsp;must&nbsp;be<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;authenticated&nbsp;via&nbsp;<a href="#-auth_config">auth_config</a>()&nbsp;as&nbsp;an&nbsp;admin&nbsp;of&nbsp;the&nbsp;org(s)&nbsp;to&nbsp;use<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;this&nbsp;option.<br>
 &nbsp;<br>
-Returns&nbsp;a&nbsp;list&nbsp;of&nbsp;namedtuple&nbsp;objects,&nbsp;one&nbsp;per&nbsp;member.</tt></dd></dl>
+Returns&nbsp;a&nbsp;list&nbsp;of&nbsp;namedtuple&nbsp;objects,&nbsp;one&nbsp;per&nbsp;member.<br>
+&nbsp;<br>
+GitHub&nbsp;API&nbsp;fields&nbsp;(as&nbsp;of&nbsp;March&nbsp;2016):<br>
+id&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;events_url&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;organizations_url<br>
+login&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;followers_url&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;received_events_url<br>
+site_admin&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;following_url&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;repos_url<br>
+type&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;gists_url&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;starred_url<br>
+url&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;gravatar_id&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;subscriptions_url<br>
+avatar_url&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;html_url</tt></dd></dl>
+ <dl><dt><a name="-membersget"><strong>membersget</strong></a>(org, fields, audit2fa=False)</dt><dd><tt>Get&nbsp;member&nbsp;info&nbsp;for&nbsp;a&nbsp;specified&nbsp;organization.<br>
+&nbsp;<br>
+1st&nbsp;parameter&nbsp;=&nbsp;organization&nbsp;ID<br>
+2nd&nbsp;parameter&nbsp;=&nbsp;list&nbsp;of&nbsp;fields&nbsp;to&nbsp;be&nbsp;returned<br>
+audit2fa&nbsp;=&nbsp;whether&nbsp;to&nbsp;only&nbsp;return&nbsp;members&nbsp;with&nbsp;2FA&nbsp;disabled.<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Note:&nbsp;for&nbsp;audit2fa=True,&nbsp;you&nbsp;must&nbsp;be&nbsp;authenticated&nbsp;via<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#-auth_config">auth_config</a>()&nbsp;as&nbsp;an&nbsp;admin&nbsp;of&nbsp;the&nbsp;org(s).<br>
+&nbsp;<br>
+Returns&nbsp;a&nbsp;list&nbsp;of&nbsp;namedtuples&nbsp;containing&nbsp;the&nbsp;specified&nbsp;fields.</tt></dd></dl>
  <dl><dt><a name="-pagination"><strong>pagination</strong></a>(link_header)</dt><dd><tt>Parse&nbsp;values&nbsp;from&nbsp;the&nbsp;'link'&nbsp;HTTP&nbsp;header&nbsp;returned&nbsp;by&nbsp;GitHub&nbsp;API.<br>
 &nbsp;<br>
-1st&nbsp;parameter&nbsp;=&nbsp;the&nbsp;'link'&nbsp;HTTP&nbsp;header&nbsp;passed&nbsp;as&nbsp;a&nbsp;string,&nbsp;or&nbsp;a<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;response&nbsp;object&nbsp;returned&nbsp;by&nbsp;the&nbsp;requests&nbsp;module<br>
+1st&nbsp;parameter&nbsp;=&nbsp;either&nbsp;of&nbsp;these&nbsp;options&nbsp;...<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;-&nbsp;'link'&nbsp;HTTP&nbsp;header&nbsp;passed&nbsp;as&nbsp;a&nbsp;string<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;-&nbsp;response&nbsp;object&nbsp;returned&nbsp;by&nbsp;requests.get()<br>
 &nbsp;<br>
 Returns&nbsp;a&nbsp;dictionary&nbsp;with&nbsp;entries&nbsp;for&nbsp;the&nbsp;URLs&nbsp;and&nbsp;page&nbsp;numbers&nbsp;parsed<br>
 from&nbsp;the&nbsp;link&nbsp;string:&nbsp;firstURL,&nbsp;firstpage,&nbsp;prevURL,&nbsp;prevpage,&nbsp;nextURL,<br>
@@ -86,34 +132,74 @@ nextpage,&nbsp;lastURL,&nbsp;lastpage.</tt></dd></dl>
 2nd&nbsp;parameter&nbsp;=&nbsp;list&nbsp;of&nbsp;names&nbsp;of&nbsp;desired&nbsp;fields<br>
 &nbsp;<br>
 Returns&nbsp;a&nbsp;namedtuple&nbsp;containing&nbsp;the&nbsp;desired&nbsp;fields&nbsp;and&nbsp;their&nbsp;values.</tt></dd></dl>
- <dl><dt><a name="-repos"><strong>repos</strong></a>(org=None, user=None, fields=None)</dt><dd><tt>Get&nbsp;all&nbsp;public&nbsp;repos&nbsp;for&nbsp;an&nbsp;organization&nbsp;or&nbsp;user.<br>
+ <dl><dt><a name="-repos"><strong>repos</strong></a>(org=None, user=None, fields=None)</dt><dd><tt>Get&nbsp;repo&nbsp;information&nbsp;for&nbsp;organization(s)&nbsp;or&nbsp;user(s).<br>
 &nbsp;<br>
-org&nbsp;=&nbsp;organization<br>
-user&nbsp;=&nbsp;username&nbsp;(ignored&nbsp;if&nbsp;an&nbsp;organization&nbsp;is&nbsp;provided)<br>
-fields&nbsp;=&nbsp;list&nbsp;of&nbsp;field&nbsp;names&nbsp;to&nbsp;be&nbsp;returned;&nbsp;names&nbsp;must&nbsp;be&nbsp;the&nbsp;same&nbsp;as<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;returned&nbsp;by&nbsp;the&nbsp;GitHub&nbsp;API.&nbsp;Embedded&nbsp;elements&nbsp;are&nbsp;also&nbsp;supported:<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;for&nbsp;example,&nbsp;pass&nbsp;a&nbsp;field&nbsp;named&nbsp;'license.name'&nbsp;and&nbsp;it&nbsp;will<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return&nbsp;the&nbsp;'name'&nbsp;element&nbsp;of&nbsp;the&nbsp;'license'&nbsp;entry&nbsp;for&nbsp;each&nbsp;repo.<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Namedtuples&nbsp;don't&nbsp;allow&nbsp;embedded&nbsp;periods&nbsp;in&nbsp;identifiers,&nbsp;so&nbsp;in<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;this&nbsp;case&nbsp;the&nbsp;column&nbsp;name&nbsp;will&nbsp;be&nbsp;'license_name'.<br>
+org&nbsp;&nbsp;&nbsp;&nbsp;=&nbsp;organization;&nbsp;an&nbsp;organization&nbsp;or&nbsp;list&nbsp;of&nbsp;organizations<br>
+user&nbsp;&nbsp;&nbsp;=&nbsp;username;&nbsp;a&nbsp;username&nbsp;or&nbsp;list&nbsp;of&nbsp;usernames<br>
+fields&nbsp;=&nbsp;list&nbsp;of&nbsp;fields&nbsp;to&nbsp;be&nbsp;returned;&nbsp;names&nbsp;must&nbsp;be&nbsp;the&nbsp;same&nbsp;as<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;returned&nbsp;by&nbsp;the&nbsp;GitHub&nbsp;API&nbsp;(see&nbsp;below).<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Note:&nbsp;dot&nbsp;notation&nbsp;for&nbsp;embedded&nbsp;elements&nbsp;is&nbsp;supported.<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;For&nbsp;example,&nbsp;pass&nbsp;a&nbsp;field&nbsp;named&nbsp;'license.name'&nbsp;to&nbsp;get&nbsp;the&nbsp;'name'<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;element&nbsp;of&nbsp;the&nbsp;'license'&nbsp;entry&nbsp;for&nbsp;each&nbsp;repo.<br>
 &nbsp;<br>
-Returns&nbsp;a&nbsp;list&nbsp;of&nbsp;namedtuple&nbsp;objects,&nbsp;one&nbsp;per&nbsp;repo.</tt></dd></dl>
- <dl><dt><a name="-test_auth"><strong>test_auth</strong></a>()</dt><dd><tt>Simple&nbsp;test&nbsp;for&nbsp;<a href="#-auth">auth</a>()&nbsp;function.</tt></dd></dl>
- <dl><dt><a name="-test_members"><strong>test_members</strong></a>()</dt><dd><tt>Simple&nbsp;test&nbsp;for&nbsp;<a href="#-members">members</a>()&nbsp;function.&nbsp;Also&nbsp;tests&nbsp;<a href="#-write_csv">write_csv</a>().</tt></dd></dl>
+Returns&nbsp;a&nbsp;list&nbsp;of&nbsp;namedtuple&nbsp;objects,&nbsp;one&nbsp;per&nbsp;repo.<br>
+&nbsp;<br>
+GitHub&nbsp;API&nbsp;fields&nbsp;(as&nbsp;of&nbsp;March&nbsp;2016):<br>
+archive_url&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;git_tags_url&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;open_issues<br>
+assignees_url&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;git_url&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;open_issues_count<br>
+blobs_url&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;has_downloads&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;private<br>
+branches_url&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;has_issues&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;pulls_url<br>
+clone_url&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;has_pages&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;pushed_at<br>
+collaborators_url&nbsp;&nbsp;&nbsp;has_wiki&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;releases_url<br>
+commits_url&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;homepage&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;size<br>
+compare_url&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;hooks_url&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ssh_url<br>
+contents_url&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;html_url&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;stargazers_count<br>
+contributors_url&nbsp;&nbsp;&nbsp;&nbsp;id&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;stargazers_url<br>
+created_at&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;issue_comment_url&nbsp;&nbsp;&nbsp;&nbsp;statuses_url<br>
+default_branch&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;issue_events_url&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;subscribers_url<br>
+deployments_url&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;issues_url&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;subscription_url<br>
+description&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;keys_url&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;svn_url<br>
+downloads_url&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;labels_url&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;tags_url<br>
+events_url&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;language&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;teams_url<br>
+fork&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;languages_url&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;trees_url<br>
+forks&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;master_branch&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;updated_at<br>
+forks_count&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;merges_url&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;url<br>
+forks_url&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;milestones_url&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;watchers<br>
+full_name&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;mirror_url&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;watchers_count<br>
+git_commits_url&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;name<br>
+git_refs_url&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;notifications_url<br>
+-------------------------------------------------------------<br>
+license.featured&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;permissions.admin<br>
+license.key&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;permissions.pull<br>
+license.name&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;permissions.push<br>
+license.url<br>
+-------------------------------------------------------------<br>
+owner.avatar_url&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;owner.organizations_url<br>
+owner.events_url&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;owner.received_events_url<br>
+owner.followers_url&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;owner.repos_url<br>
+owner.following_url&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;owner.site_admin<br>
+owner.gists_url&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;owner.starred_url<br>
+owner.gravatar_id&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;owner.subscriptions_url<br>
+owner.html_url&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;owner.type<br>
+owner.id&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;owner.url<br>
+owner.login</tt></dd></dl>
+ <dl><dt><a name="-reposget"><strong>reposget</strong></a>(endpoint, fields)</dt><dd><tt>Get&nbsp;repo&nbsp;information&nbsp;from&nbsp;specified&nbsp;API&nbsp;endpoint.<br>
+&nbsp;<br>
+1st&nbsp;parameter&nbsp;=&nbsp;GitHub&nbsp;API&nbsp;endpoint<br>
+2nd&nbsp;parameter&nbsp;=&nbsp;list&nbsp;of&nbsp;fields&nbsp;to&nbsp;be&nbsp;returned<br>
+&nbsp;<br>
+Returns&nbsp;a&nbsp;list&nbsp;of&nbsp;namedtuples&nbsp;containing&nbsp;the&nbsp;specified&nbsp;fields.</tt></dd></dl>
+ <dl><dt><a name="-session_end"><strong>session_end</strong></a>(msg=None)</dt><dd><tt>Log&nbsp;summary&nbsp;of&nbsp;completed&nbsp;gitinfo&nbsp;session.<br>
+&nbsp;<br>
+1st&nbsp;parameter&nbsp;=&nbsp;optional&nbsp;message&nbsp;to&nbsp;include&nbsp;in&nbsp;logfile/console&nbsp;output</tt></dd></dl>
+ <dl><dt><a name="-session_start"><strong>session_start</strong></a>(msg=None)</dt><dd><tt>Initiate&nbsp;a&nbsp;gitinfo&nbsp;"session"&nbsp;for&nbsp;logging/tracking&nbsp;purposes.<br>
+&nbsp;<br>
+1st&nbsp;parameter&nbsp;=&nbsp;optional&nbsp;message&nbsp;to&nbsp;include&nbsp;in&nbsp;logfile/console&nbsp;output</tt></dd></dl>
+ <dl><dt><a name="-test_auth_user"><strong>test_auth_user</strong></a>()</dt><dd><tt>Simple&nbsp;test&nbsp;for&nbsp;<a href="#-auth_user">auth_user</a>()&nbsp;function.</tt></dd></dl>
+ <dl><dt><a name="-test_members"><strong>test_members</strong></a>()</dt><dd><tt>Simple&nbsp;test&nbsp;for&nbsp;<a href="#-members">members</a>()&nbsp;function.</tt></dd></dl>
  <dl><dt><a name="-test_pagination"><strong>test_pagination</strong></a>()</dt><dd><tt>Simple&nbsp;test&nbsp;for&nbsp;<a href="#-pagination">pagination</a>()&nbsp;function.</tt></dd></dl>
- <dl><dt><a name="-test_repos"><strong>test_repos</strong></a>()</dt><dd><tt>Simple&nbsp;test&nbsp;for&nbsp;<a href="#-repos">repos</a>()&nbsp;function.&nbsp;Also&nbsp;tests&nbsp;<a href="#-write_csv">write_csv</a>().</tt></dd></dl>
- <dl><dt><a name="-verbose"><strong>verbose</strong></a>(*args)</dt><dd><tt>Set&nbsp;verbose&nbsp;mode&nbsp;on/off.<br>
-&nbsp;<br>
-1st&nbsp;parameter&nbsp;=&nbsp;True&nbsp;for&nbsp;verbose&nbsp;mode,&nbsp;False&nbsp;to&nbsp;turn&nbsp;verbose&nbsp;mode&nbsp;off.<br>
-&nbsp;<br>
-Returns&nbsp;the&nbsp;current&nbsp;verbose&nbsp;mode&nbsp;setting&nbsp;as&nbsp;True/False.&nbsp;To&nbsp;query&nbsp;the<br>
-current&nbsp;setting,&nbsp;call&nbsp;<a href="#-verbose">verbose</a>()&nbsp;with&nbsp;no&nbsp;parameters.</tt></dd></dl>
- <dl><dt><a name="-verbose_output"><strong>verbose_output</strong></a>(*args)</dt><dd><tt>Display&nbsp;status&nbsp;information&nbsp;in&nbsp;verbose&nbsp;mode.<br>
-&nbsp;<br>
-parameters&nbsp;=&nbsp;message&nbsp;to&nbsp;be&nbsp;displayed&nbsp;if&nbsp;<a href="#-verbose">verbose</a>(True)&nbsp;is&nbsp;set.<br>
-&nbsp;<br>
-NOTE:&nbsp;can&nbsp;pass&nbsp;any&nbsp;number&nbsp;of&nbsp;parameters,&nbsp;which&nbsp;will&nbsp;be&nbsp;displayed&nbsp;as&nbsp;a&nbsp;single<br>
-string&nbsp;delimited&nbsp;by&nbsp;spaces.</tt></dd></dl>
+ <dl><dt><a name="-test_repos"><strong>test_repos</strong></a>()</dt><dd><tt>Simple&nbsp;test&nbsp;for&nbsp;<a href="#-repos">repos</a>()&nbsp;function.</tt></dd></dl>
+ <dl><dt><a name="-timestamp"><strong>timestamp</strong></a>()</dt><dd><tt>Return&nbsp;current&nbsp;timestamp&nbsp;as&nbsp;a&nbsp;string&nbsp;-&nbsp;YYYY-MM-DD&nbsp;HH:MM:SS</tt></dd></dl>
  <dl><dt><a name="-write_csv"><strong>write_csv</strong></a>(listobj, filename)</dt><dd><tt>Write&nbsp;a&nbsp;list&nbsp;of&nbsp;namedtuples&nbsp;to&nbsp;a&nbsp;CSV&nbsp;file.<br>
 &nbsp;<br>
 1st&nbsp;parameter&nbsp;=&nbsp;the&nbsp;list<br>
