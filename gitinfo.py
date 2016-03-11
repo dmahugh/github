@@ -3,6 +3,9 @@
 auth() -----------> Return credentials for use in GitHub API calls.
 auth_user() ------> Set GitHub user for subsequent API calls.
 
+log_config() -----> Change message logging settings.
+log_msg() --------> Log a status message.
+
 memberfields() ---> Get field values for a member/user.
 members() --------> Get members of one or more organizations.
 membersget() -----> Get member info for a specified organization.
@@ -13,13 +16,11 @@ repofields() -----> Get field values for a repo.
 repos() ----------> Get repo information for organization(s) or user(s).
 reposget() -------> Get repo information from specified API endpoint.
 
-verbose() --------> Set verbose mode on/off.
-verbose_output() -> Display status info in verbose mode.
-
 write_csv() ------> Write a list of namedtuples to a CSV file.
 """
 import collections
 import csv
+import datetime
 import json
 import traceback
 
@@ -28,21 +29,26 @@ import requests
 #------------------------------------------------------------------------------
 class _settings: # pylint: disable=R0903
     """Used for global settings. Should not be accessed directly - e.g.,
-    use the verbose() function to change _settings.verbose, or the user()
+    use the log_config() function to change _settings.verbose, or the user()
     function to change _settings.github_username/accesstoken.
     """
-    verbose = False # default = verbose mode off
+
+    # authentication settings used by auth_*() functions
     github_username = None # default = no GitHub authentication
     github_accesstoken = None
+
+    # logging settings used by log_*() functions
+    verbose = True # default = messages displayed to console
+    logfile = None # default = messages not logged to a file
 
 #------------------------------------------------------------------------------
 def auth():
     """Credentials for basic authentication.
 
     Returns the tuple used for API calls, based on current settings.
-    Returns None if no GitHub username/PAT is current set.
+    Returns None if no GitHub username/PAT is currently set.
     """
-    # Note that "auth() ->" is explcitly added to the verbose_output()
+    # Note that "auth() ->" is explcitly added to the log_msg()
     # calls below because auth() is typically used inline from other
     # functions, so it isn't the caller in the call stack.
 
@@ -52,7 +58,7 @@ def auth():
     username = _settings.github_username
     access_token = _settings.github_accesstoken
 
-    verbose_output('auth() ->', 'username:', username + ', PAT:',
+    log_msg('auth() ->', 'username:', username + ', PAT:',
                    access_token[0:2] + '...' + access_token[-2:])
 
     return (username, access_token)
@@ -74,6 +80,47 @@ def auth_user(username=None):
         # no username specified, so reset to default of no authentication
         _settings.github_username = None
         _settings.github_accesstoken = None
+
+#-------------------------------------------------------------------------------
+def log_config(settings=None):
+    """Change message logging settings.
+
+    1st parameter = dictionary of configuration settings; my include entries
+                    for "verbose" and/or "logfile"
+
+    Returns dictionary of current settings - call log_config() with no
+    parameters to get status.
+    """
+    if settings:
+        for setting in ['verbose', 'logfile']:
+            if setting in settings:
+                setattr(_settings, setting, settings[setting])
+
+    return {'verbose': _settings.verbose, 'logfile': _settings.logfile}
+
+#-------------------------------------------------------------------------------
+def log_msg(*args):
+    """Log a status message.
+
+    parameters = message to be displayed if log_config(True) is set.
+
+    NOTE: can pass any number of parameters, which will be displayed as a single
+    string delimited by spaces.
+    """
+    # convert all arguments to strings, so they can be .join()ed
+    string_args = [str(_) for _ in args]
+
+    # get the caller of log_msg(), which is displayed with the message
+    caller = traceback.format_stack()[1].split(',')[2].strip().split()[1]
+    msg = caller + '() -> ' + ' '.join(string_args)
+
+    if _settings.verbose:
+        print(msg)
+
+    if _settings.logfile:
+        timestamp = '{:%Y-%m-%d %H:%M:%S}'.format(datetime.datetime.now())
+        with open(_settings.logfile, 'a') as fhandle:
+            fhandle.write(timestamp + ' ' + msg + '\n')
 
 #-------------------------------------------------------------------------------
 def memberfields(member_json, fields, org):
@@ -152,7 +199,7 @@ def membersget(org, fields, audit2fa=False):
 
         # GitHub API call
         response = requests.get(endpoint, auth=auth())
-        verbose_output('API rate limit: {0}, remaining: {1}'. \
+        log_msg('API rate limit: {0}, remaining: {1}'. \
             format(response.headers['X-RateLimit-Limit'],
                    response.headers['X-RateLimit-Remaining']))
 
@@ -167,10 +214,10 @@ def membersget(org, fields, audit2fa=False):
         if not endpoint:
             break # no more results to process
 
-        verbose_output('processing page {0} of {1}'. \
+        log_msg('processing page {0} of {1}'. \
                        format(pagelinks['nextpage'], pagelinks['lastpage']))
 
-    verbose_output('pages processed: {0}, total members: {1}'. \
+    log_msg('pages processed: {0}, total members: {1}'. \
         format(totpages, len(retval)))
 
     return retval
@@ -345,7 +392,7 @@ def reposget(endpoint, fields):
 
         # GitHub API call
         response = requests.get(endpoint, auth=auth(), headers=headers)
-        verbose_output('API rate limit: {0}, remaining: {1}'. \
+        log_msg('API rate limit: {0}, remaining: {1}'. \
             format(response.headers['X-RateLimit-Limit'],
                    response.headers['X-RateLimit-Remaining']))
 
@@ -360,47 +407,13 @@ def reposget(endpoint, fields):
         if not endpoint:
             break # there are no more results to process
 
-        verbose_output('processing page {0} of {1}'. \
+        log_msg('processing page {0} of {1}'. \
                        format(pagelinks['nextpage'], pagelinks['lastpage']))
 
-    verbose_output('pages processed: {0}, total members: {1}'. \
+    log_msg('pages processed: {0}, total members: {1}'. \
         format(totpages, len(retval)))
 
     return retval
-
-#-------------------------------------------------------------------------------
-def verbose(*args):
-    """Set verbose mode on/off.
-
-    1st parameter = True for verbose mode, False to turn verbose mode off.
-
-    Returns the current verbose mode setting as True/False. To query the
-    current setting, call verbose() with no parameters.
-    """
-    if len(args) == 1:
-        _settings.verbose = args[0]
-
-    return _settings.verbose
-
-#-------------------------------------------------------------------------------
-def verbose_output(*args):
-    """Display status information in verbose mode.
-
-    parameters = message to be displayed if verbose(True) is set.
-
-    NOTE: can pass any number of parameters, which will be displayed as a single
-    string delimited by spaces.
-    """
-    if not _settings.verbose:
-        return # verbose mode is off
-
-    # convert all arguments to strings. so they can be .join()ed
-    string_args = [str(_) for _ in args]
-
-    # get the caller of verbose_output(), which is displayed with the message
-    caller = traceback.format_stack()[1].split(',')[2].strip().split()[1]
-
-    print(caller + '() ->', ' '.join(string_args))
 
 #-------------------------------------------------------------------------------
 def write_csv(listobj, filename):
@@ -423,9 +436,9 @@ def write_csv(listobj, filename):
 
     csvfile.close()
 
-    verbose_output('filename:', filename)
-    verbose_output('columns:', header_row)
-    verbose_output('total rows:', len(listobj))
+    log_msg('filename:', filename)
+    log_msg('columns:', header_row)
+    log_msg('total rows:', len(listobj))
 
 #===============================================================================
 #------------------------------------ TESTS ------------------------------------
@@ -465,7 +478,7 @@ def test_pagination():
 # if running standalone, run tests ---------------------------------------------
 if __name__ == "__main__":
 
-    verbose(True) # turn on verbose mode
+    log_config({'verbose': True, 'logfile': 'gitinfo.log'})
     auth_user('dmahugh')
     #test_auth()
     #test_members()
