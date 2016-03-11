@@ -1,6 +1,6 @@
-# gitinfo - Python 3.x wrapper for GitHub REST API
+# gitinfo - Python 3.x library for GitHub REST API
 
-This is a simple wrapper optimized for ease of use, supporting a subset of the GitHub API. (Ony repo and member info at this time.)
+This is a simple wrapper optimized for ease of use, supporting a subset of the GitHub API. (Ony repo and member info at this time.) Intended for use in automating common administrative and monitoring activities.
 
 ## installation
 
