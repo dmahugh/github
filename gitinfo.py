@@ -21,6 +21,7 @@ write_csv() ------> Write a list of namedtuples to a CSV file.
 import collections
 import csv
 import datetime
+import inspect
 import json
 import os
 import time
@@ -86,18 +87,14 @@ def auth_user():
     Returns the tuple used for API calls, based on current settings.
     Returns None if no GitHub username/PAT is currently set.
     """
-    # Note that "auth_user() ->" is explcitly added to the log_msg()
-    # calls below because auth_user() is typically used inline from other
-    # functions, so it isn't the caller in the call stack.
-
     if not _settings.username:
         return None
 
     username = _settings.username
     access_token = _settings.accesstoken
 
-    log_msg('auth_user() ->', 'username:', username + ', PAT:',
-                   access_token[0:2] + '...' + access_token[-2:])
+    log_msg('username:', username + ', PAT:',
+            access_token[0:2] + '...' + access_token[-2:])
 
     return (username, access_token)
 
@@ -175,8 +172,18 @@ def log_msg(*args):
     string_args = [str(_) for _ in args]
 
     # get the caller of log_msg(), which is displayed with the message
-    caller = traceback.format_stack()[1].split(',')[2].strip().split()[1]
-    msg = caller + '() -> ' + ' '.join(string_args)
+    # Note: we populate a complete callstack list here, just because it
+    # may be useful at times in the future.
+    callstack = []
+    frame = inspect.currentframe()
+    while True:
+        frame = frame.f_back
+        name = frame.f_code.co_name
+        if name[0] == '<':
+            break
+        callstack.append(name)
+    caller = callstack[0]
+    msg = (caller + '() ').ljust(20, '-') + '> ' + ' '.join(string_args)
 
     if _settings.verbose:
         print(msg)
