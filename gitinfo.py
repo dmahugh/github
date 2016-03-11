@@ -2,20 +2,19 @@
 
 auth_config() ----> Configure authentication settings.
 auth_user() ------> Return credentials for use in GitHub API calls.
-
+github_api() -----> Call the GitHub API (wrapper for requests.get())
 log_config() -----> Configure message logging settings.
 log_msg() --------> Log a status message.
-
 memberfields() ---> Get field values for a member/user.
 members() --------> Get members of one or more organizations.
 membersget() -----> Get member info for a specified organization.
-
 pagination() -----> Parse 'link' HTTP header returned by GitHub API.
-
 repofields() -----> Get field values for a repo.
 repos() ----------> Get repo information for organization(s) or user(s).
 reposget() -------> Get repo information from specified API endpoint.
-
+session_end() ----> Log summary of completed gitinfo "session."
+session_start() --> Initiate a gitinfo "session" for logging/tracking purposes.
+timestamp() ------> Return current timestamp as a string - YYYY-MM-DD HH:MM:SS
 write_csv() ------> Write a list of namedtuples to a CSV file.
 """
 import collections
@@ -39,6 +38,12 @@ class _settings: # pylint: disable=R0903
     # logging settings used by log_*() functions
     verbose = True # default = messages displayed to console
     logfile = None # default = messages not logged to a file
+
+    # "gitinfo session" settings
+    tot_api_calls = 0 # number of API calls made through gitinfo
+    tot_api_bytes = 0 # total bytes returned by these API calls
+    last_ratelimit = 0 # API rate limit for the most recent API call
+    last_remaining = 0 # remaining portion of rate limit after last API call
 
 #-------------------------------------------------------------------------------
 def auth_config(settings=None):
@@ -93,6 +98,40 @@ def auth_user():
     return (username, access_token)
 
 #-------------------------------------------------------------------------------
+def github_api(endpoint=None, auth=None, headers=None):
+    """Call the GitHub API (wrapper for requests.get()).
+
+    endpoint = the HTTP endpoint to call
+    auth = optional tuple for authentication
+    headers = optional dictionary of HTTP headers to pass
+    """
+    if not endpoint:
+        log_msg('ERROR: github_api() called with no endpoint')
+        return
+
+    # make the API call, get response object
+    if not auth and not headers:
+        response = requests.get(endpoint)
+    elif auth and not headers:
+        response = requests.get(endpoint, auth=auth)
+    elif not auth and headers:
+        response = requests.get(endpoint, headers=headers)
+    else:
+        response = requests.get(endpoint, auth=auth, headers=headers)
+
+    # update session settings
+    _settings.tot_api_calls += 1
+    _settings.tot_api_bytes += len(response.content)
+    _settings.last_ratelimit = int(response.headers['X-RateLimit-Limit'])
+    _settings.last_remaining = int(response.headers['X-RateLimit-Remaining'])
+
+    log_msg('API rate limit: {0}, remaining = {1}'. \
+        format(response.headers['X-RateLimit-Limit'],
+               response.headers['X-RateLimit-Remaining']))
+
+    return response
+
+#-------------------------------------------------------------------------------
 def log_config(settings=None):
     """Configure message logging settings.
 
@@ -134,9 +173,8 @@ def log_msg(*args):
         print(msg)
 
     if _settings.logfile:
-        timestamp = '{:%Y-%m-%d %H:%M:%S}'.format(datetime.datetime.now())
         with open(_settings.logfile, 'a') as fhandle:
-            fhandle.write(timestamp + ' ' + msg + '\n')
+            fhandle.write(timestamp() + ' ' + msg + '\n')
 
 #-------------------------------------------------------------------------------
 def memberfields(member_json, fields, org):
@@ -213,12 +251,7 @@ def membersget(org, fields, audit2fa=False):
 
     while True:
 
-        # GitHub API call
-        response = requests.get(endpoint, auth=auth_user())
-        log_msg('API rate limit: {0}, remaining: {1}'. \
-            format(response.headers['X-RateLimit-Limit'],
-                   response.headers['X-RateLimit-Remaining']))
-
+        response = github_api(endpoint, auth=auth_user())
         if response.ok:
             totpages += 1
             thispage = json.loads(response.text)
@@ -406,12 +439,7 @@ def reposget(endpoint, fields):
 
     while True:
 
-        # GitHub API call
-        response = requests.get(endpoint, auth=auth_user(), headers=headers)
-        log_msg('API rate limit: {0}, remaining: {1}'. \
-            format(response.headers['X-RateLimit-Limit'],
-                   response.headers['X-RateLimit-Remaining']))
-
+        response = github_api(endpoint, auth=auth_user(), headers=headers)
         if response.ok:
             totpages += 1
             thispage = json.loads(response.text)
@@ -430,6 +458,34 @@ def reposget(endpoint, fields):
         format(totpages, len(retval)))
 
     return retval
+
+#-------------------------------------------------------------------------------
+def session_end(msg=None):
+    """Log summary of completed gitinfo "session."
+
+    1st parameter = optional message to include in logfile/console output
+    """
+    #/// display elapsed time, API calls, API bytes
+    #/// show most recent rate-limit and remaining
+    msgline = 60*'-' if not msg else (' ' + msg + ' ').center(60, '-')
+    log_msg(msgline)
+
+#-------------------------------------------------------------------------------
+def session_start(msg=None):
+    """Initiate a gitinfo "session" for logging/tracking purposes.
+
+    1st parameter = optional message to include in logfile/console output
+    """
+    msgline = 60*'-' if not msg else (' ' + msg + ' ').center(60, '-')
+    log_msg(msgline)
+    log_msg('source file:', '///sourcefile///')
+    #/// initialize _settings: api_calls, api_bytes, start_time
+
+#-------------------------------------------------------------------------------
+def timestamp():
+    """Return current timestamp as a string - YYYY-MM-DD HH:MM:SS
+    """
+    return '{:%Y-%m-%d %H:%M:%S}'.format(datetime.datetime.now())
 
 #-------------------------------------------------------------------------------
 def write_csv(listobj, filename):
@@ -470,8 +526,8 @@ def test_auth_user():
 def test_members():
     """Simple test for members() function.
     """
-    print(members(org=['bitstadium', 'liveservices']))
-    print('total members returned:', len(members(org=['bitstadium', 'liveservices'])))
+    membertest = members(org=['bitstadium', 'ms-iot'])
+    print('total members returned:', len(membertest))
 
 #-------------------------------------------------------------------------------
 def test_repos():
@@ -496,7 +552,9 @@ if __name__ == "__main__":
 
     log_config({'verbose': True, 'logfile': 'gitinfo.log'})
     auth_config({'username': 'dmahugh'})
+    session_start('inline tests')
     #test_auth_user()
     test_members()
     #test_repos()
     #test_pagination()
+    session_end()
