@@ -3,7 +3,7 @@
 auth_config() ----> Configure authentication settings.
 auth_user() ------> Return credentials for use in GitHub API calls.
 github_api() -----> Call the GitHub API (wrapper for requests.get())
-log_apistatus() --> Display the rate-limit status after the last API call.
+log_apistatus() --> Display latest rate-limit status (after the last API call).
 log_config() -----> Configure message logging settings.
 log_msg() --------> Log a status message.
 memberfields() ---> Get field values for a member/user.
@@ -28,7 +28,6 @@ import inspect
 import json
 import os
 import time
-import traceback
 
 import requests
 
