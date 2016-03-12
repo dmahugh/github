@@ -14,11 +14,11 @@ orgteams() -------> Get teams for one or more organizations.
 orgteamsget() ----> Get team info for a specified organization.
 pagination() -----> Parse 'link' HTTP header returned by GitHub API.
 repofields() -----> Get field values for a repo.
-repos() ----------> Get repo information for organization(s) or user(s).
+repos() ----------> Get repo information for specified organizations or users.
 reposget() -------> Get repo information from specified API endpoint.
-
+repoteamfields() -> Get field values for a repo's team.
 repoteams() ------> Get teams for one or more repositories.
-
+repoteamsget() ---> Get repo info for a specified repo.
 session_end() ----> Log summary of completed gitinfo "session."
 session_start() --> Initiate a gitinfo session for logging/tracking purposes.
 timestamp() ------> Return current timestamp as a string - YYYY-MM-DD HH:MM:SS
@@ -587,6 +587,29 @@ def reposget(endpoint, fields):
     return retval
 
 #-------------------------------------------------------------------------------
+def repoteamfields(team_json, fields, org, repo):
+    """Get field values for a repo's team.
+
+    1st parameter = team's json representation as returned by GitHub API
+    2nd parameter = list of names of desired fields
+    3rd parameter = organization ID
+    4th parameter = repo name
+
+    Returns a namedtuple containing the desired fields and their values.
+    NOTE: in addition to the specified fields, always returns 'org' and
+    'repo' fields to clarify which org/repo this team is associated with.
+    """
+    values = {}
+    values['org'] = org
+    values['repo'] = repo
+    for fldname in fields:
+        values[fldname] = team_json[fldname]
+
+    team_tuple = collections.namedtuple('team_tuple',
+                                        'org repo ' + ' '.join(fields))
+    return team_tuple(**values)
+
+#-------------------------------------------------------------------------------
 def repoteams(org=None, repo=None, fields=None):
     """Get teams for one or more repositories.
 
@@ -610,10 +633,7 @@ def repoteams(org=None, repo=None, fields=None):
 
     if not repo:
         # no repos specified, so create a list of all repos for this org
-        #/// set repo to the list of repo names for this org
-        pass
-
-    #/// repoteamfields() -> always returns org and repo, in addition to specified fields
+        repo = [_.name for _ in repos(org=org, fields=['name'])]
 
     if isinstance(repo, str):
         # get teams for a single repo
@@ -621,9 +641,45 @@ def repoteams(org=None, repo=None, fields=None):
     else:
         # get teams for a list of repos
         for reponame in repo:
-            teamlist.extend(orgteamsget(org, repoid, fields))
+            teamlist.extend(repoteamsget(org, reponame, fields))
 
     return teamlist
+
+#------------------------------------------------------------------------------
+def repoteamsget(org, repo, fields):
+    """Get team info for a specified repo.
+
+    1st parameter = organization ID
+    2nd parameter = repo name
+    3rd parameter = list of fields to be returned
+
+    Returns a list of namedtuples containing the specified fields.
+    """
+    endpoint = 'https://api.github.com/repos/' + org + '/' + repo + '/teams'
+    retval = [] # the list to be returned
+    totpages = 0
+
+    while True:
+
+        response = github_api(endpoint, auth=auth_user())
+        if response.ok:
+            totpages += 1
+            thispage = json.loads(response.text)
+            for team_json in thispage:
+                retval.append(repoteamfields(team_json, fields, org, repo))
+
+        pagelinks = pagination(response)
+        endpoint = pagelinks['nextURL']
+        if not endpoint:
+            break # no more results to process
+
+        log_msg('processing page {0} of {1}'. \
+                       format(pagelinks['nextpage'], pagelinks['lastpage']))
+
+    log_msg('pages processed: {0}, total members: {1}'. \
+        format(totpages, len(retval)))
+
+    return retval
 
 #-------------------------------------------------------------------------------
 def session_end(msg=None):
@@ -741,12 +797,7 @@ def test_repos():
 def test_repoteams():
     """Simple test for repoteams() function.
     """
-
-    # EXAMPLE - get teams for a single repo
-    auth_config({'username': 'msftgits'})
-    response = requests.get('https://api.github.com/repos/microsoft/ospo-witness/teams', auth=auth_user())
-    thispage = json.loads(response.text)
-    for team in thispage:
+    for team in repoteams(org='ms-iot', repo=['serial-wiring', 'remote-sensor']):
         print(team)
 
 # if running standalone, run tests ---------------------------------------------
