@@ -1,28 +1,28 @@
 """Helper functions for retrieving data via the GitHub API.
 
-auth_config() ----> Configure authentication settings.
-auth_user() ------> Return credentials for use in GitHub API calls.
-github_api() -----> Call the GitHub API (wrapper for requests.get())
-log_apistatus() --> Display latest rate-limit status (after the last API call).
-log_config() -----> Configure message logging settings.
-log_msg() --------> Log a status message.
-memberfields() ---> Get field values for a member/user.
-members() --------> Get members of one or more organizations.
-membersget() -----> Get member info for a specified organization.
-orgteamfields() --> Get field values for an organization's team.
-orgteams() -------> Get teams for one or more organizations.
-orgteamsget() ----> Get team info for a specified organization.
-pagination() -----> Parse 'link' HTTP header returned by GitHub API.
-repofields() -----> Get field values for a repo.
-repos() ----------> Get repo information for specified organizations or users.
-reposget() -------> Get repo information from specified API endpoint.
-repoteamfields() -> Get field values for a repo's team.
-repoteams() ------> Get teams for one or more repositories.
-repoteamsget() ---> Get repo info for a specified repo.
-session_end() ----> Log summary of completed gitinfo "session."
-session_start() --> Initiate a gitinfo session for logging/tracking purposes.
-timestamp() ------> Return current timestamp as a string - YYYY-MM-DD HH:MM:SS
-write_csv() ------> Write a list of namedtuples to a CSV file.
+auth_config() ------> Configure authentication settings.
+auth_user() --------> Return credentials for use in GitHub API calls.
+github_api() -------> Call the GitHub API (wrapper for requests.get()).
+log_apistatus() ----> Display current rate-limit status.
+log_config() -------> Configure message logging settings.
+log_msg() ----------> Log a status message.
+memberfields() -----> Get field values for a member/user.
+members() ----------> Get members of one or more organizations.
+membersget() -------> Get member info for a specified organization.
+orgteamfields() ----> Get field values for an organization's team.
+orgteams() ---------> Get teams for one or more organizations.
+orgteamsget() ------> Get team info for a specified organization.
+pagination() -------> Parse 'link' HTTP header returned by GitHub API.
+repofields() -------> Get field values for a repo.
+repos() ------------> Get repo information for organizations or users.
+reposget() ---------> Get repo information from specified API endpoint.
+repoteamfields() ---> Get field values for a repo's team.
+repoteams() --------> Get teams for one or more repositories.
+repoteamsget() -----> Get repo info for a specified repo.
+session_end() ------> Log summary of completed gitinfo "session."
+session_start() ----> Initiate a gitinfo session for logging/tracking purposes.
+timestamp() --------> Return current timestamp as YYYY-MM-DD HH:MM:SS
+write_csv() --------> Write a list of namedtuples to a CSV file.
 """
 import collections
 import csv
@@ -263,11 +263,13 @@ def members(org=None, team=None, fields=None, audit2fa=False):
         # get members by organization
         if isinstance(org, str):
             # one organization
-            memberlist.extend(membersget(org=org, fields=fields, audit2fa=audit2fa))
+            memberlist.extend( \
+                membersget(org=org, fields=fields, audit2fa=audit2fa))
         else:
             # list of organizations
             for orgid in org:
-                memberlist.extend(membersget(org=orgid, fields=fields, audit2fa=audit2fa))
+                memberlist.extend( \
+                    membersget(org=orgid, fields=fields, audit2fa=audit2fa))
 
     return memberlist
 
@@ -714,7 +716,7 @@ def session_start(msg=None):
     _settings.tot_api_calls = 0 # number of API calls made through gitinfo
     _settings.tot_api_bytes = 0 # total bytes returned by these API calls
     _settings.last_ratelimit = 0 # API rate limit for the most recent API call
-    _settings.last_remaining = 0 # remaining portion of rate limit after last API call
+    _settings.last_remaining = 0 # remaining available portion of rate limit
 
     msgline = 60*'-' if not msg else (' ' + msg + ' ').center(60, '-')
     log_msg(msgline)
@@ -793,8 +795,8 @@ def test_pagination():
 def test_repos():
     """Simple test for repos() function.
     """
-    oct_repos = repos(user=['octocat'],
-                      fields=['full_name', 'license.name', 'license', 'permissions.admin'])
+    oct_repos = repos(user=['octocat'], fields= \
+        ['full_name', 'license.name', 'license', 'permissions.admin'])
     for repo in oct_repos:
         print(repo)
 
@@ -802,7 +804,8 @@ def test_repos():
 def test_repoteams():
     """Simple test for repoteams() function.
     """
-    for team in repoteams(org='ms-iot', repo=['serial-wiring', 'remote-sensor']):
+    teams = repoteams(org='ms-iot', repo=['serial-wiring', 'remote-sensor'])
+    for team in teams:
         print(team)
 
 # if running standalone, run tests ---------------------------------------------
