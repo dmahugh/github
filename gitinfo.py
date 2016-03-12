@@ -98,8 +98,13 @@ def auth_user():
     username = _settings.username
     access_token = _settings.accesstoken
 
-    log_msg('username:', username + ', PAT:',
-            access_token[0:2] + '...' + access_token[-2:])
+    if access_token:
+        # if a PAT is stored, only display first 2 and last 2 characters
+        pat = access_token[0:2] + '...' + \
+            access_token[-2:] # pylint: disable=E1136
+    else:
+        pat = "*none*"
+    log_msg('username:', username + ', PAT:', pat)
 
     return (username, access_token)
 
