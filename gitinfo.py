@@ -9,15 +9,18 @@ log_msg() --------> Log a status message.
 memberfields() ---> Get field values for a member/user.
 members() --------> Get members of one or more organizations.
 membersget() -----> Get member info for a specified organization.
+orgteamfields() --> Get field values for an organization's team.
+orgteams() -------> Get teams for one or more organizations.
+orgteamsget() ----> Get team info for a specified organization.
 pagination() -----> Parse 'link' HTTP header returned by GitHub API.
 repofields() -----> Get field values for a repo.
 repos() ----------> Get repo information for organization(s) or user(s).
 reposget() -------> Get repo information from specified API endpoint.
+
+repoteams() ------> Get teams for one or more repositories.
+
 session_end() ----> Log summary of completed gitinfo "session."
 session_start() --> Initiate a gitinfo session for logging/tracking purposes.
-teamfields() -----> Get field values for a team.
-teams() ----------> Get teams for one or more organizations.
-teamsget() -------> Get team info for a specified organization.
 timestamp() ------> Return current timestamp as a string - YYYY-MM-DD HH:MM:SS
 write_csv() ------> Write a list of namedtuples to a CSV file.
 """
@@ -308,6 +311,92 @@ def membersget(org=None, team=None, fields=None, audit2fa=False):
 
     return retval
 
+#-------------------------------------------------------------------------------
+def orgteamfields(team_json, fields, org):
+    """Get field values for an organization's team.
+
+    1st parameter = team's json representation as returned by GitHub API
+    2nd parameter = list of names of desired fields
+    3rd parameter = organization ID
+
+    Returns a namedtuple containing the desired fields and their values.
+    NOTE: in addition to the specified fields, always returns an 'org' field
+    to distinguish between orgs in multi-org lists returned by orgteams().
+    """
+    values = {}
+    values['org'] = org
+    for fldname in fields:
+        values[fldname] = team_json[fldname]
+
+    team_tuple = collections.namedtuple('team_tuple',
+                                        'org ' + ' '.join(fields))
+    return team_tuple(**values)
+
+#-------------------------------------------------------------------------------
+def orgteams(org=None, fields=None):
+    """Get teams for one or more organizations.
+
+    org = organization ID, or a list of organizations
+    fields = list of field names to be returned; names must be the same as
+             returned by the GitHub API (see below).
+
+    Note: to access team information, you must be authenticated as a member of
+    the Owners team for the team's organization.
+
+    Returns a list of namedtuple objects, one per team.
+
+    GitHub API fields (as of March 2016): description, id, members_url, name,
+        permission, privacy, repositories_url, slug, url
+    """
+    if not fields:
+        fields = ['name', 'id', 'privacy', 'permission'] # default field list
+
+    teamlist = [] # the list of members that will be returned
+
+    # org may be a single value as a string, or a list of values
+    if isinstance(org, str):
+        teamlist.extend(orgteamsget(org, fields))
+    else:
+        for orgid in org:
+            teamlist.extend(orgteamsget(orgid, fields))
+
+    return teamlist
+
+#------------------------------------------------------------------------------
+def orgteamsget(org, fields):
+    """Get team info for a specified organization.
+
+    1st parameter = organization ID
+    2nd parameter = list of fields to be returned
+
+    Returns a list of namedtuples containing the specified fields.
+    """
+    endpoint = 'https://api.github.com/orgs/' + org + '/teams'
+    retval = [] # the list to be returned
+    totpages = 0
+
+    while True:
+
+        response = github_api(endpoint, auth=auth_user())
+        if response.ok:
+            totpages += 1
+            thispage = json.loads(response.text)
+            for team_json in thispage:
+                retval.append(orgteamfields(team_json, fields, org))
+
+        pagelinks = pagination(response)
+        endpoint = pagelinks['nextURL']
+        if not endpoint:
+            break # no more results to process
+
+        log_msg('processing page {0} of {1}'. \
+                       format(pagelinks['nextpage'], pagelinks['lastpage']))
+
+    log_msg('pages processed: {0}, total members: {1}'. \
+        format(totpages, len(retval)))
+
+    return retval
+
 #------------------------------------------------------------------------------
 def pagination(link_header):
     """Parse values from the 'link' HTTP header returned by GitHub API.
@@ -498,6 +587,45 @@ def reposget(endpoint, fields):
     return retval
 
 #-------------------------------------------------------------------------------
+def repoteams(org=None, repo=None, fields=None):
+    """Get teams for one or more repositories.
+
+    org = organization ID (required)
+    repo = repo name, list of repo names, or None for all repos in this org
+    fields = list of field names to be returned; names must be the same as
+             returned by the GitHub API (see below).
+
+    Note: to access team information, you must be authenticated as a member of
+    the Owners team for the team's organization.
+
+    Returns a list of namedtuple objects, one per team.
+
+    GitHub API fields (as of March 2016): description, id, members_url, name,
+        permission, privacy, repositories_url, slug, url
+    """
+    if not fields:
+        fields = ['name', 'id', 'privacy', 'permission'] # default field list
+
+    teamlist = [] # the list of members that will be returned
+
+    if not repo:
+        # no repos specified, so create a list of all repos for this org
+        #/// set repo to the list of repo names for this org
+        pass
+
+    #/// repoteamfields() -> always returns org and repo, in addition to specified fields
+
+    if isinstance(repo, str):
+        # get teams for a single repo
+        teamlist.extend(repoteamsget(org, repo, fields))
+    else:
+        # get teams for a list of repos
+        for reponame in repo:
+            teamlist.extend(orgteamsget(org, repoid, fields))
+
+    return teamlist
+
+#-------------------------------------------------------------------------------
 def session_end(msg=None):
     """Log summary of completed gitinfo session.
 
@@ -530,100 +658,6 @@ def session_start(msg=None):
     msgline = 60*'-' if not msg else (' ' + msg + ' ').center(60, '-')
     log_msg(msgline)
     log_msg('filename:', os.path.abspath(__file__))
-
-#-------------------------------------------------------------------------------
-def teamfields(team_json, fields, org):
-    """Get field values for a team.
-
-    1st parameter = team's json representation as returned by GitHub API
-    2nd parameter = list of names of desired fields
-    3rd parameter = organization ID
-
-    Returns a namedtuple containing the desired fields and their values.
-    NOTE: in addition to the specified fields, always returns an 'org' field
-    to distinguish between orgs in multi-org lists returned by teams().
-    """
-    values = {}
-    values['org'] = org
-    for fldname in fields:
-        values[fldname] = team_json[fldname]
-
-    team_tuple = collections.namedtuple('team_tuple',
-                                        'org ' + ' '.join(fields))
-    return team_tuple(**values)
-
-#-------------------------------------------------------------------------------
-def teams(org=None, fields=None):
-    """Get teams for one or more organizations.
-
-    org = organization ID, or a list of organizations
-    fields = list of field names to be returned; names must be the same as
-             returned by the GitHub API (see below).
-
-    Note: to access team information, you must be authenticated as a member of
-    the Owners team for the team's organization.
-
-    Returns a list of namedtuple objects, one per team.
-
-    GitHub API fields (as of March 2016):
-    description
-    id
-    members_url
-    name
-    permission
-    privacy
-    repositories_url
-    slug
-    url
-    """
-    if not fields:
-        fields = ['name', 'id', 'privacy', 'permission'] # default field list
-
-    teamlist = [] # the list of members that will be returned
-
-    # org may be a single value as a string, or a list of values
-    if isinstance(org, str):
-        teamlist.extend(teamsget(org, fields))
-    else:
-        for orgid in org:
-            teamlist.extend(teamsget(orgid, fields))
-
-    return teamlist
-
-#------------------------------------------------------------------------------
-def teamsget(org, fields):
-    """Get team info for a specified organization.
-
-    1st parameter = organization ID
-    2nd parameter = list of fields to be returned
-
-    Returns a list of namedtuples containing the specified fields.
-    """
-    endpoint = 'https://api.github.com/orgs/' + org + '/teams'
-    retval = [] # the list to be returned
-    totpages = 0
-
-    while True:
-
-        response = github_api(endpoint, auth=auth_user())
-        if response.ok:
-            totpages += 1
-            thispage = json.loads(response.text)
-            for team_json in thispage:
-                retval.append(teamfields(team_json, fields, org))
-
-        pagelinks = pagination(response)
-        endpoint = pagelinks['nextURL']
-        if not endpoint:
-            break # no more results to process
-
-        log_msg('processing page {0} of {1}'. \
-                       format(pagelinks['nextpage'], pagelinks['lastpage']))
-
-    log_msg('pages processed: {0}, total members: {1}'. \
-        format(totpages, len(retval)))
-
-    return retval
 
 #-------------------------------------------------------------------------------
 def timestamp():
@@ -676,13 +710,14 @@ def test_members():
     print('total members returned:', len(membertest))
 
 #-------------------------------------------------------------------------------
-def test_repos():
-    """Simple test for repos() function.
+def test_orgteams():
+    """Simple test for orgteams() function.
     """
-    oct_repos = repos(user=['octocat'],
-                      fields=['full_name', 'license.name', 'license', 'permissions.admin'])
-    for repo in oct_repos:
-        print(repo)
+    teamtest = orgteams(org=['bitstadium', 'ms-iot'])
+    for team in teamtest:
+        print(team)
+    print('total teams returned:', len(teamtest))
+
 
 #-------------------------------------------------------------------------------
 def test_pagination():
@@ -694,14 +729,25 @@ def test_pagination():
     print(pagination(testlinks))
 
 #-------------------------------------------------------------------------------
-def test_teams():
-    """Simple test for teams() function.
+def test_repos():
+    """Simple test for repos() function.
     """
-    teamtest = teams(org=['bitstadium', 'ms-iot'])
-    for team in teamtest:
-        print(team)
-    print('total teams returned:', len(teamtest))
+    oct_repos = repos(user=['octocat'],
+                      fields=['full_name', 'license.name', 'license', 'permissions.admin'])
+    for repo in oct_repos:
+        print(repo)
 
+#-------------------------------------------------------------------------------
+def test_repoteams():
+    """Simple test for repoteams() function.
+    """
+
+    # EXAMPLE - get teams for a single repo
+    auth_config({'username': 'msftgits'})
+    response = requests.get('https://api.github.com/repos/microsoft/ospo-witness/teams', auth=auth_user())
+    thispage = json.loads(response.text)
+    for team in thispage:
+        print(team)
 
 # if running standalone, run tests ---------------------------------------------
 if __name__ == "__main__":
@@ -709,9 +755,12 @@ if __name__ == "__main__":
     log_config({'verbose': True, 'logfile': 'gitinfo.log'})
     auth_config({'username': 'msftgits'})
     session_start('inline tests')
+
     #test_auth_user()
-    test_members()
+    #test_members()
     #test_repos()
     #test_pagination()
-    #test_teams()
+    #test_orgteams()
+    test_repoteams()
+
     session_end()
