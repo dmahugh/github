@@ -214,6 +214,10 @@ def memberfields(member_json, fields, org):
     NOTE: in addition to the specified fields, always returns an 'org' field
     to distinguish between orgs in multi-org lists returned by members().
     """
+    if not fields:
+        # if no fields specified, use default field list
+        fields = ['login', 'id', 'type', 'site_admin']
+
     values = {}
     values['org'] = org
     for fldname in fields:
@@ -245,9 +249,6 @@ def members(org=None, team=None, fields=None, audit2fa=False):
     url                 gravatar_id         subscriptions_url
     avatar_url          html_url
     """
-    if not fields:
-        fields = ['login', 'id', 'type', 'site_admin'] # default field list
-
     memberlist = [] # the list of members that will be returned
 
     if team:
@@ -330,6 +331,10 @@ def orgteamfields(team_json, fields, org):
     NOTE: in addition to the specified fields, always returns an 'org' field
     to distinguish between orgs in multi-org lists returned by orgteams().
     """
+    if not fields:
+        # if no fields specified, use default field list
+        fields = ['name', 'id', 'privacy', 'permission']
+
     values = {}
     values['org'] = org
     for fldname in fields:
@@ -355,9 +360,6 @@ def orgteams(org=None, fields=None):
     GitHub API fields (as of March 2016): description, id, members_url, name,
         permission, privacy, repositories_url, slug, url
     """
-    if not fields:
-        fields = ['name', 'id', 'privacy', 'permission'] # default field list
-
     teamlist = [] # the list of members that will be returned
 
     # org may be a single value as a string, or a list of values
@@ -450,6 +452,9 @@ def repofields(repo_json, fields):
 
     Returns a namedtuple containing the desired fields and their values.
     """
+    if not fields:
+        # if no fields specified, use default field list
+        fields = ['full_name', 'watchers', 'forks', 'open_issues']
 
     # change '.' to '_' because can't have '.' in an identifier
     fldnames = [_.replace('.', '_') for _ in fields]
@@ -526,9 +531,6 @@ def repos(org=None, user=None, fields=None):
     owner.id                      owner.url
     owner.login
     """
-    if not fields:
-        fields = ['full_name', 'watchers', 'forks', 'open_issues'] # default
-
     repolist = [] # the list that will be returned
 
     if org:
@@ -606,6 +608,10 @@ def repoteamfields(team_json, fields, org, repo):
     NOTE: in addition to the specified fields, always returns 'org' and
     'repo' fields to clarify which org/repo this team is associated with.
     """
+    if not fields:
+        # if no fields specified, use default field list
+        fields = ['name', 'id', 'privacy', 'permission']
+
     values = {}
     values['org'] = org
     values['repo'] = repo
@@ -633,9 +639,6 @@ def repoteams(org=None, repo=None, fields=None):
     GitHub API fields (as of March 2016): description, id, members_url, name,
         permission, privacy, repositories_url, slug, url
     """
-    if not fields:
-        fields = ['name', 'id', 'privacy', 'permission'] # default field list
-
     teamlist = [] # the list of members that will be returned
 
     if not repo:
@@ -816,10 +819,10 @@ if __name__ == "__main__":
     session_start('inline tests')
 
     #test_auth_user()
-    #test_members()
+    test_members()
     #test_repos()
     #test_pagination()
     #test_orgteams()
-    test_repoteams()
+    #test_repoteams()
 
     session_end()
