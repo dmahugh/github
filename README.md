@@ -1,7 +1,7 @@
 ![gitinfo](images/gitinfo.png)
-# Python 3.x library for GitHub REST API
+# GitHub API helper functions
 
-This is a simple wrapper optimized for ease of use, supporting a subset of the GitHub API. Intended for use in automating common administrative and monitoring activities. If you have suggestions for improvement, pull requests and issues are gladly accepted!
+Gitinfo is a library for Python 3.x to simplify use of the GitHub REST API. It's a work in progress &mdash; pull requests, feature requests and issues welcome!
 
 ## sample usage
 
