@@ -1,6 +1,4 @@
-# gitinfo - documentation
-
-## overview
+# gitinfo - overview
 
 The core functions (```members()```, ```repos()```, ```teams()```, ```repoteams()```) each return a list of namedtuple objects, and these namedtuples may contain a set of default fields or you can specify the fields to be returned. Pagination is handled automatically &mdash; the core functions return complete data sets.
 
@@ -125,5 +123,3 @@ import gitinfo as gi
 ms_members = gi.members(org='microsoft')
 gi.write_csv(ms_members, 'MicrosoftMembers.csv')
 ```
-
-To learn more, see the [source code](https://github.com/dmahugh/gitinfo/blob/master/gitinfo.py), the [gitinfo.html](https://github.com/dmahugh/gitinfo/blob/master/gitinfo.html) documentation file, or the [GitHub V3 API documentation](https://developer.github.com/v3/). If you have suggestions for improvement, pull requests and issues are gladly accepted!
