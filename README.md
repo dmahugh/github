@@ -28,6 +28,5 @@ For more examples of how to use gitinfo, see the [overview](overview.md).
 
 For usage details, see the [documentation](gitinfo.md).
 
-To learn more, see the [source code](https://github.com/dmahugh/gitinfo/blob/master/gitinfo.py)
 For GitHub API details, see the [GitHub V3 API documentation](https://developer.github.com/v3/).
 
