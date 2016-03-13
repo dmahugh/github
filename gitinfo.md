@@ -13,10 +13,10 @@
     pagination() -------> Parse 'link' HTTP header returned by GitHub API.  
     repofields() -------> Get field values for a repo.  
     repos() ------------> Get repo information for organizations or users.  
-    reposget() ---------> Get repo information from specified API endpoint.  
+    reposget() ---------> Get repo information for a specified org or user.  
     repoteamfields() ---> Get field values for a repo's team.  
     repoteams() --------> Get teams associated with one or more repositories.  
-    repoteamsget() -----> Get repo info for a specified repo.  
+    repoteamsget() -----> Get team info for a specified repo.  
     session_end() ------> Log summary of completed gitinfo "session."  
     session_start() ----> Initiate a gitinfo session for logging/tracking purposes.  
     teamfields() -------> Get field values for an organization's team.  
@@ -33,19 +33,23 @@
       
     Returns dictionary of current settings - call auth_config() with no  
     parameters to get status.
-##auth_user():
+###auth_user():
 
     Credentials for basic authentication.  
       
     Returns the tuple used for API calls, based on current settings.  
-    Returns None if no GitHub username/PAT is currently set.
+    Returns None if no GitHub username/PAT is currently set.  
+    <internal>
 ##github_api(endpoint=None, auth=None, headers=None):
 
     Call the GitHub API (wrapper for requests.get()).  
       
     endpoint = the HTTP endpoint to call  
     auth = optional tuple for authentication  
-    headers = optional dictionary of HTTP headers to pass
+    headers = optional dictionary of HTTP headers to pass  
+      
+    Returns the response object.  
+    API call through this function update session totals.
 ##log_apistatus():
 
     Display (via log_msg()) the rate-limit status after the last API call.  
@@ -67,7 +71,7 @@
       
     NOTE: can pass any number of parameters, which will be displayed as a single  
     string delimited by spaces.
-##memberfields(member_json, fields, org):
+###memberfields(member_json, fields, org):
 
     Get field values for a member/user.  
       
@@ -77,7 +81,8 @@
       
     Returns a namedtuple containing the desired fields and their values.  
     NOTE: in addition to the specified fields, always returns an 'org' field  
-    to distinguish between orgs in multi-org lists returned by members().
+    to distinguish between orgs in multi-org lists returned by members().  
+    <internal>
 ##members(org=None, team=None, fields=None, audit2fa=False):
 
     Get members for one or more teams or organizations.  
@@ -101,7 +106,8 @@
     avatar_url          html_url
 ##membersget(org=None, team=None, fields=None, audit2fa=False):
 
-    Get member info for a specified organization.  
+    Get member info for a specified organization. Called by members() to  
+    aggregate member info for multiple organizations.  
       
     org = organization ID (ignored if a team is specified)  
     team = team ID  
@@ -112,7 +118,7 @@
                auth_config() as an admin of the org(s).  
       
     Returns a list of namedtuples containing the specified fields.
-##pagination(link_header):
+###pagination(link_header):
 
     Parse values from the 'link' HTTP header returned by GitHub API.  
       
@@ -122,8 +128,9 @@
       
     Returns a dictionary with entries for the URLs and page numbers parsed  
     from the link string: firstURL, firstpage, prevURL, prevpage, nextURL,  
-    nextpage, lastURL, lastpage.
-##repofields(repo_json, fields, org, user):
+    nextpage, lastURL, lastpage.  
+    <internal>
+###repofields(repo_json, fields, org, user):
 
     Get field values for a repo.  
       
@@ -132,7 +139,8 @@
     3rd parameter = organization (for including in output fields)  
     4th parameter = username (for including in output fields)  
       
-    Returns a namedtuple containing the desired fields and their values.
+    Returns a namedtuple containing the desired fields and their values.  
+    <internal>
 ##repos(org=None, user=None, fields=None):
 
     Get repo information for one or more organizations or users.  
@@ -149,14 +157,15 @@
     Returns a list of namedtuple objects, one per repo.
 ##reposget(org=None, user=None, fields=None):
 
-    Get repo information for a specified org or user.  
+    Get repo information for a specified org or user. Called by repos() to  
+    aggregate repo information for multiple orgs or users.  
       
     org = organization name  
     user = username (ignored if org is provided)  
     fields = list of fields to be returned  
       
     Returns a list of namedtuples containing the specified fields.
-##repoteamfields(team_json, fields, org, repo):
+###repoteamfields(team_json, fields, org, repo):
 
     Get field values for a repo's team.  
       
@@ -167,7 +176,8 @@
       
     Returns a namedtuple containing the desired fields and their values.  
     NOTE: in addition to the specified fields, always returns 'org' and  
-    'repo' fields to clarify which org/repo this team is associated with.
+    'repo' fields to clarify which org/repo this team is associated with.  
+    <internal>
 ##repoteams(org=None, repo=None, fields=None):
 
     Get teams for one or more repositories.  
@@ -186,7 +196,8 @@
         permission, privacy, repositories_url, slug, url
 ##repoteamsget(org, repo, fields):
 
-    Get team info for a specified repo.  
+    Get team info for a specified repo. Called by repoteams() to aggregate  
+    team information for multiple repos.  
       
     1st parameter = organization ID  
     2nd parameter = repo name  
@@ -203,7 +214,7 @@
     Initiate a gitinfo "session" for logging/tracking purposes.  
       
     1st parameter = optional message to include in logfile/console output
-##teamfields(team_json, fields, org):
+###teamfields(team_json, fields, org):
 
     Get field values for an organization's team.  
       
@@ -213,7 +224,8 @@
       
     Returns a namedtuple containing the desired fields and their values.  
     NOTE: in addition to the specified fields, always returns an 'org' field  
-    to distinguish between orgs in multi-org lists returned by teams().
+    to distinguish between orgs in multi-org lists returned by teams().  
+    <internal>
 ##teams(org=None, fields=None):
 
     Get teams for one or more organizations.  
@@ -231,7 +243,8 @@
         permission, privacy, repositories_url, slug, url
 ##teamsget(org, fields):
 
-    Get team info for a specified organization.  
+    Get team info for a specified organization. Called by teams() to  
+    aggregate team information for multiple organizations.  
       
     1st parameter = organization ID  
     2nd parameter = list of fields to be returned  
