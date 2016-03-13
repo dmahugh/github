@@ -537,36 +537,38 @@ def repos(org=None, user=None, fields=None):
         # get repos by organization
         if isinstance(org, str):
             # one organization
-            endpoint = 'https://api.github.com/orgs/' + org + '/repos'
-            repolist.extend(reposget(endpoint, fields))
+            repolist.extend(reposget(org=org, fields=fields))
         else:
             # list of organizations
             for orgid in org:
-                endpoint = 'https://api.github.com/orgs/' + orgid + '/repos'
-                repolist.extend(reposget(endpoint, fields))
+                repolist.extend(reposget(org=orgid, fields=fields))
     else:
         # get repos by user
         if isinstance(user, str):
             # one user
-            endpoint = 'https://api.github.com/users/' + user + '/repos'
-            repolist.extend(reposget(endpoint, fields))
+            repolist.extend(reposget(user=user, fields=fields))
         else:
             # list of users
             for userid in user:
-                endpoint = 'https://api.github.com/users/' + userid + '/repos'
-                repolist.extend(reposget(endpoint, fields))
+                repolist.extend(reposget(user=userid, fields=fields))
 
     return repolist
 
 #-------------------------------------------------------------------------------
-def reposget(endpoint, fields):
-    """Get repo information from specified API endpoint.
+def reposget(org=None, user=None, fields=None):
+    """Get repo information for a specified org or user.
 
-    1st parameter = GitHub API endpoint
-    2nd parameter = list of fields to be returned
+    org = organization name
+    user = username (ignored if org is provided)
+    fields = list of fields to be returned
 
     Returns a list of namedtuples containing the specified fields.
     """
+    if org:
+        endpoint = 'https://api.github.com/orgs/' + org + '/repos'
+    else:
+        endpoint = 'https://api.github.com/users/' + user + '/repos'
+
     totpages = 0
     retval = [] # the list to be returned
 
@@ -802,6 +804,10 @@ def test_repos():
         ['full_name', 'license.name', 'license', 'permissions.admin'])
     for repo in oct_repos:
         print(repo)
+    deployr_repos = repos(org='deployr', fields= \
+        ['full_name', 'license.name', 'license', 'permissions.admin'])
+    for repo in deployr_repos:
+        print(repo)
 
 #-------------------------------------------------------------------------------
 def test_repoteams():
@@ -819,8 +825,8 @@ if __name__ == "__main__":
     session_start('inline tests')
 
     #test_auth_user()
-    test_members()
-    #test_repos()
+    #test_members()
+    test_repos()
     #test_pagination()
     #test_orgteams()
     #test_repoteams()
