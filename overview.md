@@ -1,11 +1,11 @@
 # gitinfo - overview
 
-/// work in progress - re-organization and significant edits being made 3/13, done soon
+This page provides a summary of how to use gitinfo. There is also detailed information in the docstrings in the [source code](https://github.com/dmahugh/gitinfo/blob/master/gitinfo.py) and in the auto-generated [documentation](gitinfo.md).
 
 ## Table of Contents
 
 * [basic concepts](#basic-concepts)
-* [sample usage](#sample-usage)
+* [examples](#examples)
 * [authentication](#authentication)
 * [specifying fields](#specifying-fields)
 * [auditing 2FA configuration](#auditing-2fa-configuration)
@@ -14,128 +14,86 @@
 
 ## basic concepts
 
-The core functions (```members()```, ```repos()```, ```teams()```, ```repoteams()```) each return a list of namedtuple objects, and these namedtuples may contain a set of default fields or you can specify the fields to be returned. Pagination is handled automatically &mdash; the core functions return complete data sets.
+The core functions (```members()```, ```repos()```, ```teams()```, ```repoteams()```) each return a list of namedtuple objects, and these namedtuples may contain a set of default fields or you can specify the fields to be returned. You can specify one or more orgs, repos or teams and you get back a single consolidated list appropriate for reporting/auditing scenarios.
 
 The GitHub API requires authentication to access certain information, and to allow for more than 60 API calls per hour. You can store authentication credentials (username/PAT) in a JSON file as described below, then use ```auth_config()``` specify the username for subsequent API calls.  
 
-By default, gitinfo displays status information on the console. You can turn this on or off, or direct this information to a log file, through settings managed by ```log_config()```. The ```session_start()``` and ```session_end()``` functions can be used to identify a gitinfo session for the purpose of tracking number of API calls, bytes returned, and elapsed time. You can use the ```log_msg()``` function to add your own information to the logs.
+By default, gitinfo displays status information on the console. You can turn this on or off, or direct this information to a log file, through settings managed by ```log_config()```. The ```session_start()``` and ```session_end()``` functions can be used to identify a gitinfo session for the purpose of tracking number of API calls, bytes returned, and elapsed time. You can use the ```log_msg()``` function to add your own information to the logs as well.
 
-The rest of this page shows a few typical use cases. There is also detailed information in the docstrings in the [source code](https://github.com/dmahugh/gitinfo/blob/master/gitinfo.py) and in the auto-generated [documentation](gitinfo.md).
+## examples
 
-## sample usage
-
-/// show simple examples of members/repos/teams/repoteams, including mult-org/team/repo usage
-/// note pagination is handled for you - all calls return complete data sets; optimized for reporting and auditing instead of UI-centric pagination
-
-## authentication
-
-/// explain in detail, note .gitignore
-
-## specifying fields
-
-/// note defaults and where to find them
-/// note fields always added (org, team, repo, etc)
-
-## auditing 2FA configuration
-
-/// this is a special case, the GitHub API added support for it (in 2014?), here's how it's supported
-
-## logging output
-
-/// simple logging mechanism
-/// you may need to monitor API rate limit, especially if you're making API calls for large numbers of repos or teams
-
-## writing CSV files
-
-/// summarize
-
-/////// OLD CONTENT TO REVISE/RE-USE:
-
-## sample usage
-
-Here's an example of how to retrieve and display repos by *organization*:
+For these examples, we'll assume you've imported ```gitinfo``` as ```gi```:
 
 ```
 import gitinfo as gi
+```
+
+There are currently four main functions that provide most of the functionality, and the following are simple examples of how to use each of them.
+
+### repos()
+The examples below return public repos only. To return private repos, you need to be authenticated as a member of the repo's organization or the repo's owner.
+```
+# get all public repos for an organization
 ms_repos = gi.repos(org='microsoft')
-for repo in ms_repos:
-    print(repo)
+
+# get all public repos for a set of organizations
+azure_repos = gi.repos(org=['Azure', 'Azure-Readiness', 'Azure-Samples', 'AzureAD', 'AzureADSamples'])
+
+# get all repos for a user
+octocat_repos = gi.repos(user='octocat')
+
+# get all repos for a set of users
+misc_repos = gi.repos(['kennethreitz', 'codelucas'])
+```
+### members()
+Public members can be returned without authentication, but you need to be authenticated as a member of an organization to see concealed members.
+```
+gi.auth_config({'username': 'your-user-name'})
+
+# get members of an organization
+org_members = gi.members(org='your-org-name')
+
+# get members of multiple organizations
+org_members = gi.members(org=['org1', 'org2', 'org3']
+
+# for team members, use the ID instead of the name
+team_members = gi.members(team='123456')
+
+# get members of multiple teams
+team_members = gi.members(team=['111111', '222222', '333333'])
+```
+### teams()
+To retrieve team information, you must be authenticated as a member of the Owners for the organization being managed.
+```
+gi.auth_config({'username': 'your-user-name'})
+
+# get teams for one organization
+teams = gi.teams(org='org-name')
+
+# get teams for a set of organizations
+teams = gi.teams(org=['org1', 'org2', 'org3'])
 ```
 
-And here's the output for that example:
-
-![MicrosoftReposOutput](images/MicrosoftReposOutput.png)
-
-Similar syntax to get repos by *user*:
-
+### repoteams()
+This function returns information about teams associated with specific repos in an organization.
 ```
-import gitinfo as gi
-oct_repos = gi.repos(user='octocat')
-for repo in oct_repos:
-    print(repo)
-```
+gi.auth_config({'username': 'your-user-name'})
 
-And here's the output for that example:
+# Note that the org parameter is required in all cases
 
-![OctocatRepos2](images/OctocatRepos2.png)
+# get team information for a single repo
+teams = gi.repoteams(org='org-name', repo='repo-name')
 
-## logging output
-By default, all functions in gitinfo run in "verbose mode" and display various status information on the console. You can switch verbose mode on or off via the ```log_config()``` function, and you can also send verbose output to a disk file. Console and file output are controlled independently, by the ```verbose``` and ```logfile``` parameters:
+# get team information for a set of repos
+teams = gi.repoteams(org='org-name', repo=['repo1', 'repo2', 'repo3'])
 
-```
-import gitinfo as gi
-gi.log_config(verbose=False, logfile='gitinfo.log') # send status info to a logfile, but don't display it
-```
-
-There are also ```session_start()``` and ```session_end()``` functions that you can put before and after a block of code to get a summary of how many API calls were made, how many bytes returned, API rate-limit status, elapsed time, etc. Here's an example of typical output to a log file using all of these options:
-
-![logfile](images/logfile.jpg)
-
-Note that Personal Access Tokens are not displayed or written to log files - just the first 2 and last 2 characters, to help identify which PAT was used.
-
-## retrieving repos by user, specifying fields
-Here's an example of how to retrieve the public repos for a specified user (Octocat) instead of organization, and how to specify fields to be returned (full_name and default_branch):
-
-![OctocatRepos](images/OctocatRepos.png)
-
-Some fields, such as ```license```, return a JSON document, which is inconvenient for saving to a CSV file. You can include a specific subfield instead of the entire JSON document by using dot notation. For example:
-
-![SubfieldExample](images/subfields.png)
-
-Note that the field name ```license.name``` was transformed to ```license_name``` in the returned tuples above, because you can't have periods embedded in namedtuple identifiers.
-
-## retrieving information for multiple orgs or users
-If you want to get a list of all repos in multiple org or under multiple users, you can simply pass a list instead of a single value for the ```org=``` or ```user=``` parameter in the ```repos()``` function. For example, these sorts of syntax return what you'd expect:
-
-```
-import gitinfo as gi
-repolist = gi.repos(user=['octocat', 'dmahugh'])
-repolist = gi.repos(org=['Azure', 'dotnet', 'Microsoft', 'OfficeDev'])
-```
-
-Note that you can also pass a list of orgs to the ```members()``` function, to return member information for multiple organizations:
-
-```
-import gitinfo as gi
-memberlist = gi.members(org=['Azure', 'dotnet', 'Microsoft', 'OfficeDev'])
-```
-
-The ```members()``` function also supports an optional ```team=``` parameter, which can contain either a single team ID or a list of teams.
-
-## auditing members for 2FA
-The GitHub API supports a filter that can be used to audit the members of organizations to determine who doesn't have GitHub two-factor authentication (2FA) enabled. The ```members()``` function supports an optional ```audit2fa=``` parameter to take advantage of this filter.
-
-You must be *authenticated as an owner of an organization* to get this information. For example, if you've configured PAT for ```admin-user``` (as described in the next section below), and that user is an owner of organzation ```org-name```, here's how you would get a list of members who don't have 2FA enabled:
-
-```
-import gitinfo as gi
-gi.auth_user('admin-user')
-no2fa = gi.members(org='org-name', audit2fa=True)
+# special case: omit repo parameter for ALL repos in an organization
+teams = repoteams(org='org-name')
 ```
 
 ## authentication
-You can use this module to retrieve public information from GitHub without any authentication, but the 60 requests per hour rate limit
-will be enforced. You can bump that up to 5000 requests per hour by using authentication.
+You can use gitinfo to retrieve public information from GitHub without any authentication, but the 60 requests per hour rate limit
+will be enforced, and you won't have access to certain information as mentioned above. You can bump the API rate limit up to 5000 requests per hour by using authentication.
 
 GitHub credentials (username/PAT) are stored in a ```github_users.json``` file in the ```private``` subfolder. Here's the format to use:
 
@@ -158,8 +116,51 @@ gi.auth_config('username': None)
 ```
 Only basic authentication via username and PAT (Personal Access Token) is supported at this time.
 
-## saving results
-The ```members()``` and ```repos()``` functions return a list of _namedtuple_ objects. The ```write_csv()``` function can be used to write these lists to a CSV file:
+## specifying fields
+Gitinfo functions return a list of namedtuples which contain either a default set of fields or a set of fields that you can specify. Here are the default fields for each of the major functions:
+
+* repos() - default fields = org, user, full_name, watchers, forks, open_issues
+* members() - default fields = org, login, id, type, site_admin
+* teams() - default fields = org, name, id, privacy, permission
+* repoteams() - default fields = org, repo, name, id, privacy, permission
+
+Here's an example of how to specify fields to be returned:
+
+![OctocatRepos](images/OctocatRepos.png)
+
+Some fields, such as ```license```, return a JSON document, which is inconvenient for saving to a CSV file. You can include a specific subfield instead of the entire JSON document by using dot notation. For example:
+
+![SubfieldExample](images/subfields.png)
+
+Note that the field name ```license.name``` was transformed to ```license_name``` in the returned tuples above, because you can't have periods embedded in namedtuple identifiers.
+
+## auditing 2FA configuration
+The GitHub API supports a filter that can be used to audit the members of organizations to determine who doesn't have GitHub two-factor authentication (2FA) enabled. The ```members()``` function supports an optional ```audit2fa=``` parameter to take advantage of this filter.
+
+You must be *authenticated as an owner of an organization* to get this information. For example, if you've configured PAT for ```admin-user```, and that user is an owner of organzation ```org-name```, here's how you would get a list of members who don't have 2FA enabled:
+
+```
+import gitinfo as gi
+gi.auth_user('admin-user')
+no2fa = gi.members(org='org-name', audit2fa=True)
+```
+
+## logging output
+By default, all functions in gitinfo run in "verbose mode" and display various status information on the console. You can switch verbose mode on or off via the ```log_config()``` function, and you can also send verbose output to a disk file. Console and file output are controlled independently, by the ```verbose``` and ```logfile``` parameters:
+
+```
+import gitinfo as gi
+gi.log_config(verbose=False, logfile='gitinfo.log') # send status info to a logfile, but don't display it
+```
+
+There are also ```session_start()``` and ```session_end()``` functions that you can put before and after a block of code to get a summary of how many API calls were made, how many bytes returned, API rate-limit status, elapsed time, etc. Here's an example of typical output to a log file using all of these options:
+
+![logfile](images/logfile.jpg)
+
+Note that Personal Access Tokens are not displayed or written to log files - just the first 2 and last 2 characters, to help identify which PAT was used.
+
+## writing CSV files
+Gitinfo query functions return a list of namedtuple objects, and the ```write_csv()``` function can be used to write these lists to a CSV file:
 
 ```
 import gitinfo as gi
