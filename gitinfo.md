@@ -1,4 +1,4 @@
-#gitinfo
+#gitinfo documentation
     Helper functions for retrieving data via the GitHub API.  
       
     auth_config() ------> Configure authentication settings.  
