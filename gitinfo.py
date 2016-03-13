@@ -357,11 +357,13 @@ def pagination(link_header):
     return retval
 
 #-------------------------------------------------------------------------------
-def repofields(repo_json, fields):
+def repofields(repo_json, fields, org, user):
     """Get field values for a repo.
 
     1st parameter = repo's json representation as returned by GitHub API
     2nd parameter = list of names of desired fields
+    3rd parameter = organization (for including in output fields)
+    4th parameter = username (for including in output fields)
 
     Returns a namedtuple containing the desired fields and their values.
     """
@@ -372,16 +374,18 @@ def repofields(repo_json, fields):
     # change '.' to '_' because can't have '.' in an identifier
     fldnames = [_.replace('.', '_') for _ in fields]
 
-    repo_tuple = collections.namedtuple('Repo', ' '.join(fldnames))
-
     values = {}
+    values['org'] = org
+    values['user'] = user
+    repo_tuple = collections.namedtuple('Repo', 'org user ' + ' '.join(fldnames))
+
     for fldname in fields:
         if '.' in fldname:
             # special case - embedded field within a JSON object
             try:
                 values[fldname.replace('.', '_')] = \
                     repo_json[fldname.split('.')[0]][fldname.split('.')[1]]
-            except TypeError:
+            except (TypeError, KeyError):
                 values[fldname.replace('.', '_')] = None
         else:
             # simple case: copy a value from the JSON to the namedtuple
@@ -403,7 +407,8 @@ def repos(org=None, user=None, fields=None):
              element of the 'license' entry for each repo.
 
     Returns a list of namedtuple objects, one per repo.
-
+    """
+    """ (separate docstring to keep the popup tooltip for repos() smaller)
     GitHub API fields (as of March 2016):
     archive_url         git_tags_url         open_issues
     assignees_url       git_url              open_issues_count
@@ -495,7 +500,7 @@ def reposget(org=None, user=None, fields=None):
             totpages += 1
             thispage = json.loads(response.text)
             for repo_json in thispage:
-                retval.append(repofields(repo_json, fields))
+                retval.append(repofields(repo_json, fields, org, user))
 
         pagelinks = pagination(response)
         endpoint = pagelinks['nextURL']
@@ -828,7 +833,7 @@ if __name__ == "__main__":
     #test_members()
     #test_repos()
     #test_pagination()
-    test_teams()
-    #test_repoteams()
+    #test_teams()
+    test_repoteams()
 
     session_end()
