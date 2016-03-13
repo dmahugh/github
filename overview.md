@@ -1,12 +1,55 @@
 # gitinfo - overview
 
+/// work in progress - re-organization and significant edits being made 3/13, done soon
+
+## Table of Contents
+
+* [basic concepts](#basic-concepts)
+* [sample usage](#sample-usage)
+* [authentication](#authentication)
+* [specifying fields](#specifying-fields)
+* [auditing 2FA configuration](#auditing-2fa-configuration)
+* [logging output](#logging-output)
+* [writing CSV files](#writing-csv-files)
+
+## basic concepts
+
 The core functions (```members()```, ```repos()```, ```teams()```, ```repoteams()```) each return a list of namedtuple objects, and these namedtuples may contain a set of default fields or you can specify the fields to be returned. Pagination is handled automatically &mdash; the core functions return complete data sets.
 
 The GitHub API requires authentication to access certain information, and to allow for more than 60 API calls per hour. You can store authentication credentials (username/PAT) in a JSON file as described below, then use ```auth_config()``` specify the username for subsequent API calls.  
 
 By default, gitinfo displays status information on the console. You can turn this on or off, or direct this information to a log file, through settings managed by ```log_config()```. The ```session_start()``` and ```session_end()``` functions can be used to identify a gitinfo session for the purpose of tracking number of API calls, bytes returned, and elapsed time. You can use the ```log_msg()``` function to add your own information to the logs.
 
-The rest of this page shows a few typical use cases. There is also detailed information in the docstrings in the [source code](https://github.com/dmahugh/gitinfo/blob/master/gitinfo.py).
+The rest of this page shows a few typical use cases. There is also detailed information in the docstrings in the [source code](https://github.com/dmahugh/gitinfo/blob/master/gitinfo.py) and in the auto-generated [documentation](gitinfo.md).
+
+## sample usage
+
+/// show simple examples of members/repos/teams/repoteams, including mult-org/team/repo usage
+/// note pagination is handled for you - all calls return complete data sets; optimized for reporting and auditing instead of UI-centric pagination
+
+## authentication
+
+/// explain in detail, note .gitignore
+
+## specifying fields
+
+/// note defaults and where to find them
+/// note fields always added (org, team, repo, etc)
+
+## auditing 2FA configuration
+
+/// this is a special case, the GitHub API added support for it (in 2014?), here's how it's supported
+
+## logging output
+
+/// simple logging mechanism
+/// you may need to monitor API rate limit, especially if you're making API calls for large numbers of repos or teams
+
+## writing CSV files
+
+/// summarize
+
+/////// OLD CONTENT TO REVISE/RE-USE:
 
 ## sample usage
 
