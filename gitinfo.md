@@ -3,30 +3,29 @@
       
     auth_config() --------> Configure authentication settings.  
     auth_user() ----------> Return credentials for use in GitHub API calls.  
-    collaboratorfields() -> Get field values for a collaborator.  
     collaborators() ------> Get collaborators for one or more repos.  
     collaboratorsget() ---> Get collaborator info for a specified repo.  
     github_api() ---------> Call the GitHub API (wrapper for requests.get()).  
     log_apistatus() ------> Display current API rate-limit status.  
     log_config() ---------> Configure message logging settings.  
     log_msg() ------------> Log a status message.  
-    memberfields() -------> Get field values for a member/user.  
     members() ------------> Get members of one or more organizations.  
     membersget() ---------> Get member info for a specified organization.  
     pagination() ---------> Parse 'link' HTTP header returned by GitHub API.  
     repofields() ---------> Get field values for a repo.  
     repos() --------------> Get repo information for organizations or users.  
     reposget() -----------> Get repo information for a specified org or user.  
-    repoteamfields() -----> Get field values for a repo's team.  
     repoteams() ----------> Get teams associated with one or more repositories.  
     repoteamsget() -------> Get team info for a specified repo.  
     session_end() --------> Log summary of completed gitinfo "session."  
     session_start() ------> Initiate a gitinfo session for logging/tracking purposes.  
-    teamfields() ---------> Get field values for an organization's team.  
     teams() --------------> Get teams for one or more organizations.  
     teamsget() -----------> Get team info for a specified organization.  
     timestamp() ----------> Return current timestamp as YYYY-MM-DD HH:MM:SS  
-    write_csv() ----------> Write a list of namedtuples to a CSV file.
+    write_csv() ----------> Write a list of namedtuples to a CSV file.  
+      
+    Note: some classes and functions have been omitted from the above list because  
+    they're only used internally and don't expose useful functionality.
 ##auth_config(settings=None):
 
     Configure authentication settings.  
