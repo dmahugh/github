@@ -1,28 +1,31 @@
 """Helper functions for retrieving data via the GitHub API.
 
-auth_config() ------> Configure authentication settings.
-auth_user() --------> Return credentials for use in GitHub API calls.
-github_api() -------> Call the GitHub API (wrapper for requests.get()).
-log_apistatus() ----> Display current API rate-limit status.
-log_config() -------> Configure message logging settings.
-log_msg() ----------> Log a status message.
-memberfields() -----> Get field values for a member/user.
-members() ----------> Get members of one or more organizations.
-membersget() -------> Get member info for a specified organization.
-pagination() -------> Parse 'link' HTTP header returned by GitHub API.
-repofields() -------> Get field values for a repo.
-repos() ------------> Get repo information for organizations or users.
-reposget() ---------> Get repo information from specified API endpoint.
-repoteamfields() ---> Get field values for a repo's team.
-repoteams() --------> Get teams associated with one or more repositories.
-repoteamsget() -----> Get repo info for a specified repo.
-session_end() ------> Log summary of completed gitinfo "session."
-session_start() ----> Initiate a gitinfo session for logging/tracking purposes.
-teamfields() -------> Get field values for an organization's team.
-teams() ------------> Get teams for one or more organizations.
-teamsget() ---------> Get team info for a specified organization.
-timestamp() --------> Return current timestamp as YYYY-MM-DD HH:MM:SS
-write_csv() --------> Write a list of namedtuples to a CSV file.
+auth_config() --------> Configure authentication settings.
+auth_user() ----------> Return credentials for use in GitHub API calls.
+collaboratorfields() -> Get field values for a collaborator.
+collaborators() ------> Get collaborators for one or more repos.
+collaboratorsget() ---> Get collaborator info for a specified repo.
+github_api() ---------> Call the GitHub API (wrapper for requests.get()).
+log_apistatus() ------> Display current API rate-limit status.
+log_config() ---------> Configure message logging settings.
+log_msg() ------------> Log a status message.
+memberfields() -------> Get field values for a member/user.
+members() ------------> Get members of one or more organizations.
+membersget() ---------> Get member info for a specified organization.
+pagination() ---------> Parse 'link' HTTP header returned by GitHub API.
+repofields() ---------> Get field values for a repo.
+repos() --------------> Get repo information for organizations or users.
+reposget() -----------> Get repo information for a specified org or user.
+repoteamfields() -----> Get field values for a repo's team.
+repoteams() ----------> Get teams associated with one or more repositories.
+repoteamsget() -------> Get team info for a specified repo.
+session_end() --------> Log summary of completed gitinfo "session."
+session_start() ------> Initiate a gitinfo session for logging/tracking purposes.
+teamfields() ---------> Get field values for an organization's team.
+teams() --------------> Get teams for one or more organizations.
+teamsget() -----------> Get team info for a specified organization.
+timestamp() ----------> Return current timestamp as YYYY-MM-DD HH:MM:SS
+write_csv() ----------> Write a list of namedtuples to a CSV file.
 """
 import collections
 import csv
@@ -91,6 +94,7 @@ def auth_user():
 
     Returns the tuple used for API calls, based on current settings.
     Returns None if no GitHub username/PAT is currently set.
+    <internal>
     """
     if not _settings.username:
         return None
@@ -109,12 +113,132 @@ def auth_user():
     return (username, access_token)
 
 #-------------------------------------------------------------------------------
+def collaboratorfields(collab_json, fields, owner, repo):
+    """Get field values for a collaborator.
+
+    1st parameter = collaborator JSON representation as returned by GitHub API
+    2nd parameter = list of names of desired fields
+    3rd parameter = owner (for including in output fields)
+    4th parameter = repo (for including in output fields)
+
+    Returns a namedtuple containing the desired fields and their values.
+    <internal>
+    """
+    if not fields:
+        # if no fields specified, use default field list
+        fields = ['id', 'login', 'type', 'permissions.admin']
+
+    # change '.' to '_' because can't have '.' in an identifier
+    fldnames = [_.replace('.', '_') for _ in fields]
+
+    values = {}
+    values['owner'] = owner
+    values['repo'] = repo
+    collab_tuple = collections.namedtuple('collab_tuple', 'owner repo ' + ' '.join(fldnames))
+
+    for fldname in fields:
+        if '.' in fldname:
+            # special case - embedded field within a JSON object
+            try:
+                values[fldname.replace('.', '_')] = \
+                    collab_json[fldname.split('.')[0]][fldname.split('.')[1]]
+            except (TypeError, KeyError):
+                values[fldname.replace('.', '_')] = None
+        else:
+            # simple case: copy a value from the JSON to the namedtuple
+            values[fldname] = collab_json[fldname]
+
+    return collab_tuple(**values)
+
+#-------------------------------------------------------------------------------
+def collaborators(owner=None, repo=None, fields=None):
+    """Get collaborators for one or more repos with the same owner.
+
+    owner = the repo owner (org or user)
+    repo = repo name or list of repo names
+    fields = list of field names to be returned; names must be the same as
+             returned by the GitHub API (see below).
+
+    Note: to access collaborator information, you must be authenticated as a
+    person with admin access to the repo.
+
+    Returns a list of namedtuple objects, one per team.
+    """
+    """
+    GitHub API fields (as of March 2016):
+    avatar_url          permissions.admin
+    events_url          permissions.pull
+    followers_url       permissions.push
+    following_url       received_events_url
+    gists_url           repos_url
+    gravatar_id         site_admin
+    html_url            starred_url
+    id                  subscriptions_url
+    login               type
+    organizations_url   url
+    """
+    if not owner or not repo:
+        log_msg('ERROR: collaborators() called without required parameters.')
+        return []
+    collablist = [] # the list of collaborators that will be returned
+
+    if isinstance(repo, str):
+        # get collaborators for a single repo
+        collablist.extend(collaboratorsget(owner, repo, fields))
+    else:
+        # get collaborators for a list of repos
+        for reponame in repo:
+            collablist.extend(collaboratorsget(owner, reponame, fields))
+
+    return collablist
+
+#------------------------------------------------------------------------------
+def collaboratorsget(owner, repo, fields):
+    """Get collaborator info for a specified repo. Called by collaborators() to
+    aggregate collaborator information for multiple repos.
+
+    1st parameter = owner
+    2nd parameter = repo name
+    3rd parameter = list of fields to be returned
+
+    Returns a list of namedtuples containing the specified fields.
+    """
+    endpoint = 'https://api.github.com/repos/' + owner + '/' + repo + '/collaborators'
+    retval = [] # the list to be returned
+    totpages = 0
+
+    while True:
+
+        response = github_api(endpoint, auth=auth_user())
+        if response.ok:
+            totpages += 1
+            thispage = json.loads(response.text)
+            for collab_json in thispage:
+                retval.append(collaboratorfields(collab_json, fields, owner, repo))
+
+        pagelinks = pagination(response)
+        endpoint = pagelinks['nextURL']
+        if not endpoint:
+            break # no more results to process
+
+        log_msg('processing page {0} of {1}'. \
+                       format(pagelinks['nextpage'], pagelinks['lastpage']))
+
+    log_msg('pages processed: {0}, total members: {1}'. \
+        format(totpages, len(retval)))
+
+    return retval
+
+#-------------------------------------------------------------------------------
 def github_api(endpoint=None, auth=None, headers=None):
     """Call the GitHub API (wrapper for requests.get()).
 
     endpoint = the HTTP endpoint to call
     auth = optional tuple for authentication
     headers = optional dictionary of HTTP headers to pass
+
+    Returns the response object.
+    API call through this function update session totals.
     """
     if not endpoint:
         log_msg('ERROR: github_api() called with no endpoint')
@@ -213,6 +337,7 @@ def memberfields(member_json, fields, org):
     Returns a namedtuple containing the desired fields and their values.
     NOTE: in addition to the specified fields, always returns an 'org' field
     to distinguish between orgs in multi-org lists returned by members().
+    <internal>
     """
     if not fields:
         # if no fields specified, use default field list
@@ -276,7 +401,8 @@ def members(org=None, team=None, fields=None, audit2fa=False):
 
 #------------------------------------------------------------------------------
 def membersget(org=None, team=None, fields=None, audit2fa=False):
-    """Get member info for a specified organization.
+    """Get member info for a specified organization. Called by members() to
+    aggregate member info for multiple organizations.
 
     org = organization ID (ignored if a team is specified)
     team = team ID
@@ -330,6 +456,7 @@ def pagination(link_header):
     Returns a dictionary with entries for the URLs and page numbers parsed
     from the link string: firstURL, firstpage, prevURL, prevpage, nextURL,
     nextpage, lastURL, lastpage.
+    <internal>
     """
     # initialize the dictionary
     retval = {'firstpage':0, 'firstURL':None, 'prevpage':0, 'prevURL':None,
@@ -366,6 +493,7 @@ def repofields(repo_json, fields, org, user):
     4th parameter = username (for including in output fields)
 
     Returns a namedtuple containing the desired fields and their values.
+    <internal>
     """
     if not fields:
         # if no fields specified, use default field list
@@ -377,7 +505,7 @@ def repofields(repo_json, fields, org, user):
     values = {}
     values['org'] = org
     values['user'] = user
-    repo_tuple = collections.namedtuple('Repo', 'org user ' + ' '.join(fldnames))
+    repo_tuple = collections.namedtuple('repo_tuple', 'org user ' + ' '.join(fldnames))
 
     for fldname in fields:
         if '.' in fldname:
@@ -474,7 +602,8 @@ def repos(org=None, user=None, fields=None):
 
 #-------------------------------------------------------------------------------
 def reposget(org=None, user=None, fields=None):
-    """Get repo information for a specified org or user.
+    """Get repo information for a specified org or user. Called by repos() to
+    aggregate repo information for multiple orgs or users.
 
     org = organization name
     user = username (ignored if org is provided)
@@ -527,6 +656,7 @@ def repoteamfields(team_json, fields, org, repo):
     Returns a namedtuple containing the desired fields and their values.
     NOTE: in addition to the specified fields, always returns 'org' and
     'repo' fields to clarify which org/repo this team is associated with.
+    <internal>
     """
     if not fields:
         # if no fields specified, use default field list
@@ -577,7 +707,8 @@ def repoteams(org=None, repo=None, fields=None):
 
 #------------------------------------------------------------------------------
 def repoteamsget(org, repo, fields):
-    """Get team info for a specified repo.
+    """Get team info for a specified repo. Called by repoteams() to aggregate
+    team information for multiple repos.
 
     1st parameter = organization ID
     2nd parameter = repo name
@@ -656,6 +787,7 @@ def teamfields(team_json, fields, org):
     Returns a namedtuple containing the desired fields and their values.
     NOTE: in addition to the specified fields, always returns an 'org' field
     to distinguish between orgs in multi-org lists returned by teams().
+    <internal>
     """
     if not fields:
         # if no fields specified, use default field list
@@ -699,7 +831,8 @@ def teams(org=None, fields=None):
 
 #------------------------------------------------------------------------------
 def teamsget(org, fields):
-    """Get team info for a specified organization.
+    """Get team info for a specified organization. Called by teams() to
+    aggregate team information for multiple organizations.
 
     1st parameter = organization ID
     2nd parameter = list of fields to be returned
@@ -774,6 +907,14 @@ def test_auth_user():
     print(auth_user())
 
 #-------------------------------------------------------------------------------
+def test_collaborators():
+    """Simple test for collaborators() function.
+    """
+    collabtest = collaborators(owner='microsoft', repo='galaxyexplorer')
+    for collab in collabtest:
+        print(collab)
+
+#-------------------------------------------------------------------------------
 def test_members():
     """Simple test for members() function.
     """
@@ -830,10 +971,11 @@ if __name__ == "__main__":
     session_start('inline tests')
 
     #test_auth_user()
+    test_collaborators()
     #test_members()
     #test_repos()
     #test_pagination()
     #test_teams()
-    test_repoteams()
+    #test_repoteams()
 
     session_end()

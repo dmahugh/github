@@ -1,29 +1,32 @@
 #gitinfo documentation
     Helper functions for retrieving data via the GitHub API.  
       
-    auth_config() ------> Configure authentication settings.  
-    auth_user() --------> Return credentials for use in GitHub API calls.  
-    github_api() -------> Call the GitHub API (wrapper for requests.get()).  
-    log_apistatus() ----> Display current API rate-limit status.  
-    log_config() -------> Configure message logging settings.  
-    log_msg() ----------> Log a status message.  
-    memberfields() -----> Get field values for a member/user.  
-    members() ----------> Get members of one or more organizations.  
-    membersget() -------> Get member info for a specified organization.  
-    pagination() -------> Parse 'link' HTTP header returned by GitHub API.  
-    repofields() -------> Get field values for a repo.  
-    repos() ------------> Get repo information for organizations or users.  
-    reposget() ---------> Get repo information for a specified org or user.  
-    repoteamfields() ---> Get field values for a repo's team.  
-    repoteams() --------> Get teams associated with one or more repositories.  
-    repoteamsget() -----> Get team info for a specified repo.  
-    session_end() ------> Log summary of completed gitinfo "session."  
-    session_start() ----> Initiate a gitinfo session for logging/tracking purposes.  
-    teamfields() -------> Get field values for an organization's team.  
-    teams() ------------> Get teams for one or more organizations.  
-    teamsget() ---------> Get team info for a specified organization.  
-    timestamp() --------> Return current timestamp as YYYY-MM-DD HH:MM:SS  
-    write_csv() --------> Write a list of namedtuples to a CSV file.
+    auth_config() --------> Configure authentication settings.  
+    auth_user() ----------> Return credentials for use in GitHub API calls.  
+    collaboratorfields() -> Get field values for a collaborator.  
+    collaborators() ------> Get collaborators for one or more repos.  
+    collaboratorsget() ---> Get collaborator info for a specified repo.  
+    github_api() ---------> Call the GitHub API (wrapper for requests.get()).  
+    log_apistatus() ------> Display current API rate-limit status.  
+    log_config() ---------> Configure message logging settings.  
+    log_msg() ------------> Log a status message.  
+    memberfields() -------> Get field values for a member/user.  
+    members() ------------> Get members of one or more organizations.  
+    membersget() ---------> Get member info for a specified organization.  
+    pagination() ---------> Parse 'link' HTTP header returned by GitHub API.  
+    repofields() ---------> Get field values for a repo.  
+    repos() --------------> Get repo information for organizations or users.  
+    reposget() -----------> Get repo information for a specified org or user.  
+    repoteamfields() -----> Get field values for a repo's team.  
+    repoteams() ----------> Get teams associated with one or more repositories.  
+    repoteamsget() -------> Get team info for a specified repo.  
+    session_end() --------> Log summary of completed gitinfo "session."  
+    session_start() ------> Initiate a gitinfo session for logging/tracking purposes.  
+    teamfields() ---------> Get field values for an organization's team.  
+    teams() --------------> Get teams for one or more organizations.  
+    teamsget() -----------> Get team info for a specified organization.  
+    timestamp() ----------> Return current timestamp as YYYY-MM-DD HH:MM:SS  
+    write_csv() ----------> Write a list of namedtuples to a CSV file.
 ##auth_config(settings=None):
 
     Configure authentication settings.  
@@ -40,6 +43,40 @@
     Returns the tuple used for API calls, based on current settings.  
     Returns None if no GitHub username/PAT is currently set.  
     <internal>
+###collaboratorfields(collab_json, fields, owner, repo):
+
+    Get field values for a collaborator.  
+      
+    1st parameter = collaborator JSON representation as returned by GitHub API  
+    2nd parameter = list of names of desired fields  
+    3rd parameter = owner (for including in output fields)  
+    4th parameter = repo (for including in output fields)  
+      
+    Returns a namedtuple containing the desired fields and their values.  
+    <internal>
+##collaborators(owner=None, repo=None, fields=None):
+
+    Get collaborators for one or more repos with the same owner.  
+      
+    owner = the repo owner (org or user)  
+    repo = repo name or list of repo names  
+    fields = list of field names to be returned; names must be the same as  
+             returned by the GitHub API (see below).  
+      
+    Note: to access collaborator information, you must be authenticated as a  
+    person with admin access to the repo.  
+      
+    Returns a list of namedtuple objects, one per team.
+##collaboratorsget(owner, repo, fields):
+
+    Get collaborator info for a specified repo. Called by collaborators() to  
+    aggregate collaborator information for multiple repos.  
+      
+    1st parameter = owner  
+    2nd parameter = repo name  
+    3rd parameter = list of fields to be returned  
+      
+    Returns a list of namedtuples containing the specified fields.
 ##github_api(endpoint=None, auth=None, headers=None):
 
     Call the GitHub API (wrapper for requests.get()).  

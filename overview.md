@@ -14,7 +14,7 @@ This page provides a summary of how to use gitinfo. There is also detailed infor
 
 ## basic concepts
 
-The core functions (```members()```, ```repos()```, ```teams()```, ```repoteams()```) each return a list of namedtuple objects, and these namedtuples may contain a set of default fields or you can specify the fields to be returned. You can specify one or more orgs, repos or teams and you get back a single consolidated list appropriate for reporting/auditing scenarios.
+The core functions (```members()```, ```repos()```, ```teams()```, ```repoteams()```, ```collaborators()```) each return a list of namedtuple objects, and these namedtuples may contain a set of default fields or you can specify the fields to be returned. You can specify one or more orgs, repos or teams and you get back a single consolidated list appropriate for reporting/auditing scenarios.
 
 The GitHub API requires authentication to access certain information, and to allow for more than 60 API calls per hour. You can store authentication credentials (username/PAT) in a JSON file as described below, then use ```auth_config()``` specify the username for subsequent API calls.  
 
@@ -89,6 +89,20 @@ teams = gi.repoteams(org='org-name', repo=['repo1', 'repo2', 'repo3'])
 
 # special case: omit repo parameter for ALL repos in an organization
 teams = repoteams(org='org-name')
+```
+
+### collaborators()
+This function returns information about collaborators associated with specific repos.
+```
+gi.auth_config({'username': 'your-user-name'})
+
+# Note that the owner and repo parameters are both required
+
+# get collaborator information for a single repo
+teams = gi.collaborators(owner='org-name', repo='repo-name')
+
+# get collaborator information for a set of repos
+teams = gi.collaborators(org='org-name', repo=['repo1', 'repo2', 'repo3'])
 ```
 
 ## authentication
