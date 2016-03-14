@@ -133,10 +133,11 @@ Only basic authentication via username and PAT (Personal Access Token) is suppor
 ## specifying fields
 Gitinfo functions return a list of namedtuples which contain either a default set of fields or a set of fields that you can specify. Here are the default fields for each of the major functions:
 
-* repos() - default fields = org, user, full_name, watchers, forks, open_issues
-* members() - default fields = org, login, id, type, site_admin
-* teams() - default fields = org, name, id, privacy, permission
-* repoteams() - default fields = org, repo, name, id, privacy, permission
+* repos() - org, user, full_name, watchers, forks, open_issues
+* members() - org, login, id, type, site_admin
+* teams() - org, name, id, privacy, permission
+* repoteams() - org, repo, name, id, privacy, permission
+* collaborators() - owner, repo, id, login, type, permissions.admin
 
 Here's an example of how to specify fields to be returned:
 
