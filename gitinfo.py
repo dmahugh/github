@@ -910,7 +910,7 @@ def test_auth_user():
 def test_collaborators():
     """Simple test for collaborators() function.
     """
-    collabtest = collaborators(owner='microsoft', repo='galaxyexplorer')
+    collabtest = collaborators(owner='microsoft', repo=['galaxyexplorer', 'dotnet-blog'])
     for collab in collabtest:
         print(collab)
 
