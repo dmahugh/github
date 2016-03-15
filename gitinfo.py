@@ -498,7 +498,7 @@ def repofields(repo_json, fields, org, user):
     """
     if not fields:
         # if no fields specified, use default field list
-        fields = ['full_name', 'watchers', 'forks', 'open_issues']
+        fields = ['full_name', 'watchers', 'forks', 'private']
 
     # change '.' to '_' because can't have '.' in an identifier
     fldnames = [_.replace('.', '_') for _ in fields]
@@ -947,12 +947,12 @@ def test_pagination():
 def test_repos():
     """Simple test for repos() function.
     """
-    oct_repos = repos(user=['octocat'], fields= \
-        ['full_name', 'license.name', 'license', 'permissions.admin'])
-    for repo in oct_repos:
-        print(repo)
+    #oct_repos = repos(user=['octocat'], fields= \
+    #    ['full_name', 'license.name', 'license', 'permissions.admin'])
+    #for repo in oct_repos:
+    #    print(repo)
     deployr_repos = repos(org='deployr', fields= \
-        ['full_name', 'license.name', 'license', 'permissions.admin'])
+        ['full_name', 'private', 'license', 'permissions.admin'])
     for repo in deployr_repos:
         print(repo)
 
@@ -972,9 +972,9 @@ if __name__ == "__main__":
     session_start('inline tests')
 
     #test_auth_user()
-    test_collaborators()
+    #test_collaborators()
     #test_members()
-    #test_repos()
+    test_repos()
     #test_pagination()
     #test_teams()
     #test_repoteams()
