@@ -255,8 +255,17 @@ def github_api(endpoint=None, auth=None, headers=None):
     # update session settings
     _settings.tot_api_calls += 1
     _settings.tot_api_bytes += len(response.content)
-    _settings.last_ratelimit = int(response.headers['X-RateLimit-Limit'])
-    _settings.last_remaining = int(response.headers['X-RateLimit-Remaining'])
+    try:
+        _settings.last_ratelimit = int(response.headers['X-RateLimit-Limit'])
+        _settings.last_remaining = int(response.headers['X-RateLimit-Remaining'])
+    except KeyError:
+        # This is the strange and rare case (which we've encountered) where
+        # an API call that normally returns the rate-limit headers doesn't
+        # return them. Since these values are only used for monitoring, we
+        # use nonsensical values here that will show it happened, but won't
+        # crash a long-running process.
+        _settings.last_ratelimit = 999999
+        _settings.last_remaining = 999999
 
     return response
 
