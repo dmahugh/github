@@ -38,13 +38,13 @@ import requests
 
 #------------------------------------------------------------------------------
 class _settings: # pylint: disable=R0903
-    """This class is just a namespace used for global settings.
+    """This class exists to provide a namespace used for global settings.
     Use auth_config() or log_config() to change these settings.
     """
 
     # authentication settings used by auth_*() functions
-    username = None # default = no GitHub authentication
-    accesstoken = None # auth_config() may set this from the 'private' folder
+    username = '' # default = no GitHub authentication
+    accesstoken = '' # auth_config() may set this from the 'private' folder
 
     # logging settings used by log_*() functions
     verbose = True # default = messages displayed to console
@@ -89,8 +89,7 @@ def auth_config(settings=None):
     accesstoken = _settings.accesstoken
     if accesstoken:
         # if a PAT is stored, only display first 2 and last 2 characters
-        pat = accesstoken[0:2] + '...' + \
-            accesstoken[-2:] # pylint: disable=E1136
+        pat = accesstoken[0:2] + '...' + accesstoken[-2:]
     else:
         pat = "*none*"
     log_msg('username:', username + ', PAT:', pat)
@@ -165,19 +164,17 @@ def collaborators(owner=None, repo=None, fields=None):
 
     Returns a list of namedtuple objects, one per team.
     """
-    """
-    GitHub API fields (as of March 2016):
-    avatar_url          permissions.admin
-    events_url          permissions.pull
-    followers_url       permissions.push
-    following_url       received_events_url
-    gists_url           repos_url
-    gravatar_id         site_admin
-    html_url            starred_url
-    id                  subscriptions_url
-    login               type
-    organizations_url   url
-    """
+    # GitHub API fields (as of March 2016):
+    # avatar_url          permissions.admin
+    # events_url          permissions.pull
+    # followers_url       permissions.push
+    # following_url       received_events_url
+    # gists_url           repos_url
+    # gravatar_id         site_admin
+    # html_url            starred_url
+    # id                  subscriptions_url
+    # login               type
+    # organizations_url   url
     if not owner or not repo:
         log_msg('ERROR: collaborators() called without required parameters.')
         return []
@@ -537,47 +534,46 @@ def repos(org=None, user=None, fields=None):
 
     Returns a list of namedtuple objects, one per repo.
     """
-    """ (separate docstring to keep the popup tooltip for repos() smaller)
-    GitHub API fields (as of March 2016):
-    archive_url         git_tags_url         open_issues
-    assignees_url       git_url              open_issues_count
-    blobs_url           has_downloads        private
-    branches_url        has_issues           pulls_url
-    clone_url           has_pages            pushed_at
-    collaborators_url   has_wiki             releases_url
-    commits_url         homepage             size
-    compare_url         hooks_url            ssh_url
-    contents_url        html_url             stargazers_count
-    contributors_url    id                   stargazers_url
-    created_at          issue_comment_url    statuses_url
-    default_branch      issue_events_url     subscribers_url
-    deployments_url     issues_url           subscription_url
-    description         keys_url             svn_url
-    downloads_url       labels_url           tags_url
-    events_url          language             teams_url
-    fork                languages_url        trees_url
-    forks               master_branch        updated_at
-    forks_count         merges_url           url
-    forks_url           milestones_url       watchers
-    full_name           mirror_url           watchers_count
-    git_commits_url     name
-    git_refs_url        notifications_url
-    -------------------------------------------------------------
-    license.featured              permissions.admin
-    license.key                   permissions.pull
-    license.name                  permissions.push
-    license.url
-    -------------------------------------------------------------
-    owner.avatar_url              owner.organizations_url
-    owner.events_url              owner.received_events_url
-    owner.followers_url           owner.repos_url
-    owner.following_url           owner.site_admin
-    owner.gists_url               owner.starred_url
-    owner.gravatar_id             owner.subscriptions_url
-    owner.html_url                owner.type
-    owner.id                      owner.url
-    owner.login
-    """
+    # GitHub API fields (as of March 2016):
+    # archive_url         git_tags_url         open_issues
+    # assignees_url       git_url              open_issues_count
+    # blobs_url           has_downloads        private
+    # branches_url        has_issues           pulls_url
+    # clone_url           has_pages            pushed_at
+    # collaborators_url   has_wiki             releases_url
+    # commits_url         homepage             size
+    # compare_url         hooks_url            ssh_url
+    # contents_url        html_url             stargazers_count
+    # contributors_url    id                   stargazers_url
+    # created_at          issue_comment_url    statuses_url
+    # default_branch      issue_events_url     subscribers_url
+    # deployments_url     issues_url           subscription_url
+    # description         keys_url             svn_url
+    # downloads_url       labels_url           tags_url
+    # events_url          language             teams_url
+    # fork                languages_url        trees_url
+    # forks               master_branch        updated_at
+    # forks_count         merges_url           url
+    # forks_url           milestones_url       watchers
+    # full_name           mirror_url           watchers_count
+    # git_commits_url     name
+    # git_refs_url        notifications_url
+    # -------------------------------------------------------------
+    # license.featured              permissions.admin
+    # license.key                   permissions.pull
+    # license.name                  permissions.push
+    # license.url
+    # -------------------------------------------------------------
+    # owner.avatar_url              owner.organizations_url
+    # owner.events_url              owner.received_events_url
+    # owner.followers_url           owner.repos_url
+    # owner.following_url           owner.site_admin
+    # owner.gists_url               owner.starred_url
+    # owner.gravatar_id             owner.subscriptions_url
+    # owner.html_url                owner.type
+    # owner.id                      owner.url
+    # owner.login
+
     repolist = [] # the list that will be returned
 
     if org:
@@ -960,8 +956,8 @@ def test_repos():
 def test_repoteams():
     """Simple test for repoteams() function.
     """
-    teams = repoteams(org='ms-iot', repo=['serial-wiring', 'remote-sensor'])
-    for team in teams:
+    testteams = repoteams(org='ms-iot', repo=['serial-wiring', 'remote-sensor'])
+    for team in testteams:
         print(team)
 
 # if running standalone, run tests ---------------------------------------------
