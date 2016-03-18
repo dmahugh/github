@@ -527,7 +527,7 @@ def remove_github_urls(dict_in):
     """
     dict_out = {}
     for key in dict_in:
-        if not key.endswith('_url'):
+        if not key.endswith('_url') and not key == 'url':
             dict_out[key] = dict_in[key]
     return dict_out
 
