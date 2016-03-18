@@ -183,6 +183,16 @@ Two functions are provided in gitinfo for minimizing these bloated responses:
 * ```remve_github_urls()``` takes a dictionary object as input, which represents an entity returned by a GitHub API call, and returns a slimmed-down version with all of the *_url entries removed.
 * ```minimize_json()``` takes a disk file as input (containing the JSON serialization of a list of entity dictionaries) and writes a slimmed-down version to a specified output file.
 
+Here's an example of a typical GitHub API response before minimizing:
+
+![minimize-before](images/minimize-before.png)
+
+And here's the same response after minimizing with remove_github_urls():
+
+![minimize-after](images/minimize-after.png)
+
+Minimizing cached data in this manner can signficantly improve the performance of reporting and analytics processes running against the data.
+
 ## writing CSV files
 Gitinfo query functions return a list of namedtuple objects, and the ```write_csv()``` function can be used to write these lists to a CSV file:
 
