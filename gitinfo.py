@@ -525,11 +525,8 @@ def remove_github_urls(dict_in):
     Returns a copy of the dictionary, but with no entries whose key string ends
     with _url.
     """
-    dict_out = {}
-    for key in dict_in:
-        if not key.endswith('_url') and not key == 'url':
-            dict_out[key] = dict_in[key]
-    return dict_out
+    return {key: dict_in[key] for key in dict_in if \
+        not key.endswith('_url') and not key == 'url'}
 
 #-------------------------------------------------------------------------------
 def repofields(repo_json, fields, org, user):
