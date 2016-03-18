@@ -10,6 +10,7 @@ This page provides a summary of how to use gitinfo. There is also detailed infor
 * [specifying fields](#specifying-fields)
 * [auditing 2FA configuration](#auditing-2fa-configuration)
 * [logging output](#logging-output)
+* [minimizing GitHub API responses](#minimizing-github-api-responses)
 * [writing CSV files](#writing-csv-files)
 
 ## basic concepts
@@ -173,6 +174,14 @@ There are also ```session_start()``` and ```session_end()``` functions that you 
 ![logfile](images/logfile.jpg)
 
 Note that Personal Access Tokens are not displayed or written to log files - just the first 2 and last 2 characters, to help identify which PAT was used.
+
+## minimizing GitHub API responses
+The JSON payload returned by GitHub API calls may contain many URLs for each entity. These are endpoints for getting other data related to the entity, and they're handy if you're implementing a user interface, but not needed for common data analysis and reporting tasks. If you're capturing large numbers of GitHub API responses for reporting purposes, the presence of all of those long URL strings can significantly bloat your data &mdash; in one instance, for example, I found that a 360MB stream of GitHub API responses (from the ```collaborators``` endpoint) contained over 300MB of URLs.
+
+Two functions are provided in gitinfo for minimizing these bloated responses:
+
+* ```remve_github_urls()``` takes a dictionary object as input, which represents an entity returned by a GitHub API call, and returns a slimmed-down version with all of the *_url entries removed.
+* ```minimize_json()``` takes a disk file as input (containing the JSON serialization of a list of entity dictionaries) and writes a slimmed-down version to a specified output file.
 
 ## writing CSV files
 Gitinfo query functions return a list of namedtuple objects, and the ```write_csv()``` function can be used to write these lists to a CSV file:
