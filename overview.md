@@ -33,7 +33,7 @@ There are currently four main functions that provide most of the functionality, 
 
 ### repos()
 The examples below return public repos only. To return private repos, you need to be authenticated as a member of the repo's organization or the repo's owner.
-```
+```python
 # get all public repos for an organization
 ms_repos = gi.repos(org='microsoft')
 
@@ -48,7 +48,7 @@ misc_repos = gi.repos(['kennethreitz', 'codelucas'])
 ```
 ### members()
 Public members can be returned without authentication, but you need to be authenticated as a member of an organization to see concealed members.
-```
+```python
 gi.auth_config({'username': 'your-user-name'})
 
 # get members of an organization
@@ -65,7 +65,7 @@ team_members = gi.members(team=['111111', '222222', '333333'])
 ```
 ### teams()
 To retrieve team information, you must be authenticated as a member of the Owners for the organization being managed.
-```
+```python
 gi.auth_config({'username': 'your-user-name'})
 
 # get teams for one organization
@@ -77,7 +77,7 @@ teams = gi.teams(org=['org1', 'org2', 'org3'])
 
 ### repoteams()
 This function returns information about teams associated with specific repos in an organization.
-```
+```python
 gi.auth_config({'username': 'your-user-name'})
 
 # Note that the org parameter is required in all cases
@@ -94,7 +94,7 @@ teams = repoteams(org='org-name')
 
 ### collaborators()
 This function returns information about collaborators associated with specific repos.
-```
+```python
 gi.auth_config({'username': 'your-user-name'})
 
 # Note that the owner and repo parameters are both required
@@ -112,7 +112,7 @@ will be enforced, and you won't have access to certain information as mentioned 
 
 GitHub credentials (username/PAT) are stored in a ```github_users.json``` file in the ```private``` subfolder. Here's the format to use:
 
-```
+```python
 {
     "user1": "Personal Access Token for user1",
     "user2": "Personal Access Token for user2"
@@ -120,7 +120,7 @@ GitHub credentials (username/PAT) are stored in a ```github_users.json``` file i
 ```
 Then you can use the ```auth_config()``` function to set the username for subsquent operations. For example:
 
-```
+```python
 import gitingo as gi
 gi.auth_config({'username': 'user1'})
 # make GitHub API calls as user1
@@ -155,7 +155,7 @@ The GitHub API supports a filter that can be used to audit the members of organi
 
 You must be *authenticated as an owner of an organization* to get this information. For example, if you've configured PAT for ```admin-user```, and that user is an owner of organzation ```org-name```, here's how you would get a list of members who don't have 2FA enabled:
 
-```
+```python
 import gitinfo as gi
 gi.auth_user('admin-user')
 no2fa = gi.members(org='org-name', audit2fa=True)
@@ -164,7 +164,7 @@ no2fa = gi.members(org='org-name', audit2fa=True)
 ## logging output
 By default, all functions in gitinfo run in "verbose mode" and display various status information on the console. You can switch verbose mode on or off via the ```log_config()``` function, and you can also send verbose output to a disk file. Console and file output are controlled independently, by the ```verbose``` and ```logfile``` parameters:
 
-```
+```python
 import gitinfo as gi
 gi.log_config(verbose=False, logfile='gitinfo.log') # send status info to a logfile, but don't display it
 ```
@@ -196,7 +196,7 @@ Minimizing cached data in this manner can signficantly improve the performance o
 ## writing CSV files
 Gitinfo query functions return a list of namedtuple objects, and the ```write_csv()``` function can be used to write these lists to a CSV file:
 
-```
+```python
 import gitinfo as gi
 ms_members = gi.members(org='microsoft')
 gi.write_csv(ms_members, 'MicrosoftMembers.csv')

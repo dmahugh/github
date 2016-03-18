@@ -7,7 +7,7 @@ Gitinfo is a library for Python 3.x to simplify use of the GitHub REST API. It's
 
 Here's a simple example of how to use gitinfo to write a CSV file containing a list of repos:
 
-```
+```python
 import gitinfo as gi
 ms_repos = gi.repos(org='microsoft')
 gi.write_csv(ms_repos, 'MicrosoftPublicRepos.csv')
@@ -24,7 +24,7 @@ Gitinfo has one external dependency - the [requests](https://pypi.python.org/pyp
 * Clone the [Gitinfo repo](https://github.com/dmahugh/gitinfo).
 * Install requests: ```pip install requests```
 
-## learning more
+## where to learn more
 For more examples of how to use gitinfo, see the [overview](overview.md).
 
 For usage details, see the [documentation](gitinfo.md).
