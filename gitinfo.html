@@ -13,30 +13,31 @@
 &nbsp;<br>
 <a href="#-auth_config">auth_config</a>()&nbsp;--------&gt;&nbsp;Configure&nbsp;authentication&nbsp;settings.<br>
 <a href="#-auth_user">auth_user</a>()&nbsp;----------&gt;&nbsp;Return&nbsp;credentials&nbsp;for&nbsp;use&nbsp;in&nbsp;GitHub&nbsp;API&nbsp;calls.<br>
-<a href="#-collaboratorfields">collaboratorfields</a>()&nbsp;-&gt;&nbsp;Get&nbsp;field&nbsp;values&nbsp;for&nbsp;a&nbsp;collaborator.<br>
 <a href="#-collaborators">collaborators</a>()&nbsp;------&gt;&nbsp;Get&nbsp;collaborators&nbsp;for&nbsp;one&nbsp;or&nbsp;more&nbsp;repos.<br>
 <a href="#-collaboratorsget">collaboratorsget</a>()&nbsp;---&gt;&nbsp;Get&nbsp;collaborator&nbsp;info&nbsp;for&nbsp;a&nbsp;specified&nbsp;repo.<br>
 <a href="#-github_api">github_api</a>()&nbsp;---------&gt;&nbsp;Call&nbsp;the&nbsp;GitHub&nbsp;API&nbsp;(wrapper&nbsp;for&nbsp;requests.get()).<br>
 <a href="#-log_apistatus">log_apistatus</a>()&nbsp;------&gt;&nbsp;Display&nbsp;current&nbsp;API&nbsp;rate-limit&nbsp;status.<br>
 <a href="#-log_config">log_config</a>()&nbsp;---------&gt;&nbsp;Configure&nbsp;message&nbsp;logging&nbsp;settings.<br>
 <a href="#-log_msg">log_msg</a>()&nbsp;------------&gt;&nbsp;Log&nbsp;a&nbsp;status&nbsp;message.<br>
-<a href="#-memberfields">memberfields</a>()&nbsp;-------&gt;&nbsp;Get&nbsp;field&nbsp;values&nbsp;for&nbsp;a&nbsp;member/user.<br>
 <a href="#-members">members</a>()&nbsp;------------&gt;&nbsp;Get&nbsp;members&nbsp;of&nbsp;one&nbsp;or&nbsp;more&nbsp;organizations.<br>
 <a href="#-membersget">membersget</a>()&nbsp;---------&gt;&nbsp;Get&nbsp;member&nbsp;info&nbsp;for&nbsp;a&nbsp;specified&nbsp;organization.<br>
+<a href="#-minimize_json">minimize_json</a>()&nbsp;------&gt;&nbsp;Remove&nbsp;the&nbsp;*_url&nbsp;properties&nbsp;from&nbsp;a&nbsp;json&nbsp;data&nbsp;file.<br>
 <a href="#-pagination">pagination</a>()&nbsp;---------&gt;&nbsp;Parse&nbsp;'link'&nbsp;HTTP&nbsp;header&nbsp;returned&nbsp;by&nbsp;GitHub&nbsp;API.<br>
+<a href="#-remove_github_urls">remove_github_urls</a>()&nbsp;-&gt;&nbsp;Remove&nbsp;*_url&nbsp;entries&nbsp;from&nbsp;a&nbsp;dictionary.<br>
 <a href="#-repofields">repofields</a>()&nbsp;---------&gt;&nbsp;Get&nbsp;field&nbsp;values&nbsp;for&nbsp;a&nbsp;repo.<br>
 <a href="#-repos">repos</a>()&nbsp;--------------&gt;&nbsp;Get&nbsp;repo&nbsp;information&nbsp;for&nbsp;organizations&nbsp;or&nbsp;users.<br>
 <a href="#-reposget">reposget</a>()&nbsp;-----------&gt;&nbsp;Get&nbsp;repo&nbsp;information&nbsp;for&nbsp;a&nbsp;specified&nbsp;org&nbsp;or&nbsp;user.<br>
-<a href="#-repoteamfields">repoteamfields</a>()&nbsp;-----&gt;&nbsp;Get&nbsp;field&nbsp;values&nbsp;for&nbsp;a&nbsp;repo's&nbsp;team.<br>
 <a href="#-repoteams">repoteams</a>()&nbsp;----------&gt;&nbsp;Get&nbsp;teams&nbsp;associated&nbsp;with&nbsp;one&nbsp;or&nbsp;more&nbsp;repositories.<br>
 <a href="#-repoteamsget">repoteamsget</a>()&nbsp;-------&gt;&nbsp;Get&nbsp;team&nbsp;info&nbsp;for&nbsp;a&nbsp;specified&nbsp;repo.<br>
 <a href="#-session_end">session_end</a>()&nbsp;--------&gt;&nbsp;Log&nbsp;summary&nbsp;of&nbsp;completed&nbsp;gitinfo&nbsp;"session."<br>
 <a href="#-session_start">session_start</a>()&nbsp;------&gt;&nbsp;Initiate&nbsp;a&nbsp;gitinfo&nbsp;session&nbsp;for&nbsp;logging/tracking&nbsp;purposes.<br>
-<a href="#-teamfields">teamfields</a>()&nbsp;---------&gt;&nbsp;Get&nbsp;field&nbsp;values&nbsp;for&nbsp;an&nbsp;organization's&nbsp;team.<br>
 <a href="#-teams">teams</a>()&nbsp;--------------&gt;&nbsp;Get&nbsp;teams&nbsp;for&nbsp;one&nbsp;or&nbsp;more&nbsp;organizations.<br>
 <a href="#-teamsget">teamsget</a>()&nbsp;-----------&gt;&nbsp;Get&nbsp;team&nbsp;info&nbsp;for&nbsp;a&nbsp;specified&nbsp;organization.<br>
 <a href="#-timestamp">timestamp</a>()&nbsp;----------&gt;&nbsp;Return&nbsp;current&nbsp;timestamp&nbsp;as&nbsp;YYYY-MM-DD&nbsp;HH:MM:SS<br>
-<a href="#-write_csv">write_csv</a>()&nbsp;----------&gt;&nbsp;Write&nbsp;a&nbsp;list&nbsp;of&nbsp;namedtuples&nbsp;to&nbsp;a&nbsp;CSV&nbsp;file.</tt></p>
+<a href="#-write_csv">write_csv</a>()&nbsp;----------&gt;&nbsp;Write&nbsp;a&nbsp;list&nbsp;of&nbsp;namedtuples&nbsp;to&nbsp;a&nbsp;CSV&nbsp;file.<br>
+&nbsp;<br>
+Note:&nbsp;some&nbsp;classes&nbsp;and&nbsp;functions&nbsp;have&nbsp;been&nbsp;omitted&nbsp;from&nbsp;the&nbsp;above&nbsp;list&nbsp;because<br>
+they're&nbsp;only&nbsp;used&nbsp;internally&nbsp;and&nbsp;don't&nbsp;expose&nbsp;useful&nbsp;functionality.</tt></p>
 <p>
 <table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
 <tr bgcolor="#aa55cc">
@@ -162,6 +163,14 @@ audit2fa&nbsp;=&nbsp;whether&nbsp;to&nbsp;only&nbsp;return&nbsp;members&nbsp;wit
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#-auth_config">auth_config</a>()&nbsp;as&nbsp;an&nbsp;admin&nbsp;of&nbsp;the&nbsp;org(s).<br>
 &nbsp;<br>
 Returns&nbsp;a&nbsp;list&nbsp;of&nbsp;namedtuples&nbsp;containing&nbsp;the&nbsp;specified&nbsp;fields.</tt></dd></dl>
+ <dl><dt><a name="-minimize_json"><strong>minimize_json</strong></a>(infile=None, outfile=None)</dt><dd><tt>Remove&nbsp;all&nbsp;*_url&nbsp;properties&nbsp;from&nbsp;a&nbsp;json&nbsp;data&nbsp;file.<br>
+&nbsp;<br>
+infile&nbsp;=&nbsp;the&nbsp;input&nbsp;json&nbsp;file&nbsp;(as&nbsp;returned&nbsp;by&nbsp;the&nbsp;GitHub&nbsp;API)<br>
+outfile&nbsp;=&nbsp;the&nbsp;new&nbsp;minimized&nbsp;file&nbsp;with&nbsp;*_url&nbsp;removed.<br>
+&nbsp;<br>
+This&nbsp;function&nbsp;is&nbsp;intended&nbsp;for&nbsp;use&nbsp;with&nbsp;data&nbsp;files&nbsp;that&nbsp;contain&nbsp;captured<br>
+GitHub&nbsp;API&nbsp;responses&nbsp;as&nbsp;a&nbsp;list&nbsp;of&nbsp;dictionaries.&nbsp;It&nbsp;removes&nbsp;*_url&nbsp;entries<br>
+from&nbsp;the&nbsp;dictionaries&nbsp;in&nbsp;the&nbsp;list.</tt></dd></dl>
  <dl><dt><a name="-pagination"><strong>pagination</strong></a>(link_header)</dt><dd><tt>Parse&nbsp;values&nbsp;from&nbsp;the&nbsp;'link'&nbsp;HTTP&nbsp;header&nbsp;returned&nbsp;by&nbsp;GitHub&nbsp;API.<br>
 &nbsp;<br>
 1st&nbsp;parameter&nbsp;=&nbsp;either&nbsp;of&nbsp;these&nbsp;options&nbsp;...<br>
@@ -172,6 +181,11 @@ Returns&nbsp;a&nbsp;dictionary&nbsp;with&nbsp;entries&nbsp;for&nbsp;the&nbsp;URL
 from&nbsp;the&nbsp;link&nbsp;string:&nbsp;firstURL,&nbsp;firstpage,&nbsp;prevURL,&nbsp;prevpage,&nbsp;nextURL,<br>
 nextpage,&nbsp;lastURL,&nbsp;lastpage.<br>
 &lt;internal&gt;</tt></dd></dl>
+ <dl><dt><a name="-remove_github_urls"><strong>remove_github_urls</strong></a>(dict_in)</dt><dd><tt>emove&nbsp;*_url&nbsp;entries&nbsp;from&nbsp;a&nbsp;dictionary.<br>
+&nbsp;<br>
+1st&nbsp;parameter&nbsp;=&nbsp;the&nbsp;dictionary<br>
+Returns&nbsp;a&nbsp;copy&nbsp;of&nbsp;the&nbsp;dictionary,&nbsp;but&nbsp;with&nbsp;no&nbsp;entries&nbsp;whose&nbsp;key&nbsp;string&nbsp;ends<br>
+with&nbsp;_url.</tt></dd></dl>
  <dl><dt><a name="-repofields"><strong>repofields</strong></a>(repo_json, fields, org, user)</dt><dd><tt>Get&nbsp;field&nbsp;values&nbsp;for&nbsp;a&nbsp;repo.<br>
 &nbsp;<br>
 1st&nbsp;parameter&nbsp;=&nbsp;repo's&nbsp;json&nbsp;representation&nbsp;as&nbsp;returned&nbsp;by&nbsp;GitHub&nbsp;API<br>

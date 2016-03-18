@@ -11,7 +11,9 @@
     log_msg() ------------> Log a status message.  
     members() ------------> Get members of one or more organizations.  
     membersget() ---------> Get member info for a specified organization.  
+    minimize_json() ------> Remove the *_url properties from a json data file.  
     pagination() ---------> Parse 'link' HTTP header returned by GitHub API.  
+    remove_github_urls() -> Remove *_url entries from a dictionary.  
     repofields() ---------> Get field values for a repo.  
     repos() --------------> Get repo information for organizations or users.  
     reposget() -----------> Get repo information for a specified org or user.  
@@ -154,6 +156,16 @@
                auth_config() as an admin of the org(s).  
       
     Returns a list of namedtuples containing the specified fields.
+##minimize_json(infile=None, outfile=None):
+
+    Remove all *_url properties from a json data file.  
+      
+    infile = the input json file (as returned by the GitHub API)  
+    outfile = the new minimized file with *_url removed.  
+      
+    This function is intended for use with data files that contain captured  
+    GitHub API responses as a list of dictionaries. It removes *_url entries  
+    from the dictionaries in the list.
 ###pagination(link_header):
 
     Parse values from the 'link' HTTP header returned by GitHub API.  
@@ -166,6 +178,13 @@
     from the link string: firstURL, firstpage, prevURL, prevpage, nextURL,  
     nextpage, lastURL, lastpage.  
     <internal>
+##remove_github_urls(dict_in):
+
+    emove *_url entries from a dictionary.  
+      
+    1st parameter = the dictionary  
+    Returns a copy of the dictionary, but with no entries whose key string ends  
+    with _url.
 ###repofields(repo_json, fields, org, user):
 
     Get field values for a repo.  
