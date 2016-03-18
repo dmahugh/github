@@ -10,7 +10,9 @@ log_config() ---------> Configure message logging settings.
 log_msg() ------------> Log a status message.
 members() ------------> Get members of one or more organizations.
 membersget() ---------> Get member info for a specified organization.
+minimize_json() ------> Remove the *_url properties from a json data file.
 pagination() ---------> Parse 'link' HTTP header returned by GitHub API.
+remove_github_urls() -> Remove *_url entries from a dictionary.
 repofields() ---------> Get field values for a repo.
 repos() --------------> Get repo information for organizations or users.
 reposget() -----------> Get repo information for a specified org or user.
@@ -453,6 +455,31 @@ def membersget(org=None, team=None, fields=None, audit2fa=False):
     return retval
 
 #------------------------------------------------------------------------------
+def minimize_json(infile=None, outfile=None):
+    """Remove all *_url properties from a json data file.
+
+    infile = the input json file (as returned by the GitHub API)
+    outfile = the new minimized file with *_url removed.
+
+    This function is intended for use with data files that contain captured
+    GitHub API responses as a list of dictionaries. It removes *_url entries
+    from the dictionaries in the list.
+    """
+    print('Minimizing ' + infile + ', output file = ' + outfile)
+
+    with open(infile, 'r') as inputfile:
+        dictlist = json.loads(inputfile.read())
+
+    outputlist = []
+    for dictobj in dictlist:
+        outputlist.append(remove_github_urls(dictobj))
+
+    with open(outfile, 'w') as outputfile:
+        outputfile.write(json.dumps(outputlist, sort_keys=True))
+
+    print('Output file contains {0} entries.'.format(len(outputlist)))
+
+#------------------------------------------------------------------------------
 def pagination(link_header):
     """Parse values from the 'link' HTTP header returned by GitHub API.
 
@@ -489,6 +516,20 @@ def pagination(link_header):
         retval[linktype + 'URL'] = url
 
     return retval
+
+#-------------------------------------------------------------------------------
+def remove_github_urls(dict_in):
+    """ emove *_url entries from a dictionary.
+
+    1st parameter = the dictionary
+    Returns a copy of the dictionary, but with no entries whose key string ends
+    with _url.
+    """
+    dict_out = {}
+    for key in dict_in:
+        if not key.endswith('_url'):
+            dict_out[key] = dict_in[key]
+    return dict_out
 
 #-------------------------------------------------------------------------------
 def repofields(repo_json, fields, org, user):
