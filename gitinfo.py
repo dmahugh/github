@@ -39,7 +39,7 @@ import time
 import requests
 
 #------------------------------------------------------------------------------
-class _settings: # pylint: disable=R0903
+class _settings:
     """This class exists to provide a namespace used for global settings.
     Use auth_config() or log_config() to change these settings.
     """
@@ -167,16 +167,12 @@ def collaborators(owner=None, repo=None, fields=None):
     Returns a list of namedtuple objects, one per team.
     """
     # GitHub API fields (as of March 2016):
-    # avatar_url          permissions.admin
-    # events_url          permissions.pull
-    # followers_url       permissions.push
-    # following_url       received_events_url
-    # gists_url           repos_url
-    # gravatar_id         site_admin
-    # html_url            starred_url
-    # id                  subscriptions_url
-    # login               type
-    # organizations_url   url
+    # avatar_url          events_url          followers_url
+    # gravatar_id         id                  login
+    # permissions.admin   permissions.pull    permissions.push
+    # site_admin          type
+    # Note that URL fields have been removed, to reduce the size of these
+    # data files.
     if not owner or not repo:
         log_msg('ERROR: collaborators() called without required parameters.')
         return []
@@ -519,11 +515,11 @@ def pagination(link_header):
 
 #-------------------------------------------------------------------------------
 def remove_github_urls(dict_in):
-    """ emove *_url entries from a dictionary.
+    """Remove URL entries (as returned by GitHub API) from a dictionary.
 
-    1st parameter = the dictionary
-    Returns a copy of the dictionary, but with no entries whose key string ends
-    with _url.
+    1st parameter = dictionary
+
+    Returns a copy of the dictionary, but with no entries named *_url or url.
     """
     return {key: dict_in[key] for key in dict_in if \
         not key.endswith('_url') and not key == 'url'}
