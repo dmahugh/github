@@ -964,16 +964,6 @@ def test_members():
     print('total members returned:', len(membertest))
 
 #-------------------------------------------------------------------------------
-def test_teams():
-    """Simple test for teams() function.
-    """
-    teamtest = teams(org=['bitstadium', 'ms-iot'])
-    for team in teamtest:
-        print(team)
-    print('total teams returned:', len(teamtest))
-
-
-#-------------------------------------------------------------------------------
 def test_pagination():
     """Simple test for pagination() function.
     """
@@ -981,6 +971,43 @@ def test_pagination():
         "repos?page=2>; rel=\"next\", <https://api.github.com/" + \
         "organizations/6154722/repos?page=18>; rel=\"last\""
     print(pagination(testlinks))
+
+#-------------------------------------------------------------------------------
+def test_remove_github_urls():
+    """Simple test for remove_github_urls() function.
+    """
+    testdict = {
+        "avatar_url": "https://avatars.githubusercontent.com/u/54385?v=3",
+        "events_url": "https://api.github.com/users/halter73/events{/privacy}",
+        "followers_url": "https://api.github.com/users/halter73/followers",
+        "following_url": "https://api.github.com/users/halter73/following{/other_user}",
+        "gists_url": "https://api.github.com/users/halter73/gists{/gist_id}",
+        "gravatar_id": "",
+        "html_url": "https://github.com/halter73",
+        "id": 54385,
+        "login": "halter73",
+        "org": "signalr",
+        "organizations_url": "https://api.github.com/users/halter73/orgs",
+        "permissions": {
+            "admin": False,
+            "pull": True,
+            "push": True
+        },
+        "received_events_url": "https://api.github.com/users/halter73/received_events",
+        "repo": "bower-signalr",
+        "repos_url": "https://api.github.com/users/halter73/repos",
+        "site_admin": False,
+        "starred_url": "https://api.github.com/users/halter73/starred{/owner}{/repo}",
+        "subscriptions_url": "https://api.github.com/users/halter73/subscriptions",
+        "type": "User",
+        "url": "https://api.github.com/users/halter73"
+    }
+
+    minimized = remove_github_urls(testdict)
+
+    print('>>> before minimizing:', str(testdict))
+    print('-'*60)
+    print('>>> after minimizing:', str(minimized))
 
 #-------------------------------------------------------------------------------
 def test_repos():
@@ -1003,6 +1030,15 @@ def test_repoteams():
     for team in testteams:
         print(team)
 
+#-------------------------------------------------------------------------------
+def test_teams():
+    """Simple test for teams() function.
+    """
+    teamtest = teams(org=['bitstadium', 'ms-iot'])
+    for team in teamtest:
+        print(team)
+    print('total teams returned:', len(teamtest))
+
 # if running standalone, run tests ---------------------------------------------
 if __name__ == "__main__":
 
@@ -1013,9 +1049,10 @@ if __name__ == "__main__":
     #test_auth_user()
     #test_collaborators()
     #test_members()
-    test_repos()
     #test_pagination()
-    #test_teams()
+    test_remove_github_urls()
+    #test_repos()
     #test_repoteams()
+    #test_teams()
 
     session_end()
