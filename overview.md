@@ -193,6 +193,13 @@ And here's the same response after minimizing with remove_github_urls():
 
 Minimizing cached data in this manner can signficantly improve the performance of reporting and analytics processes running against the data.
 
+A note for Python fans: the ```remove_github_urls()``` functions uses a *dictionary comprehension* to remove the URLs, which makes it a one-liner. Here's the code:
+
+```python
+def remove_github_urls(dict_in):
+    return {key: dict_in[key] for key in dict_in if not key.endswith('_url') and not key == 'url'}
+```
+
 ## writing CSV files
 Gitinfo query functions return a list of namedtuple objects, and the ```write_csv()``` function can be used to write these lists to a CSV file:
 
