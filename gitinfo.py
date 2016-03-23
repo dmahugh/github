@@ -5,6 +5,7 @@ auth_user() ----------> Return credentials for use in GitHub API calls.
 collaborators() ------> Get collaborators for one or more repos.
 collaboratorsget() ---> Get collaborator info for a specified repo.
 github_api() ---------> Call the GitHub API (wrapper for requests.get()).
+load_json() ----------> Load a .json file into a Python object.
 log_apistatus() ------> Display current API rate-limit status.
 log_config() ---------> Configure message logging settings.
 log_msg() ------------> Log a status message.
@@ -275,6 +276,17 @@ def log_apistatus():
     used = _settings.last_ratelimit - remaining
     log_msg('API rate limit = {0}/hour ({1} used, {2} remaining)'. \
         format(_settings.last_ratelimit, used, remaining))
+
+#-------------------------------------------------------------------------------
+def load_json(filename=None):
+    """Load .json file into a Python object.
+
+    filename = the filename
+    Returns the object that has been serialized to the .json file (list, etc).
+    """
+    with open(filename, 'r') as datafile:
+        retval = json.loads(datafile.read())
+    return retval
 
 #-------------------------------------------------------------------------------
 def log_config(settings=None):
