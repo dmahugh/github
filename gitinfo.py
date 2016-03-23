@@ -4,8 +4,8 @@ auth_config() --------> Configure authentication settings.
 auth_user() ----------> Return credentials for use in GitHub API calls.
 collaborators() ------> Get collaborators for one or more repos.
 collaboratorsget() ---> Get collaborator info for a specified repo.
+json_read() ----------> Read a .json file into a Python object.
 github_api() ---------> Call the GitHub API (wrapper for requests.get()).
-load_json() ----------> Load a .json file into a Python object.
 log_apistatus() ------> Display current API rate-limit status.
 log_config() ---------> Configure message logging settings.
 log_msg() ------------> Log a status message.
@@ -269,17 +269,8 @@ def github_api(endpoint=None, auth=None, headers=None):
     return response
 
 #-------------------------------------------------------------------------------
-def log_apistatus():
-    """Display (via log_msg()) the rate-limit status after the last API call.
-    """
-    remaining = _settings.last_remaining
-    used = _settings.last_ratelimit - remaining
-    log_msg('API rate limit = {0}/hour ({1} used, {2} remaining)'. \
-        format(_settings.last_ratelimit, used, remaining))
-
-#-------------------------------------------------------------------------------
-def load_json(filename=None):
-    """Load .json file into a Python object.
+def json_read(filename=None):
+    """Read .json file into a Python object.
 
     filename = the filename
     Returns the object that has been serialized to the .json file (list, etc).
@@ -287,6 +278,15 @@ def load_json(filename=None):
     with open(filename, 'r') as datafile:
         retval = json.loads(datafile.read())
     return retval
+
+#-------------------------------------------------------------------------------
+def log_apistatus():
+    """Display (via log_msg()) the rate-limit status after the last API call.
+    """
+    remaining = _settings.last_remaining
+    used = _settings.last_ratelimit - remaining
+    log_msg('API rate limit = {0}/hour ({1} used, {2} remaining)'. \
+        format(_settings.last_ratelimit, used, remaining))
 
 #-------------------------------------------------------------------------------
 def log_config(settings=None):
