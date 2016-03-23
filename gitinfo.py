@@ -5,6 +5,7 @@ auth_user() ----------> Return credentials for use in GitHub API calls.
 collaborators() ------> Get collaborators for one or more repos.
 collaboratorsget() ---> Get collaborator info for a specified repo.
 json_read() ----------> Read a .json file into a Python object.
+json_write() ---------> Write a Python object to a .json file.
 github_api() ---------> Call the GitHub API (wrapper for requests.get()).
 log_apistatus() ------> Display current API rate-limit status.
 log_config() ---------> Configure message logging settings.
@@ -278,6 +279,19 @@ def json_read(filename=None):
     with open(filename, 'r') as datafile:
         retval = json.loads(datafile.read())
     return retval
+
+#-------------------------------------------------------------------------------
+def json_write(source=None, filename=None):
+    """Write Python object to a .json file.
+
+    source = the object to be serialized
+    filename = the filename (will be over-written if it already exists)
+    """
+    if not source or not filename:
+        return # nothing to do
+
+    with open(filename, 'w') as fhandle:
+        fhandle.write(json.dumps(source, indent=4, sort_keys=True))
 
 #-------------------------------------------------------------------------------
 def log_apistatus():
