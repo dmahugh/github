@@ -11,7 +11,7 @@ This page provides a summary of how to use gitinfo. There is also detailed infor
 * [auditing 2FA configuration](#auditing-2fa-configuration)
 * [logging output](#logging-output)
 * [minimizing GitHub API responses](#minimizing-github-api-responses)
-* [writing CSV files](#writing-csv-files)
+* [saving data](#saving-data)
 
 ## basic concepts
 
@@ -200,7 +200,7 @@ def remove_github_urls(dict_in):
     return {key: dict_in[key] for key in dict_in if not key.endswith('_url') and not key == 'url'}
 ```
 
-## writing CSV files
+## saving data
 Gitinfo query functions return a list of namedtuple objects, and the ```write_csv()``` function can be used to write these lists to a CSV file:
 
 ```python
@@ -208,3 +208,7 @@ import gitinfo as gi
 ms_members = gi.members(org='microsoft')
 gi.write_csv(ms_members, 'MicrosoftMembers.csv')
 ```
+
+There are also ```json_write()``` and ```json_read()``` functions that can be used to save GitHub API payloads to disk and read them back:
+
+![json_readwrite](images/json_readwrite.png)
