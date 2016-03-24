@@ -15,6 +15,8 @@
 <a href="#-auth_user">auth_user</a>()&nbsp;----------&gt;&nbsp;Return&nbsp;credentials&nbsp;for&nbsp;use&nbsp;in&nbsp;GitHub&nbsp;API&nbsp;calls.<br>
 <a href="#-collaborators">collaborators</a>()&nbsp;------&gt;&nbsp;Get&nbsp;collaborators&nbsp;for&nbsp;one&nbsp;or&nbsp;more&nbsp;repos.<br>
 <a href="#-collaboratorsget">collaboratorsget</a>()&nbsp;---&gt;&nbsp;Get&nbsp;collaborator&nbsp;info&nbsp;for&nbsp;a&nbsp;specified&nbsp;repo.<br>
+<a href="#-json_read">json_read</a>()&nbsp;----------&gt;&nbsp;Read&nbsp;a&nbsp;.json&nbsp;file&nbsp;into&nbsp;a&nbsp;Python&nbsp;object.<br>
+<a href="#-json_write">json_write</a>()&nbsp;---------&gt;&nbsp;Write&nbsp;a&nbsp;Python&nbsp;object&nbsp;to&nbsp;a&nbsp;.json&nbsp;file.<br>
 <a href="#-github_api">github_api</a>()&nbsp;---------&gt;&nbsp;Call&nbsp;the&nbsp;GitHub&nbsp;API&nbsp;(wrapper&nbsp;for&nbsp;requests.get()).<br>
 <a href="#-log_apistatus">log_apistatus</a>()&nbsp;------&gt;&nbsp;Display&nbsp;current&nbsp;API&nbsp;rate-limit&nbsp;status.<br>
 <a href="#-log_config">log_config</a>()&nbsp;---------&gt;&nbsp;Configure&nbsp;message&nbsp;logging&nbsp;settings.<br>
@@ -108,6 +110,14 @@ headers&nbsp;=&nbsp;optional&nbsp;dictionary&nbsp;of&nbsp;HTTP&nbsp;headers&nbsp
 &nbsp;<br>
 Returns&nbsp;the&nbsp;response&nbsp;object.<br>
 API&nbsp;call&nbsp;through&nbsp;this&nbsp;function&nbsp;update&nbsp;session&nbsp;totals.</tt></dd></dl>
+ <dl><dt><a name="-json_read"><strong>json_read</strong></a>(filename=None)</dt><dd><tt>Read&nbsp;.json&nbsp;file&nbsp;into&nbsp;a&nbsp;Python&nbsp;object.<br>
+&nbsp;<br>
+filename&nbsp;=&nbsp;the&nbsp;filename<br>
+Returns&nbsp;the&nbsp;object&nbsp;that&nbsp;has&nbsp;been&nbsp;serialized&nbsp;to&nbsp;the&nbsp;.json&nbsp;file&nbsp;(list,&nbsp;etc).</tt></dd></dl>
+ <dl><dt><a name="-json_write"><strong>json_write</strong></a>(source=None, filename=None)</dt><dd><tt>Write&nbsp;Python&nbsp;object&nbsp;to&nbsp;a&nbsp;.json&nbsp;file.<br>
+&nbsp;<br>
+source&nbsp;=&nbsp;the&nbsp;object&nbsp;to&nbsp;be&nbsp;serialized<br>
+filename&nbsp;=&nbsp;the&nbsp;filename&nbsp;(will&nbsp;be&nbsp;over-written&nbsp;if&nbsp;it&nbsp;already&nbsp;exists)</tt></dd></dl>
  <dl><dt><a name="-log_apistatus"><strong>log_apistatus</strong></a>()</dt><dd><tt>Display&nbsp;(via&nbsp;<a href="#-log_msg">log_msg</a>())&nbsp;the&nbsp;rate-limit&nbsp;status&nbsp;after&nbsp;the&nbsp;last&nbsp;API&nbsp;call.</tt></dd></dl>
  <dl><dt><a name="-log_config"><strong>log_config</strong></a>(settings=None)</dt><dd><tt>Configure&nbsp;message&nbsp;logging&nbsp;settings.<br>
 &nbsp;<br>
@@ -181,11 +191,11 @@ Returns&nbsp;a&nbsp;dictionary&nbsp;with&nbsp;entries&nbsp;for&nbsp;the&nbsp;URL
 from&nbsp;the&nbsp;link&nbsp;string:&nbsp;firstURL,&nbsp;firstpage,&nbsp;prevURL,&nbsp;prevpage,&nbsp;nextURL,<br>
 nextpage,&nbsp;lastURL,&nbsp;lastpage.<br>
 &lt;internal&gt;</tt></dd></dl>
- <dl><dt><a name="-remove_github_urls"><strong>remove_github_urls</strong></a>(dict_in)</dt><dd><tt>emove&nbsp;*_url&nbsp;entries&nbsp;from&nbsp;a&nbsp;dictionary.<br>
+ <dl><dt><a name="-remove_github_urls"><strong>remove_github_urls</strong></a>(dict_in)</dt><dd><tt>Remove&nbsp;URL&nbsp;entries&nbsp;(as&nbsp;returned&nbsp;by&nbsp;GitHub&nbsp;API)&nbsp;from&nbsp;a&nbsp;dictionary.<br>
 &nbsp;<br>
-1st&nbsp;parameter&nbsp;=&nbsp;the&nbsp;dictionary<br>
-Returns&nbsp;a&nbsp;copy&nbsp;of&nbsp;the&nbsp;dictionary,&nbsp;but&nbsp;with&nbsp;no&nbsp;entries&nbsp;whose&nbsp;key&nbsp;string&nbsp;ends<br>
-with&nbsp;_url.</tt></dd></dl>
+1st&nbsp;parameter&nbsp;=&nbsp;dictionary<br>
+&nbsp;<br>
+Returns&nbsp;a&nbsp;copy&nbsp;of&nbsp;the&nbsp;dictionary,&nbsp;but&nbsp;with&nbsp;no&nbsp;entries&nbsp;named&nbsp;*_url&nbsp;or&nbsp;url.</tt></dd></dl>
  <dl><dt><a name="-repofields"><strong>repofields</strong></a>(repo_json, fields, org, user)</dt><dd><tt>Get&nbsp;field&nbsp;values&nbsp;for&nbsp;a&nbsp;repo.<br>
 &nbsp;<br>
 1st&nbsp;parameter&nbsp;=&nbsp;repo's&nbsp;json&nbsp;representation&nbsp;as&nbsp;returned&nbsp;by&nbsp;GitHub&nbsp;API<br>
@@ -288,6 +298,7 @@ Returns&nbsp;a&nbsp;list&nbsp;of&nbsp;namedtuples&nbsp;containing&nbsp;the&nbsp;
  <dl><dt><a name="-test_collaborators"><strong>test_collaborators</strong></a>()</dt><dd><tt>Simple&nbsp;test&nbsp;for&nbsp;<a href="#-collaborators">collaborators</a>()&nbsp;function.</tt></dd></dl>
  <dl><dt><a name="-test_members"><strong>test_members</strong></a>()</dt><dd><tt>Simple&nbsp;test&nbsp;for&nbsp;<a href="#-members">members</a>()&nbsp;function.</tt></dd></dl>
  <dl><dt><a name="-test_pagination"><strong>test_pagination</strong></a>()</dt><dd><tt>Simple&nbsp;test&nbsp;for&nbsp;<a href="#-pagination">pagination</a>()&nbsp;function.</tt></dd></dl>
+ <dl><dt><a name="-test_remove_github_urls"><strong>test_remove_github_urls</strong></a>()</dt><dd><tt>Simple&nbsp;test&nbsp;for&nbsp;<a href="#-remove_github_urls">remove_github_urls</a>()&nbsp;function.</tt></dd></dl>
  <dl><dt><a name="-test_repos"><strong>test_repos</strong></a>()</dt><dd><tt>Simple&nbsp;test&nbsp;for&nbsp;<a href="#-repos">repos</a>()&nbsp;function.</tt></dd></dl>
  <dl><dt><a name="-test_repoteams"><strong>test_repoteams</strong></a>()</dt><dd><tt>Simple&nbsp;test&nbsp;for&nbsp;<a href="#-repoteams">repoteams</a>()&nbsp;function.</tt></dd></dl>
  <dl><dt><a name="-test_teams"><strong>test_teams</strong></a>()</dt><dd><tt>Simple&nbsp;test&nbsp;for&nbsp;<a href="#-teams">teams</a>()&nbsp;function.</tt></dd></dl>
