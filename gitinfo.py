@@ -7,6 +7,7 @@ collaboratorsget() ---> Get collaborator info for a specified repo.
 json_read() ----------> Read a .json file into a Python object.
 json_write() ---------> Write a Python object to a .json file.
 github_api() ---------> Call the GitHub API (wrapper for requests.get()).
+githubapi_to_file() --> Call GitHub API, handle pagination, write to file.
 log_apistatus() ------> Display current API rate-limit status.
 log_config() ---------> Configure message logging settings.
 log_msg() ------------> Log a status message.
@@ -268,6 +269,41 @@ def github_api(endpoint=None, auth=None, headers=None):
         _settings.last_remaining = 999999
 
     return response
+
+#-------------------------------------------------------------------------------
+def githubapi_to_file(endpoint=None, filename=None):
+    """Call GitHub API, consolidate pagination, write to output file.
+
+    endpoint = GitHub API endpoint to call
+    filename = file to write consolidated output to
+
+    The output file is written as a single JSON list, containing all pages of
+    data if there is more than one.
+    """
+    totpages = 0
+    master_json = [] # consolidated master list to be written to output file
+
+    while True:
+
+        response = gi.github_api(endpoint=endpoint, auth=gi.auth_user())
+        if response.ok:
+            totpages += 1
+            thispage = json.loads(response.text)
+            master_json.extend(thispage)
+
+        pagelinks = gi.pagination(response)
+        endpoint = pagelinks['nextURL']
+        if not endpoint:
+            break # there are no more results to process
+
+        print('processing page {0} of {1}'. \
+                       format(pagelinks['nextpage'], pagelinks['lastpage']))
+
+    print('pages processed: {0}, total members: {1}'. \
+        format(totpages, len(master_json)))
+
+    gi.json_write(source=master_json, filename=filename)
+    print('data file written -> ' + filename)
 
 #-------------------------------------------------------------------------------
 def json_read(filename=None):
