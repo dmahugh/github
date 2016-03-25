@@ -18,6 +18,7 @@
 <a href="#-json_read">json_read</a>()&nbsp;----------&gt;&nbsp;Read&nbsp;a&nbsp;.json&nbsp;file&nbsp;into&nbsp;a&nbsp;Python&nbsp;object.<br>
 <a href="#-json_write">json_write</a>()&nbsp;---------&gt;&nbsp;Write&nbsp;a&nbsp;Python&nbsp;object&nbsp;to&nbsp;a&nbsp;.json&nbsp;file.<br>
 <a href="#-github_api">github_api</a>()&nbsp;---------&gt;&nbsp;Call&nbsp;the&nbsp;GitHub&nbsp;API&nbsp;(wrapper&nbsp;for&nbsp;requests.get()).<br>
+<a href="#-githubapi_to_file">githubapi_to_file</a>()&nbsp;--&gt;&nbsp;Call&nbsp;GitHub&nbsp;API,&nbsp;handle&nbsp;pagination,&nbsp;write&nbsp;to&nbsp;file.<br>
 <a href="#-log_apistatus">log_apistatus</a>()&nbsp;------&gt;&nbsp;Display&nbsp;current&nbsp;API&nbsp;rate-limit&nbsp;status.<br>
 <a href="#-log_config">log_config</a>()&nbsp;---------&gt;&nbsp;Configure&nbsp;message&nbsp;logging&nbsp;settings.<br>
 <a href="#-log_msg">log_msg</a>()&nbsp;------------&gt;&nbsp;Log&nbsp;a&nbsp;status&nbsp;message.<br>
@@ -110,6 +111,13 @@ headers&nbsp;=&nbsp;optional&nbsp;dictionary&nbsp;of&nbsp;HTTP&nbsp;headers&nbsp
 &nbsp;<br>
 Returns&nbsp;the&nbsp;response&nbsp;object.<br>
 API&nbsp;call&nbsp;through&nbsp;this&nbsp;function&nbsp;update&nbsp;session&nbsp;totals.</tt></dd></dl>
+ <dl><dt><a name="-githubapi_to_file"><strong>githubapi_to_file</strong></a>(endpoint=None, filename=None)</dt><dd><tt>Call&nbsp;GitHub&nbsp;API,&nbsp;consolidate&nbsp;pagination,&nbsp;write&nbsp;to&nbsp;output&nbsp;file.<br>
+&nbsp;<br>
+endpoint&nbsp;=&nbsp;GitHub&nbsp;API&nbsp;endpoint&nbsp;to&nbsp;call<br>
+filename&nbsp;=&nbsp;file&nbsp;to&nbsp;write&nbsp;consolidated&nbsp;output&nbsp;to<br>
+&nbsp;<br>
+The&nbsp;output&nbsp;file&nbsp;is&nbsp;written&nbsp;as&nbsp;a&nbsp;single&nbsp;JSON&nbsp;list,&nbsp;containing&nbsp;all&nbsp;pages&nbsp;of<br>
+data&nbsp;if&nbsp;there&nbsp;is&nbsp;more&nbsp;than&nbsp;one.</tt></dd></dl>
  <dl><dt><a name="-json_read"><strong>json_read</strong></a>(filename=None)</dt><dd><tt>Read&nbsp;.json&nbsp;file&nbsp;into&nbsp;a&nbsp;Python&nbsp;object.<br>
 &nbsp;<br>
 filename&nbsp;=&nbsp;the&nbsp;filename<br>
