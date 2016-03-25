@@ -1,4 +1,5 @@
 <properties LandingPage="dmahugh,http://github.com/dmahugh/whatever" />
+<properties LandingPageTags="Python,GitHub,REST" />
 ![gitinfo](images/gitinfo.png)
 # GitHub API helper functions
 
