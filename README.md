@@ -1,3 +1,4 @@
+<properties metaKeywords=" blah,test,example,sample,ignore" />
 ![gitinfo](images/gitinfo.png)
 # GitHub API helper functions
 
