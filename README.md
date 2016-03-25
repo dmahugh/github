@@ -1,4 +1,4 @@
-<properties metaKeywords=" blah,test,example,sample,ignore" />
+<properties LandingPage="dmahugh,http://github.com/dmahugh/whatever" />
 ![gitinfo](images/gitinfo.png)
 # GitHub API helper functions
 
