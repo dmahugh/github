@@ -33,3 +33,5 @@ For usage details, see the [documentation](gitinfo.md).
 
 For GitHub API details, see the [GitHub V3 API documentation](https://developer.github.com/v3/).
 
+# gitinfo
+This is the README.md that was added by clicking the "add a readme" button when viewing the ```gh-pages``` branch of ```gitinfo``` on GitHub.com.
