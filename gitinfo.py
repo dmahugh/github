@@ -16,6 +16,7 @@ membersget() ---------> Get member info for a specified organization.
 minimize_json() ------> Remove the *_url properties from a json data file.
 pagination() ---------> Parse 'link' HTTP header returned by GitHub API.
 remove_github_urls() -> Remove *_url entries from a dictionary.
+repo_admins() --------> Get administrators for a repo.
 repofields() ---------> Get field values for a repo.
 repos() --------------> Get repo information for organizations or users.
 reposget() -----------> Get repo information for a specified org or user.
@@ -587,6 +588,55 @@ def remove_github_urls(dict_in):
         not key.endswith('_url') and not key == 'url'}
 
 #-------------------------------------------------------------------------------
+def repo_admins(org=None, repo=None):
+    """Get administrators for a repo.
+
+    org = organization name
+    repo = repo name
+
+    Returns a list of dictionaries, with each dictionary describing a person
+    with admin rights for this repo. These keys are included in the
+    dictionaries:
+    admintype -> either 'AdminTeamMember' or 'AdminCollaborator'
+    teamname --> team name (for admintype=='AdminTeamMember')
+    teamid ----> GitHub team ID (for admintype=='AdminTeamMember')
+    login -----> GitHub login name
+    email -----> email address (if a Microsoft employee)
+    """
+    retval = []
+
+	# get AdminTeamMembers
+    endpoint = 'https://api.github.com/repos/' + org + '/' + repo + '/teams'
+    totpages = 0
+    while True:
+        response = github_api(endpoint=endpoint, auth=auth_user())
+        if response.ok:
+            totpages += 1
+            thispage = json.loads(response.text)
+            for member in thispage:
+                if member['permission'] == 'admin':
+                    #/// need to get members of this team so we can add them
+                    #/// write a gitinfo.teammembers() function, returns all members of specified team
+                    retval.append({'admintype': 'AdminTeamMember', \
+                        'teamname': member['name'], 'teamid': member['id']})
+
+        pagelinks = pagination(response)
+        endpoint = pagelinks['nextURL']
+        if not endpoint:
+            break # there are no more results to process
+
+        print('processing page {0} of {1}'. \
+                       format(pagelinks['nextpage'], pagelinks['lastpage']))
+
+    print('pages processed: {0}, total members: {1}'. \
+        format(totpages, len(retval)))
+
+	# get AdminCollaborators
+    #/// https://api.github.com/repos/orgname/reponame/collaborators
+
+    return retval
+
+#-------------------------------------------------------------------------------
 def repofields(repo_json, fields, org, user):
     """Get field values for a repo.
 
@@ -1072,6 +1122,13 @@ def test_remove_github_urls():
     print('>>> after minimizing:', str(minimized))
 
 #-------------------------------------------------------------------------------
+def test_repo_admins():
+    """Simple test for repo_admins() function.
+    """
+    retval = repo_admins(org='aspnet', repo='wap-samples')
+    print(retval)
+
+#-------------------------------------------------------------------------------
 def test_repos():
     """Simple test for repos() function.
     """
@@ -1112,7 +1169,8 @@ if __name__ == "__main__":
     #test_collaborators()
     #test_members()
     #test_pagination()
-    test_remove_github_urls()
+    #test_remove_github_urls()
+    test_repo_admins()
     #test_repos()
     #test_repoteams()
     #test_teams()
