@@ -24,6 +24,7 @@ repoteams() ----------> Get teams associated with one or more repositories.
 repoteamsget() -------> Get team info for a specified repo.
 session_end() --------> Log summary of completed gitinfo "session."
 session_start() ------> Initiate a gitinfo session for logging/tracking purposes.
+teammembers() --------> Get team members for specified team.
 teams() --------------> Get teams for one or more organizations.
 teamsget() -----------> Get team info for a specified organization.
 timestamp() ----------> Return current timestamp as YYYY-MM-DD HH:MM:SS
@@ -615,8 +616,7 @@ def repo_admins(org=None, repo=None):
             thispage = json.loads(response.text)
             for member in thispage:
                 if member['permission'] == 'admin':
-                    #/// need to get members of this team so we can add them
-                    #/// write a gitinfo.teammembers() function, returns all members of specified team
+                    #/// use teammembers() to get members of this team, add them
                     retval.append({'admintype': 'AdminTeamMember', \
                         'teamname': member['name'], 'teamid': member['id']})
 
@@ -955,6 +955,50 @@ def teamfields(team_json, fields, org):
     return team_tuple(**values)
 
 #-------------------------------------------------------------------------------
+def teammembers(teamid=None):
+    """Get members of a specified team.
+
+    teamid = the GitHub ID for the team (either integer or string)
+
+    Returns a list of namedtuples with info about the members of the team.
+
+    NOTE: this function takes a dependency on msgithub, to get the email address
+    associated with GitHub logins (if any).
+    """
+    import msgithub
+
+    # allow for integer or string teamid
+    teamstr = teamid if isinstance(teamid, str) else str(teamid)
+    endpoint = 'https://api.github.com/teams/' + teamstr + '/members'
+
+    teamlist = [] # members of this team
+    totpages = 0
+    member_tuple = collections.namedtuple('member_tuple', 'login site_admin email')
+
+    while True:
+
+        response = github_api(endpoint=endpoint, auth=auth_user())
+        if response.ok:
+            totpages += 1
+            thispage = json.loads(response.text)
+            for member in thispage:
+                values = {}
+                values['login'] = member['login']
+                values['site_admin'] = member['site_admin']
+                values['email'] = msgithub.ms_email(member['login'])
+                teamlist.append(member_tuple(**values))
+
+        pagelinks = pagination(response)
+        endpoint = pagelinks['nextURL']
+        if not endpoint:
+            break # there are no more results to process
+
+        print('processing page {0} of {1}'. \
+                    format(pagelinks['nextpage'], pagelinks['lastpage']))
+
+    return teamlist
+
+#-------------------------------------------------------------------------------
 def teams(org=None, fields=None):
     """Get teams for one or more organizations.
 
@@ -1150,6 +1194,14 @@ def test_repoteams():
         print(team)
 
 #-------------------------------------------------------------------------------
+def test_teammembers():
+    """Simple test for teammembers() function.
+    """
+    members = teammembers(teamid=652356)
+    for member in members:
+        print('>>>', member)
+
+#-------------------------------------------------------------------------------
 def test_teams():
     """Simple test for teams() function.
     """
@@ -1170,9 +1222,10 @@ if __name__ == "__main__":
     #test_members()
     #test_pagination()
     #test_remove_github_urls()
-    test_repo_admins()
+    #test_repo_admins()
     #test_repos()
     #test_repoteams()
+    test_teammembers()
     #test_teams()
 
     session_end()
