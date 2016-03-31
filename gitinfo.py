@@ -616,9 +616,13 @@ def repo_admins(org=None, repo=None):
             thispage = json.loads(response.text)
             for member in thispage:
                 if member['permission'] == 'admin':
-                    #/// use teammembers() to get members of this team, add them
-                    retval.append({'admintype': 'AdminTeamMember', \
-                        'teamname': member['name'], 'teamid': member['id']})
+                    adminmembers = teammembers(teamid=member['id'])
+                    for adminmember in adminmembers:
+                        retval.append({'admintype': 'AdminTeamMember',
+                                       'teamname': member['name'],
+                                       'teamid': member['id'],
+                                       'login': adminmember.login,
+                                       'email': adminmember.email})
 
         pagelinks = pagination(response)
         endpoint = pagelinks['nextURL']
@@ -1222,10 +1226,10 @@ if __name__ == "__main__":
     #test_members()
     #test_pagination()
     #test_remove_github_urls()
-    #test_repo_admins()
+    test_repo_admins()
     #test_repos()
     #test_repoteams()
-    test_teammembers()
+    #test_teammembers()
     #test_teams()
 
     session_end()
