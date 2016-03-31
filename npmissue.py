@@ -1,6 +1,5 @@
-"""One-time report of repo owners for the repos identified by MSRC (Microsoft
-Security Response Center) as having a potential vulnerability due the NPM
-"unpublishing of leftpad et al" fiasco in March 2016.
+"""One-time report for the repos identified as having a potential vulnerability
+due the NPM "unpublishing of leftpad et al" fiasco in March 2016.
 
 Uses the npmissues.txt data file (which is not published in the repo).
 
