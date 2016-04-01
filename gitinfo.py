@@ -287,13 +287,13 @@ def githubapi_to_file(endpoint=None, filename=None):
 
     while True:
 
-        response = gi.github_api(endpoint=endpoint, auth=gi.auth_user())
+        response = github_api(endpoint=endpoint, auth=auth_user())
         if response.ok:
             totpages += 1
             thispage = json.loads(response.text)
             master_json.extend(thispage)
 
-        pagelinks = gi.pagination(response)
+        pagelinks = pagination(response)
         endpoint = pagelinks['nextURL']
         if not endpoint:
             break # there are no more results to process
@@ -304,7 +304,7 @@ def githubapi_to_file(endpoint=None, filename=None):
     print('pages processed: {0}, total members: {1}'. \
         format(totpages, len(master_json)))
 
-    gi.json_write(source=master_json, filename=filename)
+    json_write(source=master_json, filename=filename)
     print('data file written -> ' + filename)
 
 #-------------------------------------------------------------------------------
@@ -634,9 +634,6 @@ def repo_admins(org=None, repo=None):
 
     print('pages processed: {0}, total members: {1}'. \
         format(totpages, len(retval)))
-
-	# get AdminCollaborators
-    #/// https://api.github.com/repos/orgname/reponame/collaborators
 
     return retval
 
@@ -1201,8 +1198,8 @@ def test_repoteams():
 def test_teammembers():
     """Simple test for teammembers() function.
     """
-    members = teammembers(teamid=652356)
-    for member in members:
+    memberlist = teammembers(teamid=652356)
+    for member in memberlist:
         print('>>>', member)
 
 #-------------------------------------------------------------------------------
@@ -1226,8 +1223,8 @@ if __name__ == "__main__":
     #test_members()
     #test_pagination()
     #test_remove_github_urls()
-    test_repo_admins()
-    #test_repos()
+    #test_repo_admins()
+    test_repos()
     #test_repoteams()
     #test_teammembers()
     #test_teams()
