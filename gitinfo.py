@@ -15,6 +15,7 @@ members() ------------> Get members of one or more organizations.
 membersget() ---------> Get member info for a specified organization.
 minimize_json() ------> Remove the *_url properties from a json data file.
 pagination() ---------> Parse 'link' HTTP header returned by GitHub API.
+readme_content() -----> Retrieve contents of preferred readme for a repo.
 remove_github_urls() -> Remove *_url entries from a dictionary.
 repo_admins() --------> Get administrators for a repo.
 repofields() ---------> Get field values for a repo.
@@ -578,6 +579,24 @@ def pagination(link_header):
     return retval
 
 #-------------------------------------------------------------------------------
+def readme_content(owner=None, repo=None):
+    """Retrieve contents of preferred readme for a repo.
+
+    owner = org or username
+    repo = repo name
+
+    Returns the contents of the readme file for this repo (if any).
+    """
+    import base64
+    endpoint = 'https://api.github.com/repos/' + owner + '/' + repo + '/readme'
+    headers = {'content-type': 'application/vnd.github.v3.html'}
+    response = github_api(endpoint=endpoint, auth=auth_user(), headers=headers)
+    if response.ok:
+        return base64.b64decode(json.loads(response.text)['content'])
+    else:
+        return ''
+
+#-------------------------------------------------------------------------------
 def remove_github_urls(dict_in):
     """Remove URL entries (as returned by GitHub API) from a dictionary.
 
@@ -1130,6 +1149,15 @@ def test_pagination():
     print(pagination(testlinks))
 
 #-------------------------------------------------------------------------------
+def test_readme_content():
+    """Simple test for readme_content() function.
+    """
+    owner = 'dmahugh'
+    repo = 'gitinfo'
+    readme = readme_content(owner=owner, repo=repo)
+    print(readme)
+
+#-------------------------------------------------------------------------------
 def test_remove_github_urls():
     """Simple test for remove_github_urls() function.
     """
@@ -1170,7 +1198,7 @@ def test_remove_github_urls():
 def test_repo_admins():
     """Simple test for repo_admins() function.
     """
-    retval = repo_admins(org='aspnet', repo='wap-samples')
+    retval = repo_admins(org='microsoft', repo='edgediagnosticsadapter')
     print(retval)
 
 #-------------------------------------------------------------------------------
@@ -1222,9 +1250,10 @@ if __name__ == "__main__":
     #test_collaborators()
     #test_members()
     #test_pagination()
+    test_readme_content()
     #test_remove_github_urls()
     #test_repo_admins()
-    test_repos()
+    #test_repos()
     #test_repoteams()
     #test_teammembers()
     #test_teams()
