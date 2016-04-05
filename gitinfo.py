@@ -16,6 +16,8 @@ membersget() ---------> Get member info for a specified organization.
 minimize_json() ------> Remove the *_url properties from a json data file.
 pagination() ---------> Parse 'link' HTTP header returned by GitHub API.
 readme_content() -----> Retrieve contents of preferred readme for a repo.
+readme_tag_parser() --> Extract LandingPageTags values from a readme line.
+readme_tags() --------> Retrieve metadata tags from a repo's readme.
 remove_github_urls() -> Remove *_url entries from a dictionary.
 repo_admins() --------> Get administrators for a repo.
 repofields() ---------> Get field values for a repo.
@@ -597,6 +599,50 @@ def readme_content(owner=None, repo=None):
         return ''
 
 #-------------------------------------------------------------------------------
+def readme_tag_parser(line):
+    """Extract LandingPageTags values from a line of text from a readme file.
+
+    line = a string in this format:
+           <properties prop1='xxx' LandingPageTags="XXX,YYY,ZZZ" prop2="yyy" />
+
+    Returns a list of the LandingPageTags values. In the example above, would
+    return ['XXX', 'YYY', 'ZZZ']
+    """
+    retval = []
+
+    tokens = line.split(' ')
+    for token in tokens:
+        if '=' in token:
+            if token.split('=')[0].lower() == 'landingpagetags':
+                tags = token.split('=')[1].replace('"', '').replace("'", '')
+                for tag in tags.split(','):
+                    if tag.strip():
+                        retval.append(tag.strip())
+    return retval
+
+#-------------------------------------------------------------------------------
+def readme_tags(owner=None, repo=None):
+    """Retrieve metadata tags from a repo's readme.
+
+    owner = org or username
+    repo = repo name
+
+    Returns a list of tags.
+    """
+    retval = []
+
+    readme = readme_content(owner=owner, repo=repo)
+    lines = readme.split(b'\n')
+    for line in lines:
+        thisline = line.decode()
+        if thisline.lower().startswith('<properties '):
+            retval.extend(readme_tag_parser(thisline))
+        else:
+            break
+
+    return retval
+
+#-------------------------------------------------------------------------------
 def remove_github_urls(dict_in):
     """Remove URL entries (as returned by GitHub API) from a dictionary.
 
@@ -1158,6 +1204,15 @@ def test_readme_content():
     print(readme)
 
 #-------------------------------------------------------------------------------
+def test_readme_tags():
+    """Simple test for readme_tags() function.
+    """
+    owner = 'dmahugh'
+    repo = 'gitinfo'
+    taglist = readme_tags(owner=owner, repo=repo)
+    print(taglist)
+
+#-------------------------------------------------------------------------------
 def test_remove_github_urls():
     """Simple test for remove_github_urls() function.
     """
@@ -1250,7 +1305,8 @@ if __name__ == "__main__":
     #test_collaborators()
     #test_members()
     #test_pagination()
-    test_readme_content()
+    #test_readme_content()
+    test_readme_tags()
     #test_remove_github_urls()
     #test_repo_admins()
     #test_repos()
