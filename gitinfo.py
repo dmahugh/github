@@ -633,6 +633,9 @@ def readme_tags(owner=None, repo=None):
     retval = []
 
     readme = readme_content(owner=owner, repo=repo)
+    if not readme:
+        return retval
+
     lines = readme.split(b'\n')
     for line in lines:
         thisline = line.decode()
