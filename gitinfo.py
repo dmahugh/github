@@ -606,7 +606,8 @@ def readme_tag_parser(line):
            <properties prop1='xxx' LandingPageTags="XXX,YYY,ZZZ" prop2="yyy" />
 
     Returns a list of the LandingPageTags values. In the example above, would
-    return ['XXX', 'YYY', 'ZZZ']
+    return ['xxx', 'yyy', 'zzz']. Note that all returned values are converted
+    to lower case.
     """
     retval = []
 
@@ -614,7 +615,7 @@ def readme_tag_parser(line):
     for token in tokens:
         if '=' in token:
             if token.split('=')[0].lower() == 'landingpagetags':
-                tags = token.split('=')[1].replace('"', '').replace("'", '')
+                tags = token.lower().split('=')[1].replace('"', '').replace("'", '')
                 for tag in tags.split(','):
                     if tag.strip():
                         retval.append(tag.strip())
