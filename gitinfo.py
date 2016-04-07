@@ -1032,10 +1032,15 @@ def teammembers(teamid=None):
 
     Returns a list of namedtuples with info about the members of the team.
 
-    NOTE: this function takes a dependency on msgithub, to get the email address
-    associated with GitHub logins (if any).
+    NOTE: this function uses msgithub.py (if available) to get Microsoft email
+    address associated with GitHub logins. If msgithub.py is not available, the
+    email addresses are blank.
     """
-    import msgithub
+    try:
+        import msgithub
+        ms_emails = True # do have access to MS email mappings
+    except ImportError:
+        ms_emails = False # don't have access to MS email mappings
 
     # allow for integer or string teamid
     teamstr = teamid if isinstance(teamid, str) else str(teamid)
@@ -1055,7 +1060,10 @@ def teammembers(teamid=None):
                 values = {}
                 values['login'] = member['login']
                 values['site_admin'] = member['site_admin']
-                values['email'] = msgithub.ms_email(member['login'])
+                if ms_emails:
+                    values['email'] = msgithub.ms_email(member['login'])
+                else:
+                    values['email'] = ''
                 teamlist.append(member_tuple(**values))
 
         pagelinks = pagination(response)
@@ -1268,10 +1276,8 @@ def test_repos():
     #    ['full_name', 'license.name', 'license', 'permissions.admin'])
     #for repo in oct_repos:
     #    print(repo)
-    deployr_repos = repos(org='deployr', fields= \
-        ['full_name', 'private', 'license', 'permissions.admin'])
-    for repo in deployr_repos:
-        print(repo)
+    office_repos = repos(org='officedev', fields=['name', 'private', 'license.name', 'created_at'])
+    write_csv(office_repos, 'OfficeRepos.csv')
 
 #-------------------------------------------------------------------------------
 def test_repoteams():
@@ -1310,12 +1316,12 @@ if __name__ == "__main__":
     #test_members()
     #test_pagination()
     #test_readme_content()
-    test_readme_tags()
+    #test_readme_tags()
     #test_remove_github_urls()
     #test_repo_admins()
     #test_repos()
     #test_repoteams()
-    #test_teammembers()
+    test_teammembers()
     #test_teams()
 
     session_end()
