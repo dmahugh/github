@@ -27,12 +27,20 @@ def test_members():
 
 #-------------------------------------------------------------------------------
 def test_pagination():
-    """Simple test for pagination() function.
+    """Tests for pagination() function in gitinfo.py.
     """
-    testlinks = "<https://api.github.com/organizations/6154722/" + \
+    linkheader01 = "<https://api.github.com/organizations/6154722/" + \
         "repos?page=2>; rel=\"next\", <https://api.github.com/" + \
         "organizations/6154722/repos?page=18>; rel=\"last\""
-    print(gi.pagination(testlinks))
+    linkdict = gi.pagination(linkheader01)
+    assert linkdict['firstpage'] == 0
+    assert linkdict['firstURL'] is None
+    assert linkdict['lastpage'] == '18'
+    assert linkdict['lastURL'] == 'https://api.github.com/organizations/6154722/repos?page=18'
+    assert linkdict['prevpage'] == 0
+    assert linkdict['prevURL'] is None
+    assert linkdict['nextpage'] == '2'
+    assert linkdict['nextURL'] == 'https://api.github.com/organizations/6154722/repos?page=2'
 
 #-------------------------------------------------------------------------------
 def test_readme_content():
@@ -131,11 +139,12 @@ def test_teams():
     print('total teams returned:', len(teamtest))
 
 # if running standalone, run tests ---------------------------------------------
+"""
 if __name__ == "__main__":
 
-    gi.log_config({'verbose': True, 'logfile': 'gitinfo.log'})
-    gi.auth_config({'username': 'msftgits'})
-    gi.session_start('inline tests')
+    #gi.log_config({'verbose': True, 'logfile': 'gitinfo.log'})
+    #gi.auth_config({'username': 'msftgits'})
+    #gi.session_start('inline tests')
 
     #test_auth_user()
     #test_collaborators()
@@ -145,9 +154,10 @@ if __name__ == "__main__":
     #test_readme_tags()
     #test_remove_github_urls()
     #test_repo_admins()
-    test_repos()
+    #test_repos()
     #test_repoteams()
     #test_teammembers()
     #test_teams()
 
-    gi.session_end()
+    #gi.session_end()
+"""
