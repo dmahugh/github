@@ -1,4 +1,4 @@
-<properties LandingPageTags="Python,GitHub,REST" />
+<properties LandingPageTags="Python,GitHub,REST,OSPO" />
 ![gitinfo](images/gitinfo.png)
 # GitHub API helper functions
 
