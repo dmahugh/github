@@ -276,11 +276,12 @@ def github_api(endpoint=None, auth=None, headers=None):
     return response
 
 #-------------------------------------------------------------------------------
-def githubapi_to_file(endpoint=None, filename=None):
+def githubapi_to_file(endpoint=None, filename=None, headers=None):
     """Call GitHub API, consolidate pagination, write to output file.
 
     endpoint = GitHub API endpoint to call
     filename = file to write consolidated output to
+    headers = optional dictionary of HTTP headers to send with the request
 
     The output file is written as a single JSON list, containing all pages of
     data if there is more than one.
@@ -290,7 +291,7 @@ def githubapi_to_file(endpoint=None, filename=None):
 
     while True:
 
-        response = github_api(endpoint=endpoint, auth=auth_user())
+        response = github_api(endpoint=endpoint, auth=auth_user(), headers=headers)
         if response.ok:
             totpages += 1
             thispage = json.loads(response.text)
@@ -720,7 +721,7 @@ def repofields(repo_json, fields, org, user):
     """
     if not fields:
         # if no fields specified, use default field list
-        fields = ['full_name', 'watchers', 'forks', 'private']
+        fields = ['full_name', 'watchers', 'forks', 'license.name', 'private']
 
     # change '.' to '_' because can't have '.' in an identifier
     fldnames = [_.replace('.', '_') for _ in fields]
@@ -1272,12 +1273,10 @@ def test_repo_admins():
 def test_repos():
     """Simple test for repos() function.
     """
-    #oct_repos = repos(user=['octocat'], fields= \
-    #    ['full_name', 'license.name', 'license', 'permissions.admin'])
-    #for repo in oct_repos:
-    #    print(repo)
-    office_repos = repos(org='officedev', fields=['name', 'private', 'license.name', 'created_at'])
-    write_csv(office_repos, 'OfficeRepos.csv')
+    oct_repos = repos(user=['octocat'], fields= \
+        ['full_name', 'license.name', 'license', 'permissions.admin'])
+    for repo in oct_repos:
+        print(repo)
 
 #-------------------------------------------------------------------------------
 def test_repoteams():
@@ -1319,9 +1318,9 @@ if __name__ == "__main__":
     #test_readme_tags()
     #test_remove_github_urls()
     #test_repo_admins()
-    #test_repos()
+    test_repos()
     #test_repoteams()
-    test_teammembers()
+    #test_teammembers()
     #test_teams()
 
     session_end()
