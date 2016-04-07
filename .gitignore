@@ -1,2 +1,11 @@
-# don't include private subfolder
+# don't include todo list
+_todo.txt
+
+# don't include these subfolders
 private/
+data/
+__pycache__/
+.vscode/
+
+# don't include microsoft-specific scripts
+ms*.*

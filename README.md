@@ -26,9 +26,9 @@ Gitinfo has one external dependency - the [requests](https://pypi.python.org/pyp
 * Install requests: ```pip install requests```
 
 ## where to learn more
-For more examples of how to use gitinfo, see the [overview](overview.md).
+For more examples of how to use gitinfo, see the [overview](documentation/overview.md).
 
-For usage details, see the [documentation](gitinfo.md).
+For usage details, see the [documentation](documentation/gitinfo.md).
 
 For GitHub API details, see the [GitHub V3 API documentation](https://developer.github.com/v3/).
 
