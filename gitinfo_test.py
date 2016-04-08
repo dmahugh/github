@@ -8,10 +8,11 @@ Test_collaborators() -------> Tests for gitinfo.collaborators().
 Test_members() -------------> Tests for gitinfo.members().
 Test_pagination() ----------> Tests for gitinfo.pagination().
 Test_readme_content() ------> Tests for gitinfo.readme_content().
+Test_remove_github_urls() --> Tests for gitinfo.remove_github_urls().
 Test_repo_admins() ---------> Tests for gitinfo.repo_admins().
 Test_repo_tags() -----------> Tests for gitinfo.readme_tags().
 Test_repos() ---------------> Tests for gitinfo.repos().
-Test_remove_github_urls() --> Tests for gitinfo.remove_github_urls().
+Test_repoteams() -----------> Tests for gitinfo.repoteams().
 Test_teammembers() ---------> Tests for gitinfo.teammembers().
 Test_teams() ---------------> Tests for gitinfo.teams().
 """
@@ -95,40 +96,6 @@ class Test_readme_content():
         readme = gi.readme_content(owner='dmahugh', repo='gitinfo')
         assert b'[gitinfo](images/gitinfo.png)' in readme
 
-
-#-------------------------------------------------------------------------------
-class Test_repo_admins():
-    """Tests for gitinfo.repo_admins().
-    """
-    def test_dclrepo(self):
-        gi.auth_config({'username': 'msftgits'})
-        testadmins = gi.repo_admins(org='microsoft', repo='dotnet-client-library')
-        logins = [admin['login'].lower() for admin in testadmins]
-        assert 'kschaab' in logins
-
-#-------------------------------------------------------------------------------
-class Test_repo_tags():
-    """Tests for gitinfo.readme_tags().
-    """
-    def test_gitinforepo(self):
-        taglist = gi.repo_tags(owner='dmahugh', repo='gitinfo')
-        assert 'python' in taglist
-        assert 'github' in taglist
-        assert 'rest' in taglist
-
-#-------------------------------------------------------------------------------
-class Test_repos():
-    """Tests for gitinfo.repos().
-    """
-    def test_octocatrepo(self):
-        oct_repos = gi.repos(user=['octocat'], fields= \
-            ['full_name', 'license.name', 'license', 'permissions.admin'])
-        reponames = [repo.full_name for repo in oct_repos]
-        assert 'octocat/octocat.github.io' in reponames
-        assert 'octocat/Spoon-Knife' in reponames
-        licenses = [repo.license_name for repo in oct_repos]
-        assert 'MIT License' in licenses
-
 #-------------------------------------------------------------------------------
 class Test_remove_github_urls():
     """Tests for gitinfo.remove_github_urls().
@@ -181,6 +148,49 @@ class Test_remove_github_urls():
 
     def test_None(self):
         assert gi.remove_github_urls(None) == {}
+
+#-------------------------------------------------------------------------------
+class Test_repo_admins():
+    """Tests for gitinfo.repo_admins().
+    """
+    def test_dclrepo(self):
+        gi.auth_config({'username': 'msftgits'})
+        testadmins = gi.repo_admins(org='microsoft', repo='dotnet-client-library')
+        logins = [admin['login'].lower() for admin in testadmins]
+        assert 'kschaab' in logins
+
+#-------------------------------------------------------------------------------
+class Test_repo_tags():
+    """Tests for gitinfo.readme_tags().
+    """
+    def test_gitinforepo(self):
+        taglist = gi.repo_tags(owner='dmahugh', repo='gitinfo')
+        assert 'python' in taglist
+        assert 'github' in taglist
+        assert 'rest' in taglist
+
+#-------------------------------------------------------------------------------
+class Test_repos():
+    """Tests for gitinfo.repos().
+    """
+    def test_octocatrepo(self):
+        oct_repos = gi.repos(user=['octocat'], fields= \
+            ['full_name', 'license.name', 'license', 'permissions.admin'])
+        reponames = [repo.full_name for repo in oct_repos]
+        assert 'octocat/octocat.github.io' in reponames
+        assert 'octocat/Spoon-Knife' in reponames
+        licenses = [repo.license_name for repo in oct_repos]
+        assert 'MIT License' in licenses
+
+#-------------------------------------------------------------------------------
+class Test_repoteams():
+    """Tests for gitinfo.repoteams().
+    """
+    def test_msiot(self):
+        gi.auth_config({'username': 'msftgits'})
+        testteams = gi.repoteams(org='ms-iot', repo=['serial-wiring'])
+        teamnames = [team.name.lower() for team in testteams]
+        assert 'msftclas-write' in teamnames
 
 #-------------------------------------------------------------------------------
 class Test_teammembers():
