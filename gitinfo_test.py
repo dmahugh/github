@@ -1,4 +1,15 @@
 """Test suite for gitinfo module
+
+NOTE: some of these tests require msftgits GitHub credentials, so they won't
+pass on a machine that doesn't have those credentials configured.
+
+Test_auth_user() -----------> Tests for gitinfo.auth_user() function.
+Test_pagination() ----------> Tests for gitinfo.pagination() function.
+Test_readme_content() ------> Tests for gitinfo.readme_content() function.
+Test_repo_tags() -----------> Tests for gitinfo.readme_tags() function.
+Test_repos() ---------------> Tests for gitinfo.repos() function.
+Test_remove_github_urls() --> Tests for gitinfo.remove_github_urls() function.
+Test_teammembers() ---------> Tests for gitinfo.teammembers() function.
 """
 import pytest
 # pragma pylint: disable=no-self-use,invalid-name,missing-docstring,redefined-outer-name
@@ -15,6 +26,7 @@ class Test_auth_user():
     def test_msftgits(self):
         gi.auth_config({'username': 'msftgits'})
         authtuple = gi.auth_user()
+        assert len(authtuple) == 2
         assert authtuple[0] == 'msftgits'
         assert len(authtuple[1]) == 40
 
@@ -69,6 +81,19 @@ class Test_repo_tags():
         assert 'rest' in taglist
 
 #-------------------------------------------------------------------------------
+class Test_repos():
+    """Tests for gitinfo.repos() function.
+    """
+    def test_octocatrepo(self):
+        oct_repos = gi.repos(user=['octocat'], fields= \
+            ['full_name', 'license.name', 'license', 'permissions.admin'])
+        reponames = [repo.full_name for repo in oct_repos]
+        assert 'octocat/octocat.github.io' in reponames
+        assert 'octocat/Spoon-Knife' in reponames
+        licenses = [repo.license_name for repo in oct_repos]
+        assert 'MIT License' in licenses
+
+#-------------------------------------------------------------------------------
 class Test_remove_github_urls():
     """Tests for gitinfo.remove_github_urls() function.
     """
@@ -120,3 +145,13 @@ class Test_remove_github_urls():
 
     def test_None(self):
         assert gi.remove_github_urls(None) == {}
+
+#-------------------------------------------------------------------------------
+class Test_teammembers():
+    """Tests for gitinfo.teammembers() function.
+    """
+    def test_team652356(self):
+        gi.auth_config({'username': 'msftgits'})
+        memberlist = gi.teammembers(teamid=652356)
+        members = [member.login for member in memberlist]
+        assert 'msftgits' in members
