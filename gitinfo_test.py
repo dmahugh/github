@@ -1,7 +1,7 @@
 """Test suite for gitinfo module
 """
 import pytest
-# pragma pylint: disable=R0201,C0103,C0111,W0621
+# pragma pylint: disable=no-self-use,invalid-name,missing-docstring,redefined-outer-name
 
 import gitinfo as gi
 
@@ -51,10 +51,20 @@ def linkheader():
         "organizations/6154722/repos?page=18>; rel=\"last\""
 
 #-------------------------------------------------------------------------------
+class Test_repo_tags():
+    """Tests for gitinfo.readme_tags() function.
+    """
+    def test_gitinforepo(self):
+        taglist = gi.repo_tags(owner='dmahugh', repo='gitinfo')
+        assert 'python' in taglist
+        assert 'github' in taglist
+        assert 'rest' in taglist
+
+#-------------------------------------------------------------------------------
 class Test_remove_github_urls():
     """Tests for gitinfo.remove_github_urls() function.
     """
-    def test_01(self):
+    def test_typical(self):
         testdict = {
             "avatar_url": "https://avatars.githubusercontent.com/u/12345?v=3",
             "events_url": "https://api.github.com/users/username/events{/privacy}",
@@ -96,3 +106,9 @@ class Test_remove_github_urls():
             "site_admin": False,
             "type": "User"
         }
+
+    def test_emptydict(self):
+        assert gi.remove_github_urls({}) == {}
+
+    def test_None(self):
+        assert gi.remove_github_urls(None) == {}

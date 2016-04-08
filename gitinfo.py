@@ -17,9 +17,9 @@ minimize_json() ------> Remove the *_url properties from a json data file.
 pagination() ---------> Parse 'link' HTTP header returned by GitHub API.
 readme_content() -----> Retrieve contents of preferred readme for a repo.
 readme_tag_parser() --> Extract LandingPageTags values from a readme line.
-readme_tags() --------> Retrieve metadata tags from a repo's readme.
 remove_github_urls() -> Remove *_url entries from a dictionary.
 repo_admins() --------> Get administrators for a repo.
+repo_tags() ----------> Retrieve metadata tags from a repo's readme.
 repofields() ---------> Get field values for a repo.
 repos() --------------> Get repo information for organizations or users.
 reposget() -----------> Get repo information for a specified org or user.
@@ -623,31 +623,6 @@ def readme_tag_parser(line):
     return retval
 
 #-------------------------------------------------------------------------------
-def readme_tags(owner=None, repo=None):
-    """Retrieve metadata tags from a repo's readme.
-
-    owner = org or username
-    repo = repo name
-
-    Returns a list of tags.
-    """
-    retval = []
-
-    readme = readme_content(owner=owner, repo=repo)
-    if not readme:
-        return retval
-
-    lines = readme.split(b'\n')
-    for line in lines:
-        thisline = line.decode()
-        if thisline.lower().startswith('<properties '):
-            retval.extend(readme_tag_parser(thisline))
-        else:
-            break
-
-    return retval
-
-#-------------------------------------------------------------------------------
 def remove_github_urls(dict_in):
     """Remove URL entries (as returned by GitHub API) from a dictionary.
 
@@ -655,6 +630,8 @@ def remove_github_urls(dict_in):
 
     Returns a copy of the dictionary, but with no entries named *_url or url.
     """
+    if not dict_in:
+        return {}
     return {key: dict_in[key] for key in dict_in if \
         not key.endswith('_url') and not key == 'url'}
 
@@ -704,6 +681,31 @@ def repo_admins(org=None, repo=None):
 
     print('pages processed: {0}, total members: {1}'. \
         format(totpages, len(retval)))
+
+    return retval
+
+#-------------------------------------------------------------------------------
+def repo_tags(owner=None, repo=None):
+    """Retrieve metadata tags from a repo's readme.
+
+    owner = org or username
+    repo = repo name
+
+    Returns a list of tags.
+    """
+    retval = []
+
+    readme = readme_content(owner=owner, repo=repo)
+    if not readme:
+        return retval
+
+    lines = readme.split(b'\n')
+    for line in lines:
+        thisline = line.decode()
+        if thisline.lower().startswith('<properties '):
+            retval.extend(readme_tag_parser(thisline))
+        else:
+            break
 
     return retval
 
@@ -1172,3 +1174,4 @@ def write_csv(listobj, filename):
     log_msg('total rows:', len(listobj))
 
 #-------------------------------- END OF FILE ----------------------------------
+#if __name__ == '__main__':
