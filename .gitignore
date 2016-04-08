@@ -1,11 +1,18 @@
-# don't include todo list
+# don't include these files
 _todo.txt
+check_ratelimit.py
+gitinfo.log
 
 # don't include these subfolders
-private/
-data/
 __pycache__/
+.cache/
 .vscode/
+archive/
+backups/
+data/
+OSPO/
+private/
+reports/
 
 # don't include microsoft-specific scripts
 ms*.*
