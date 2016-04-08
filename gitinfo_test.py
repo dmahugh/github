@@ -8,6 +8,7 @@ Test_collaborators() -------> Tests for gitinfo.collaborators().
 Test_members() -------------> Tests for gitinfo.members().
 Test_pagination() ----------> Tests for gitinfo.pagination().
 Test_readme_content() ------> Tests for gitinfo.readme_content().
+Test_repo_admins() ---------> Tests for gitinfo.repo_admins().
 Test_repo_tags() -----------> Tests for gitinfo.readme_tags().
 Test_repos() ---------------> Tests for gitinfo.repos().
 Test_remove_github_urls() --> Tests for gitinfo.remove_github_urls().
@@ -93,6 +94,17 @@ class Test_readme_content():
     def test_gitinforeadme(self):
         readme = gi.readme_content(owner='dmahugh', repo='gitinfo')
         assert b'[gitinfo](images/gitinfo.png)' in readme
+
+
+#-------------------------------------------------------------------------------
+class Test_repo_admins():
+    """Tests for gitinfo.repo_admins().
+    """
+    def test_dclrepo(self):
+        gi.auth_config({'username': 'msftgits'})
+        testadmins = gi.repo_admins(org='microsoft', repo='dotnet-client-library')
+        logins = [admin['login'].lower() for admin in testadmins]
+        assert 'kschaab' in logins
 
 #-------------------------------------------------------------------------------
 class Test_repo_tags():
