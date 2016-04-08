@@ -51,6 +51,14 @@ def linkheader():
         "organizations/6154722/repos?page=18>; rel=\"last\""
 
 #-------------------------------------------------------------------------------
+class Test_readme_content():
+    """Tests for gitinfo.readme_content() function.
+    """
+    def test_gitinforeadme(self):
+        readme = gi.readme_content(owner='dmahugh', repo='gitinfo')
+        assert b'[gitinfo](images/gitinfo.png)' in readme
+
+#-------------------------------------------------------------------------------
 class Test_repo_tags():
     """Tests for gitinfo.readme_tags() function.
     """
