@@ -29,12 +29,19 @@ Gitinfo has one external dependency - the [requests](https://pypi.python.org/pyp
 * Clone the [Gitinfo repo](https://github.com/dmahugh/gitinfo).
 * Install requests: ```pip install requests```
 
+## tests
+
+The file ```gitinfo_test.py``` contains *pytest* tests for gitinfo functions. Note that some of these tests require
+admin access to organizations or repos, so if you're not configured with credentials for the *msftgits* user those
+tests won't pass.
+
+Here's an example of a successful test run:
+
+![gitinfo_test](images/gitinfo_test.png)
+
 ## where to learn more
 For more examples of how to use gitinfo, see the [overview](documentation/overview.md).
 
 For usage details, see the [documentation](documentation/gitinfo.md).
 
 For GitHub API details, see the [GitHub V3 API documentation](https://developer.github.com/v3/).
-
-# gitinfo
-This is the README.md that was added by clicking the "add a readme" button when viewing the ```gh-pages``` branch of ```gitinfo``` on GitHub.com.
