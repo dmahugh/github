@@ -3,13 +3,14 @@
 NOTE: some of these tests require msftgits GitHub credentials, so they won't
 pass on a machine that doesn't have those credentials configured.
 
-Test_auth_user() -----------> Tests for gitinfo.auth_user() function.
-Test_pagination() ----------> Tests for gitinfo.pagination() function.
-Test_readme_content() ------> Tests for gitinfo.readme_content() function.
-Test_repo_tags() -----------> Tests for gitinfo.readme_tags() function.
-Test_repos() ---------------> Tests for gitinfo.repos() function.
-Test_remove_github_urls() --> Tests for gitinfo.remove_github_urls() function.
-Test_teammembers() ---------> Tests for gitinfo.teammembers() function.
+Test_auth_user() -----------> Tests for gitinfo.auth_user().
+Test_pagination() ----------> Tests for gitinfo.pagination().
+Test_readme_content() ------> Tests for gitinfo.readme_content().
+Test_repo_tags() -----------> Tests for gitinfo.readme_tags().
+Test_repos() ---------------> Tests for gitinfo.repos().
+Test_remove_github_urls() --> Tests for gitinfo.remove_github_urls().
+Test_teammembers() ---------> Tests for gitinfo.teammembers().
+Test_teams() ---------------> Tests for gitinfo.teams().
 """
 import pytest
 # pragma pylint: disable=no-self-use,invalid-name,missing-docstring,redefined-outer-name
@@ -18,7 +19,7 @@ import gitinfo as gi
 
 #-------------------------------------------------------------------------------
 class Test_auth_user():
-    """Tests for gitinfo.auth_user() function.
+    """Tests for gitinfo.auth_user().
     """
     def test_noconfig(self):
         assert gi.auth_user() is None
@@ -32,7 +33,7 @@ class Test_auth_user():
 
 #-------------------------------------------------------------------------------
 class Test_pagination():
-    """Tests for gitinfo.pagination() function.
+    """Tests for gitinfo.pagination().
     """
     def test_first(self, linkheader):
         linkdict = gi.pagination(linkheader)
@@ -56,7 +57,7 @@ class Test_pagination():
 
 @pytest.fixture
 def linkheader():
-    """Test data for testing gitinfo.pagination() function.
+    """Test data for testing gitinfo.pagination().
     """
     return "<https://api.github.com/organizations/6154722/" + \
         "repos?page=2>; rel=\"next\", <https://api.github.com/" + \
@@ -64,7 +65,7 @@ def linkheader():
 
 #-------------------------------------------------------------------------------
 class Test_readme_content():
-    """Tests for gitinfo.readme_content() function.
+    """Tests for gitinfo.readme_content().
     """
     def test_gitinforeadme(self):
         readme = gi.readme_content(owner='dmahugh', repo='gitinfo')
@@ -72,7 +73,7 @@ class Test_readme_content():
 
 #-------------------------------------------------------------------------------
 class Test_repo_tags():
-    """Tests for gitinfo.readme_tags() function.
+    """Tests for gitinfo.readme_tags().
     """
     def test_gitinforepo(self):
         taglist = gi.repo_tags(owner='dmahugh', repo='gitinfo')
@@ -82,7 +83,7 @@ class Test_repo_tags():
 
 #-------------------------------------------------------------------------------
 class Test_repos():
-    """Tests for gitinfo.repos() function.
+    """Tests for gitinfo.repos().
     """
     def test_octocatrepo(self):
         oct_repos = gi.repos(user=['octocat'], fields= \
@@ -95,7 +96,7 @@ class Test_repos():
 
 #-------------------------------------------------------------------------------
 class Test_remove_github_urls():
-    """Tests for gitinfo.remove_github_urls() function.
+    """Tests for gitinfo.remove_github_urls().
     """
     def test_typical(self):
         testdict = {
@@ -148,10 +149,23 @@ class Test_remove_github_urls():
 
 #-------------------------------------------------------------------------------
 class Test_teammembers():
-    """Tests for gitinfo.teammembers() function.
+    """Tests for gitinfo.teammembers().
     """
     def test_team652356(self):
         gi.auth_config({'username': 'msftgits'})
         memberlist = gi.teammembers(teamid=652356)
         members = [member.login for member in memberlist]
         assert 'msftgits' in members
+
+#-------------------------------------------------------------------------------
+class Test_teams():
+    """Tests for gitinfo.teams().
+    """
+    def test_team_msiot(self):
+        gi.auth_config({'username': 'msftgits'})
+        teamtest = gi.teams(org=['ms-iot'])
+        teamnames = [team.name.lower() for team in teamtest]
+        assert 'msftclas-write' in teamnames
+        assert 'cpub' in teamnames
+
+#--------------------------------- END OF FILE ---------------------------------
