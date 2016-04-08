@@ -4,6 +4,7 @@ NOTE: some of these tests require msftgits GitHub credentials, so they won't
 pass on a machine that doesn't have those credentials configured.
 
 Test_auth_user() -----------> Tests for gitinfo.auth_user().
+Test_collaborators() -------> Tests for gitinfo.collaborators().
 Test_pagination() ----------> Tests for gitinfo.pagination().
 Test_readme_content() ------> Tests for gitinfo.readme_content().
 Test_repo_tags() -----------> Tests for gitinfo.readme_tags().
@@ -30,6 +31,17 @@ class Test_auth_user():
         assert len(authtuple) == 2
         assert authtuple[0] == 'msftgits'
         assert len(authtuple[1]) == 40
+
+#-------------------------------------------------------------------------------
+class Test_collaborators():
+    """Tests for gitinfo.collaborators().
+    """
+    def test_galaxyexplorer(self):
+        gi.auth_config({'username': 'msftgits'})
+        collabtest = gi.collaborators(owner='microsoft', repo='galaxyexplorer')
+        logins = [collab.login for collab in collabtest]
+        assert 'msftclas' in logins
+        assert 'msftgits' in logins
 
 #-------------------------------------------------------------------------------
 class Test_pagination():
