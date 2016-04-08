@@ -5,6 +5,7 @@ pass on a machine that doesn't have those credentials configured.
 
 Test_auth_user() -----------> Tests for gitinfo.auth_user().
 Test_collaborators() -------> Tests for gitinfo.collaborators().
+Test_members() -------------> Tests for gitinfo.members().
 Test_pagination() ----------> Tests for gitinfo.pagination().
 Test_readme_content() ------> Tests for gitinfo.readme_content().
 Test_repo_tags() -----------> Tests for gitinfo.readme_tags().
@@ -42,6 +43,16 @@ class Test_collaborators():
         logins = [collab.login for collab in collabtest]
         assert 'msftclas' in logins
         assert 'msftgits' in logins
+
+#-------------------------------------------------------------------------------
+class Test_members():
+    """Tests for gitinfo.members().
+    """
+    def test_odata(self, linkheader):
+        gi.auth_config({'username': 'msftgits'})
+        membertest = gi.members(org=['odata'], audit2fa=True)
+        logins = [member.login.lower() for member in membertest]
+        assert 'odatabot' in logins
 
 #-------------------------------------------------------------------------------
 class Test_pagination():
