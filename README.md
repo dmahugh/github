@@ -31,7 +31,8 @@ Gitinfo has one external dependency - the [requests](https://pypi.python.org/pyp
 
 ## tests
 
-The file ```gitinfo_test.py``` contains *pytest* tests for gitinfo functions. Note that some of these tests require
+The file [gitinfo_test.py](https://github.com/dmahugh/gitinfo/blob/master/gitinfo_test.py) contains
+[pytest](http://pytest.org/latest/) tests for gitinfo functions. Note that some of these tests require
 admin access to organizations or repos, so if you're not configured with credentials for the *msftgits* user those
 tests won't pass.
 
