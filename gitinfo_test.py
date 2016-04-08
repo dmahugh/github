@@ -50,3 +50,49 @@ def linkheader():
         "repos?page=2>; rel=\"next\", <https://api.github.com/" + \
         "organizations/6154722/repos?page=18>; rel=\"last\""
 
+#-------------------------------------------------------------------------------
+class Test_remove_github_urls():
+    """Tests for gitinfo.remove_github_urls() function.
+    """
+    def test_01(self):
+        testdict = {
+            "avatar_url": "https://avatars.githubusercontent.com/u/12345?v=3",
+            "events_url": "https://api.github.com/users/username/events{/privacy}",
+            "followers_url": "https://api.github.com/users/username/followers",
+            "following_url": "https://api.github.com/users/username/following{/other_user}",
+            "gists_url": "https://api.github.com/users/username/gists{/gist_id}",
+            "gravatar_id": "",
+            "html_url": "https://github.com/username",
+            "id": 12345,
+            "login": "username",
+            "org": "orgname",
+            "organizations_url": "https://api.github.com/users/username/orgs",
+            "permissions": {
+                "admin": False,
+                "pull": True,
+                "push": True
+            },
+            "received_events_url": "https://api.github.com/users/username/received_events",
+            "repo": "reponame",
+            "repos_url": "https://api.github.com/users/username/repos",
+            "site_admin": False,
+            "starred_url": "https://api.github.com/users/username/starred{/owner}{/repo}",
+            "subscriptions_url": "https://api.github.com/users/username/subscriptions",
+            "type": "User",
+            "url": "https://api.github.com/users/username"
+        }
+        minimized = gi.remove_github_urls(testdict)
+        assert minimized == {
+            "gravatar_id": "",
+            "id": 12345,
+            "login": "username",
+            "org": "orgname",
+            "permissions": {
+                "admin": False,
+                "pull": True,
+                "push": True
+            },
+            "repo": "reponame",
+            "site_admin": False,
+            "type": "User"
+        }
