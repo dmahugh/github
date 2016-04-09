@@ -45,6 +45,7 @@ import os
 import time
 
 import requests
+import pytest # only required for running tests
 
 #------------------------------------------------------------------------------
 class _settings:
@@ -1173,5 +1174,6 @@ def write_csv(listobj, filename):
     log_msg('columns:', header_row)
     log_msg('total rows:', len(listobj))
 
-#-------------------------------- END OF FILE ----------------------------------
-#if __name__ == '__main__':
+# if running standalone, run tests ---------------------------------------------
+if __name__ == '__main__':
+    pytest.main(['-v'])
