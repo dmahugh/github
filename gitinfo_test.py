@@ -3,6 +3,7 @@
 NOTE: some of these tests require msftgits GitHub credentials, so they won't
 pass on a machine that doesn't have those credentials configured.
 
+github_auth() --------------> Pytest fixture for GitHub authentication.
 Test_auth_user() -----------> Tests for gitinfo.auth_user().
 Test_collaborators() -------> Tests for gitinfo.collaborators().
 Test_members() -------------> Tests for gitinfo.members().
@@ -21,6 +22,17 @@ import pytest
 
 import gitinfo as gi
 
+
+#-------------------------------------------------------------------------------
+@pytest.fixture
+def github_auth():
+    """Pytest fixture for GitHub authentication.
+
+    This fixture is used to configure authentication for tests that require
+    owner or admin access to orgs or repos.
+    """
+    gi.auth_config({'username': 'msftgits'})
+
 #-------------------------------------------------------------------------------
 class Test_auth_user():
     """Tests for gitinfo.auth_user().
@@ -28,8 +40,7 @@ class Test_auth_user():
     def test_noconfig(self):
         assert gi.auth_user() is None
 
-    def test_msftgits(self):
-        gi.auth_config({'username': 'msftgits'})
+    def test_msftgits(self, github_auth):
         authtuple = gi.auth_user()
         assert len(authtuple) == 2
         assert authtuple[0] == 'msftgits'
@@ -39,8 +50,7 @@ class Test_auth_user():
 class Test_collaborators():
     """Tests for gitinfo.collaborators().
     """
-    def test_galaxyexplorer(self):
-        gi.auth_config({'username': 'msftgits'})
+    def test_galaxyexplorer(self, github_auth):
         collabtest = gi.collaborators(owner='microsoft', repo='galaxyexplorer')
         logins = [collab.login for collab in collabtest]
         assert 'msftclas' in logins
@@ -50,8 +60,7 @@ class Test_collaborators():
 class Test_members():
     """Tests for gitinfo.members().
     """
-    def test_odata(self, linkheader):
-        gi.auth_config({'username': 'msftgits'})
+    def test_odata(self, github_auth):
         membertest = gi.members(org=['odata'], audit2fa=True)
         logins = [member.login.lower() for member in membertest]
         assert 'odatabot' in logins
@@ -153,8 +162,7 @@ class Test_remove_github_urls():
 class Test_repo_admins():
     """Tests for gitinfo.repo_admins().
     """
-    def test_dclrepo(self):
-        gi.auth_config({'username': 'msftgits'})
+    def test_dclrepo(self, github_auth):
         testadmins = gi.repo_admins(org='microsoft', repo='dotnet-client-library')
         logins = [admin['login'].lower() for admin in testadmins]
         assert 'kschaab' in logins
@@ -186,8 +194,7 @@ class Test_repos():
 class Test_repoteams():
     """Tests for gitinfo.repoteams().
     """
-    def test_msiot(self):
-        gi.auth_config({'username': 'msftgits'})
+    def test_msiot(self, github_auth):
         testteams = gi.repoteams(org='ms-iot', repo=['serial-wiring'])
         teamnames = [team.name.lower() for team in testteams]
         assert 'msftclas-write' in teamnames
@@ -196,8 +203,7 @@ class Test_repoteams():
 class Test_teammembers():
     """Tests for gitinfo.teammembers().
     """
-    def test_team652356(self):
-        gi.auth_config({'username': 'msftgits'})
+    def test_team652356(self, github_auth):
         memberlist = gi.teammembers(teamid=652356)
         members = [member.login for member in memberlist]
         assert 'msftgits' in members
@@ -206,8 +212,7 @@ class Test_teammembers():
 class Test_teams():
     """Tests for gitinfo.teams().
     """
-    def test_team_msiot(self):
-        gi.auth_config({'username': 'msftgits'})
+    def test_team_msiot(self, github_auth):
         teamtest = gi.teams(org=['ms-iot'])
         teamnames = [team.name.lower() for team in teamtest]
         assert 'msftclas-write' in teamnames
