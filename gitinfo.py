@@ -3,35 +3,24 @@
 auth_config() --------> Configure authentication settings.
 auth_user() ----------> Return credentials for use in GitHub API calls.
 collaborators() ------> Get collaborators for one or more repos.
-collaboratorsget() ---> Get collaborator info for a specified repo.
-json_read() ----------> Read a .json file into a Python object.
-json_write() ---------> Write a Python object to a .json file.
-github_api() ---------> Call the GitHub API (wrapper for requests.get()).
 githubapi_to_file() --> Call GitHub API, handle pagination, write to file.
 log_apistatus() ------> Display current API rate-limit status.
 log_config() ---------> Configure message logging settings.
 log_msg() ------------> Log a status message.
 members() ------------> Get members of one or more organizations.
-membersget() ---------> Get member info for a specified organization.
 minimize_json() ------> Remove the *_url properties from a json data file.
-pagination() ---------> Parse 'link' HTTP header returned by GitHub API.
 ratelimit_status() ---> Display current rate-limit status.
 readme_content() -----> Retrieve contents of preferred readme for a repo.
 readme_tag_parser() --> Extract LandingPageTags values from a readme line.
 remove_github_urls() -> Remove *_url entries from a dictionary.
 repo_admins() --------> Get administrators for a repo.
 repo_tags() ----------> Retrieve metadata tags from a repo's readme.
-repofields() ---------> Get field values for a repo.
 repos() --------------> Get repo information for organizations or users.
-reposget() -----------> Get repo information for a specified org or user.
 repoteams() ----------> Get teams associated with one or more repositories.
-repoteamsget() -------> Get team info for a specified repo.
 session_end() --------> Log summary of completed gitinfo "session."
 session_start() ------> Initiate a gitinfo session for logging/tracking purposes.
 teammembers() --------> Get team members for specified team.
 teams() --------------> Get teams for one or more organizations.
-teamsget() -----------> Get team info for a specified organization.
-timestamp() ----------> Return current timestamp as YYYY-MM-DD HH:MM:SS
 write_csv() ----------> Write a list of namedtuples to a CSV file.
 
 Note: some classes and functions have been omitted from the above list because
@@ -84,9 +73,12 @@ def auth_config(settings=None):
     # if username is specified but no accesstoken specified, look up this
     # user's PAT in github_users.json
     if settings and 'username' in settings and not 'accesstoken' in settings:
-        with open('private/github_users.json', 'r') as jsonfile:
-            github_users = json.load(jsonfile)
-            settings['accesstoken'] = github_users[settings['username']]
+        if settings['username'] is None:
+            settings['accesstoken'] = None
+        else:
+            with open('private/github_users.json', 'r') as jsonfile:
+                github_users = json.load(jsonfile)
+                settings['accesstoken'] = github_users[settings['username']]
 
     if settings:
         for setting in config_settings:
@@ -97,7 +89,7 @@ def auth_config(settings=None):
     for setting in config_settings:
         retval[setting] = getattr(_settings, setting)
 
-    username = _settings.username
+    username = str(_settings.username)
     accesstoken = _settings.accesstoken
     if accesstoken:
         # if a PAT is stored, only display first 2 and last 2 characters
@@ -208,6 +200,7 @@ def collaboratorsget(owner, repo, fields):
     3rd parameter = list of fields to be returned
 
     Returns a list of namedtuples containing the specified fields.
+    <internal>
     """
     endpoint = 'https://api.github.com/repos/' + owner + '/' + repo + '/collaborators'
     retval = [] # the list to be returned
@@ -245,6 +238,7 @@ def github_api(endpoint=None, auth=None, headers=None):
 
     Returns the response object.
     API call through this function update session totals.
+    <internal>
     """
     if not endpoint:
         log_msg('ERROR: github_api() called with no endpoint')
@@ -319,6 +313,7 @@ def json_read(filename=None):
 
     filename = the filename
     Returns the object that has been serialized to the .json file (list, etc).
+    <internal>
     """
     with open(filename, 'r') as datafile:
         retval = json.loads(datafile.read())
@@ -330,6 +325,7 @@ def json_write(source=None, filename=None):
 
     source = the object to be serialized
     filename = the filename (will be over-written if it already exists)
+    <internal>
     """
     if not source or not filename:
         return # nothing to do
@@ -488,6 +484,7 @@ def membersget(org=None, team=None, fields=None, audit2fa=False):
                auth_config() as an admin of the org(s).
 
     Returns a list of namedtuples containing the specified fields.
+    <internal>
     """
     if team:
         endpoint = 'https://api.github.com/teams/' + team + '/members'
@@ -592,9 +589,6 @@ def ratelimit_status(user=None):
     Returns a tuple, first value is rate limit for this user and second value
     is number of remaining/unused API calls available.
     """
-    #/// write tests, add to gitinfo_test.py
-    #/// add to repo documentation
-
     if user:
         auth_config({'username': user})
 
@@ -871,6 +865,7 @@ def reposget(org=None, user=None, fields=None):
     fields = list of fields to be returned
 
     Returns a list of namedtuples containing the specified fields.
+    <internal>
     """
     if org:
         endpoint = 'https://api.github.com/orgs/' + org + '/repos'
@@ -976,6 +971,7 @@ def repoteamsget(org, repo, fields):
     3rd parameter = list of fields to be returned
 
     Returns a list of namedtuples containing the specified fields.
+    <internal>
     """
     endpoint = 'https://api.github.com/repos/' + org + '/' + repo + '/teams'
     retval = [] # the list to be returned
@@ -1151,6 +1147,7 @@ def teamsget(org, fields):
     2nd parameter = list of fields to be returned
 
     Returns a list of namedtuples containing the specified fields.
+    <internal>
     """
     endpoint = 'https://api.github.com/orgs/' + org + '/teams'
     retval = [] # the list to be returned
@@ -1181,6 +1178,7 @@ def teamsget(org, fields):
 #-------------------------------------------------------------------------------
 def timestamp():
     """Return current timestamp as a string - YYYY-MM-DD HH:MM:SS
+    <internal>
     """
     return '{:%Y-%m-%d %H:%M:%S}'.format(datetime.datetime.now())
 
