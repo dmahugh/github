@@ -8,6 +8,7 @@ Test_auth_user() -----------> Tests for gitinfo.auth_user().
 Test_collaborators() -------> Tests for gitinfo.collaborators().
 Test_members() -------------> Tests for gitinfo.members().
 Test_pagination() ----------> Tests for gitinfo.pagination().
+Test_ratelimit_status() ----> Tests for gitinfo.ratelimit_status().
 Test_readme_content() ------> Tests for gitinfo.readme_content().
 Test_remove_github_urls() --> Tests for gitinfo.remove_github_urls().
 Test_repo_admins() ---------> Tests for gitinfo.repo_admins().
@@ -96,6 +97,19 @@ def linkheader():
     return "<https://api.github.com/organizations/6154722/" + \
         "repos?page=2>; rel=\"next\", <https://api.github.com/" + \
         "organizations/6154722/repos?page=18>; rel=\"last\""
+
+#-------------------------------------------------------------------------------
+class Test_ratelimit_status():
+    """Tests for gitinfo.ratelimit_status().
+    """
+    def test_unauthenticated(self):
+        gi.auth_config({'username': None})
+        rlstatus = gi.ratelimit_status()
+        assert rlstatus[0] == 60
+    def test_msftgits(self):
+        gi.auth_config({'username': 'msftgits'})
+        rlstatus = gi.ratelimit_status()
+        assert rlstatus[0] == 5000
 
 #-------------------------------------------------------------------------------
 class Test_readme_content():
