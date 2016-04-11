@@ -120,6 +120,8 @@ GitHub credentials (username/PAT) are stored in a ```github_users.json``` file i
 ```
 Then you can use the ```auth_config()``` function to set the username for subsquent operations. For example:
 
+Note that there is a ```ratelimit_status()``` function for checking the current status of a user's rate limit. This can be useful for checking whether sufficient API calls are available for a task.
+
 ```python
 import gitingo as gi
 gi.auth_config({'username': 'user1'})
