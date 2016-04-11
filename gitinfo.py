@@ -15,6 +15,7 @@ members() ------------> Get members of one or more organizations.
 membersget() ---------> Get member info for a specified organization.
 minimize_json() ------> Remove the *_url properties from a json data file.
 pagination() ---------> Parse 'link' HTTP header returned by GitHub API.
+ratelimit_status() ---> Display current rate-limit status.
 readme_content() -----> Retrieve contents of preferred readme for a repo.
 readme_tag_parser() --> Extract LandingPageTags values from a readme line.
 remove_github_urls() -> Remove *_url entries from a dictionary.
@@ -581,6 +582,40 @@ def pagination(link_header):
         retval[linktype + 'URL'] = url
 
     return retval
+
+#-------------------------------------------------------------------------------
+def ratelimit_status(user=None):
+    """Displays current rate-limit status.
+
+    user = GitHub user name for authentication (optional)
+
+    Returns a tuple, first value is rate limit for this user and second value
+    is number of remaining/unused API calls available.
+    """
+    #/// write tests, add to gitinfo_test.py
+    #/// add to repo documentation
+
+    if user:
+        auth_config({'username': user})
+
+    response = requests.get('https://api.github.com/users/octocat', auth=auth_user())
+
+    try:
+        ratelimit = int(response.headers['X-RateLimit-Limit'])
+        remaining = int(response.headers['X-RateLimit-Remaining'])
+        linegraph = ('X'*int((60 * (ratelimit - remaining)/ratelimit))).ljust(60, '-')
+        statusmsg = 'User: ' + str(user) + ' - Rate limit: ' + str(ratelimit) + \
+            ' - Remaining: ' + str(remaining) + '\n' + linegraph
+    except KeyError:
+        # This is the strange and rare case (which we've encountered) where
+        # an API call that normally returns the rate-limit headers doesn't
+        # return them.
+        ratelimit = 0
+        remaining = 0
+        statusmsg = 'User: ' + str(user) + ' - rate limit info not returned!'
+
+    print(statusmsg)
+    return (ratelimit, remaining) 
 
 #-------------------------------------------------------------------------------
 def readme_content(owner=None, repo=None):
