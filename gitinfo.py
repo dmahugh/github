@@ -155,7 +155,7 @@ def collaboratorfields(collab_json, fields, owner, repo):
     return collab_tuple(**values)
 
 #-------------------------------------------------------------------------------
-def collaborators(owner=None, repo=None, fields=None):
+def collaborators(*, owner=None, repo=None, fields=None):
     """Get collaborators for one or more repos with the same owner.
 
     owner = the repo owner (org or user)
@@ -208,7 +208,7 @@ def collaboratorsget(owner, repo, fields):
 
     while True:
 
-        response = github_api(endpoint, auth=auth_user())
+        response = github_api(endpoint=endpoint, auth=auth_user())
         if response.ok:
             totpages += 1
             thispage = json.loads(response.text)
@@ -229,7 +229,7 @@ def collaboratorsget(owner, repo, fields):
     return retval
 
 #-------------------------------------------------------------------------------
-def github_api(endpoint=None, auth=None, headers=None):
+def github_api(*, endpoint=None, auth=None, headers=None):
     """Call the GitHub API (wrapper for requests.get()).
 
     endpoint = the HTTP endpoint to call
@@ -272,7 +272,7 @@ def github_api(endpoint=None, auth=None, headers=None):
     return response
 
 #-------------------------------------------------------------------------------
-def githubapi_to_file(endpoint=None, filename=None, headers=None):
+def githubapi_to_file(*, endpoint=None, filename=None, headers=None):
     """Call GitHub API, consolidate pagination, write to output file.
 
     endpoint = GitHub API endpoint to call
@@ -424,7 +424,7 @@ def memberfields(member_json, fields, org):
     return member_tuple(**values)
 
 #-------------------------------------------------------------------------------
-def members(org=None, team=None, fields=None, audit2fa=False):
+def members(*, org=None, team=None, fields=None, audit2fa=False):
     """Get members for one or more teams or organizations.
 
     org = an organization ID or list of organizations
@@ -471,7 +471,7 @@ def members(org=None, team=None, fields=None, audit2fa=False):
     return memberlist
 
 #------------------------------------------------------------------------------
-def membersget(org=None, team=None, fields=None, audit2fa=False):
+def membersget(*, org=None, team=None, fields=None, audit2fa=False):
     """Get member info for a specified organization. Called by members() to
     aggregate member info for multiple organizations.
 
@@ -497,7 +497,7 @@ def membersget(org=None, team=None, fields=None, audit2fa=False):
 
     while True:
 
-        response = github_api(endpoint, auth=auth_user())
+        response = github_api(endpoint=endpoint, auth=auth_user())
         if response.ok:
             totpages += 1
             thispage = json.loads(response.text)
@@ -518,7 +518,7 @@ def membersget(org=None, team=None, fields=None, audit2fa=False):
     return retval
 
 #------------------------------------------------------------------------------
-def minimize_json(infile=None, outfile=None):
+def minimize_json(*, infile=None, outfile=None):
     """Remove all *_url properties from a json data file.
 
     infile = the input json file (as returned by the GitHub API)
@@ -612,7 +612,7 @@ def ratelimit_status(user=None):
     return (ratelimit, remaining) 
 
 #-------------------------------------------------------------------------------
-def readme_content(owner=None, repo=None):
+def readme_content(*, owner=None, repo=None):
     """Retrieve contents of preferred readme for a repo.
 
     owner = org or username
@@ -666,7 +666,7 @@ def remove_github_urls(dict_in):
         not key.endswith('_url') and not key == 'url'}
 
 #-------------------------------------------------------------------------------
-def repo_admins(org=None, repo=None):
+def repo_admins(*, org=None, repo=None):
     """Get administrators for a repo.
 
     org = organization name
@@ -715,7 +715,7 @@ def repo_admins(org=None, repo=None):
     return retval
 
 #-------------------------------------------------------------------------------
-def repo_tags(owner=None, repo=None):
+def repo_tags(*, owner=None, repo=None):
     """Retrieve metadata tags from a repo's readme.
 
     owner = org or username
@@ -778,7 +778,7 @@ def repofields(repo_json, fields, org, user):
     return repo_tuple(**values)
 
 #-------------------------------------------------------------------------------
-def repos(org=None, user=None, fields=None):
+def repos(*, org=None, user=None, fields=None):
     """Get repo information for one or more organizations or users.
 
     org    = organization; an organization or list of organizations
@@ -856,7 +856,7 @@ def repos(org=None, user=None, fields=None):
     return repolist
 
 #-------------------------------------------------------------------------------
-def reposget(org=None, user=None, fields=None):
+def reposget(*, org=None, user=None, fields=None):
     """Get repo information for a specified org or user. Called by repos() to
     aggregate repo information for multiple orgs or users.
 
@@ -880,7 +880,7 @@ def reposget(org=None, user=None, fields=None):
 
     while True:
 
-        response = github_api(endpoint, auth=auth_user(), headers=headers)
+        response = github_api(endpoint=endpoint, auth=auth_user(), headers=headers)
         if response.ok:
             totpages += 1
             thispage = json.loads(response.text)
@@ -929,7 +929,7 @@ def repoteamfields(team_json, fields, org, repo):
     return team_tuple(**values)
 
 #-------------------------------------------------------------------------------
-def repoteams(org=None, repo=None, fields=None):
+def repoteams(*, org=None, repo=None, fields=None):
     """Get teams for one or more repositories.
 
     org = organization ID (required)
@@ -979,7 +979,7 @@ def repoteamsget(org, repo, fields):
 
     while True:
 
-        response = github_api(endpoint, auth=auth_user())
+        response = github_api(endpoint=endpoint, auth=auth_user())
         if response.ok:
             totpages += 1
             thispage = json.loads(response.text)
@@ -1112,7 +1112,7 @@ def teammembers(teamid=None):
     return teamlist
 
 #-------------------------------------------------------------------------------
-def teams(org=None, fields=None):
+def teams(*, org=None, fields=None):
     """Get teams for one or more organizations.
 
     org = organization ID, or a list of organizations
@@ -1155,7 +1155,7 @@ def teamsget(org, fields):
 
     while True:
 
-        response = github_api(endpoint, auth=auth_user())
+        response = github_api(endpoint=endpoint, auth=auth_user())
         if response.ok:
             totpages += 1
             thispage = json.loads(response.text)
