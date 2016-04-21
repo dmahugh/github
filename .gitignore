@@ -1,4 +1,5 @@
 # don't include these files
+_find.drm
 _todo.txt
 check_ratelimit.py
 gitinfo.log
