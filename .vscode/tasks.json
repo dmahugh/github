@@ -1,0 +1,19 @@
+// this version makes Ctrl-B run the current Python program
+/*
+{
+	"version": "0.1.0",
+	"command": "python",
+	"isShellCommand": true,
+	"showOutput": "always",
+	"args": ["${file}"]
+}
+*/
+
+// this version makes Ctrl-B run pytest tests in verbose mode
+{
+	"version": "0.1.0",
+	"command": "py.test",
+	"isShellCommand": true,
+	"showOutput": "always",
+	"args": ["-v"]
+}

@@ -7,7 +7,6 @@ gitinfo.log
 # don't include these subfolders
 __pycache__/
 .cache/
-.vscode/
 archive/
 backups/
 data/
