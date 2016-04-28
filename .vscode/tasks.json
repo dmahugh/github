@@ -1,19 +1,20 @@
-// this version makes Ctrl-B run the current Python program
-/*
 {
-	"version": "0.1.0",
-	"command": "python",
-	"isShellCommand": true,
-	"showOutput": "always",
-	"args": ["${file}"]
-}
-*/
-
-// this version makes Ctrl-B run pytest tests in verbose mode
-{
-	"version": "0.1.0",
-	"command": "py.test",
-	"isShellCommand": true,
-	"showOutput": "always",
-	"args": ["-v"]
+    "version": "0.1.0",
+    "command": "taskrunner.bat"
+    "tasks" : [
+        {
+			// build task - Ctrl-B
+            "taskName": "python",
+		 	"isShellCommand": true,
+			"isBuildCommand": true,
+            "args": ["${file}"],
+        },
+        {
+			// test task - Ctrl-T
+            "taskName": "py.test",
+		 	"isShellCommand": true,
+			"isTestCommand": true,
+            "args": ["-v"],
+        }
+    ]
 }

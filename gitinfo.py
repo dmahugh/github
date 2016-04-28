@@ -1209,4 +1209,5 @@ def write_csv(listobj, filename):
 
 # if running standalone, run tests ---------------------------------------------
 if __name__ == '__main__':
-    pytest.main(['-v'])
+    #pytest.main(['-v'])
+    print('gitinfo.__main__() called')
