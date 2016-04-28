@@ -1,20 +1,20 @@
 {
     "version": "0.1.0",
-    "command": "taskrunner.bat"
-    "tasks" : [
+    "command": "cmd",
+    "isShellCommand": false,
+    "args": ["/c"],
+    "tasks": [
         {
 			// build task - Ctrl-B
             "taskName": "python",
-		 	"isShellCommand": true,
 			"isBuildCommand": true,
-            "args": ["${file}"],
+            "args": ["${file}"]
         },
         {
 			// test task - Ctrl-T
             "taskName": "py.test",
-		 	"isShellCommand": true,
 			"isTestCommand": true,
-            "args": ["-v"],
+            "args": ["-v"]
         }
     ]
 }
