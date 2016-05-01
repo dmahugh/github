@@ -43,6 +43,6 @@ Here's an example of a successful test run:
 ## where to learn more
 For more examples of how to use gitinfo, see the [overview](documentation/overview.md).
 
-For usage details, see the [documentation](documentation/gitinfo.md).
+For API syntax, see the [gitinfo documentation](documentation/gitinfo.md).
 
-For GitHub API details, see the [GitHub V3 API documentation](https://developer.github.com/v3/).
+Gitinfo wraps portions of the [GitHub V3 API](https://developer.github.com/v3/).
