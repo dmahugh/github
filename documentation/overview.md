@@ -144,11 +144,11 @@ Gitinfo functions return a list of namedtuples which contain either a default se
 
 Here's an example of how to specify fields to be returned:
 
-![OctocatRepos](images/OctocatRepos.png)
+![OctocatRepos](../images/OctocatRepos.png)
 
 Some fields, such as ```license```, return a JSON document, which is inconvenient for saving to a CSV file. You can include a specific subfield instead of the entire JSON document by using dot notation. For example:
 
-![SubfieldExample](images/subfields.png)
+![SubfieldExample](../images/subfields.png)
 
 Note that the field name ```license.name``` was transformed to ```license_name``` in the returned tuples above, because you can't have periods embedded in namedtuple identifiers.
 
@@ -173,7 +173,7 @@ gi.log_config(verbose=False, logfile='gitinfo.log') # send status info to a logf
 
 There are also ```session_start()``` and ```session_end()``` functions that you can put before and after a block of code to get a summary of how many API calls were made, how many bytes returned, API rate-limit status, elapsed time, etc. Here's an example of typical output to a log file using all of these options:
 
-![logfile](images/logfile.jpg)
+![logfile](../images/logfile.jpg)
 
 Note that Personal Access Tokens are not displayed or written to log files - just the first 2 and last 2 characters, to help identify which PAT was used.
 
@@ -187,11 +187,11 @@ Two functions are provided in gitinfo for minimizing these bloated responses:
 
 Here's an example of a typical GitHub API response before minimizing:
 
-![minimize-before](images/minimize-before.png)
+![minimize-before](../images/minimize-before.png)
 
 And here's the same response after minimizing with remove_github_urls():
 
-![minimize-after](images/minimize-after.png)
+![minimize-after](../images/minimize-after.png)
 
 Minimizing cached data in this manner can signficantly improve the performance of reporting and analytics processes running against the data.
 
@@ -213,4 +213,4 @@ gi.write_csv(ms_members, 'MicrosoftMembers.csv')
 
 There are also ```json_write()``` and ```json_read()``` functions that can be used to save GitHub API payloads to disk and read them back:
 
-![json_readwrite](images/json_readwrite.png)
+![json_readwrite](../images/json_readwrite.png)

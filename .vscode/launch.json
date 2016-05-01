@@ -1,0 +1,48 @@
+{
+	"version": "0.2.0",
+	"configurations": [
+		{
+			"name": "Python",
+			"type": "python",
+			"request": "launch",
+			"stopOnEntry": true,
+			"program": "${file}",
+			"pythonPath": "C:/Users/dmahugh/AppData/Local/Programs/Python/Python35-32/python.exe",
+			"debugOptions": [
+				"WaitOnAbnormalExit",
+				"WaitOnNormalExit",
+				"RedirectOutput"
+			]
+		},
+		{
+			"name": "Python Console App",
+			"type": "python",
+			"request": "launch",
+			"stopOnEntry": true,
+			"program": "${file}",
+			"pythonPath": "C:/Users/dmahugh/AppData/Local/Programs/Python/Python35-32/python.exe",
+			"externalConsole": true,
+			"debugOptions": [
+				"WaitOnAbnormalExit",
+				"WaitOnNormalExit"
+			]
+		},
+		{
+			"name": "Django",
+			"type": "python",
+			"request": "launch",
+			"stopOnEntry": true,
+			"program": "${workspaceRoot}/manage.py",
+			"args": [
+				"runserver",
+				"--noreload"
+			],
+			"debugOptions": [
+				"WaitOnAbnormalExit",
+				"WaitOnNormalExit",
+				"RedirectOutput",
+				"DjangoDebugging"
+			]
+		}
+	]
+}
