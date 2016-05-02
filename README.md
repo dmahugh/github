@@ -2,9 +2,7 @@
 ![gitinfo](images/gitinfo.png)
 # GitHub API helper functions
 
-Gitinfo is a library for Python 3.x to simplify use of the GitHub REST API. It provides wrappers for common
-gitHub API calls which returns Python *lists* of *namedtuple* objects, making it very easy to work with the
-returned data in Python.
+Gitinfo is a set of wrapper functions for GitHub API calls that return information about organizations, repos, users, and the relationships between these entities. API pagination is handled automatically &mdash; Gitinfo functions return complete data sets. All functions return native Python data structures (*lists* of *namedtuple* objects).
 
 Gitinfo is a work in progress &mdash; pull requests, feature requests and issues welcome!
 
@@ -26,8 +24,8 @@ The generated CSV file contains one row per public repo in the Microsoft organiz
 Gitinfo has one external dependency - the [requests](https://pypi.python.org/pypi/requests) library. Follow these steps to get up and running:
 
 * Install Python 3.5 from [Python.org](https://www.python.org/).
-* Clone the [Gitinfo repo](https://github.com/dmahugh/gitinfo).
 * Install requests: ```pip install requests```
+* Clone the [Gitinfo repo](https://github.com/dmahugh/gitinfo).
 
 ## tests
 
