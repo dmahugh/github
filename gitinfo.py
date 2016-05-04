@@ -625,7 +625,7 @@ def readme_content(*, owner=None, repo=None):
     headers = {'content-type': 'application/vnd.github.v3.html'}
     response = github_api(endpoint=endpoint, auth=auth_user(), headers=headers)
     if response.ok:
-        return base64.b64decode(json.loads(response.text)['content'])
+        return base64.b64decode(json.loads(response.text)['content']).decode()
     else:
         return ''
 
@@ -729,9 +729,9 @@ def repo_tags(*, owner=None, repo=None):
     if not readme:
         return retval
 
-    lines = readme.split(b'\n')
+    lines = readme.split('\n')
     for line in lines:
-        thisline = line.decode()
+        thisline = line
         if thisline.lower().startswith('<properties '):
             retval.extend(readme_tag_parser(thisline))
         else:

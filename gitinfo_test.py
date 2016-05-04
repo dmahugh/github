@@ -117,7 +117,7 @@ class Test_readme_content():
     """
     def test_gitinforeadme(self):
         readme = gi.readme_content(owner='dmahugh', repo='gitinfo')
-        assert b'[gitinfo](images/gitinfo.png)' in readme
+        assert '[gitinfo](images/gitinfo.png)' in readme
 
 #-------------------------------------------------------------------------------
 class Test_remove_github_urls():
