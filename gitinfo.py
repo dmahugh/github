@@ -1287,7 +1287,8 @@ def write_csv(listobj, filename):
 if __name__ == '__main__':
     auth_config({'username': 'dmahugh'})
     TEST = commits(owner='dmahugh', repo='gitinfo')
-    for TESTCOMMIT in TEST:
-        print(TESTCOMMIT)
+    shas = [commit.sha for commit in TEST]
+    for sha in shas:
+        print(sha)
     print('Total commits = {0}'.format(len(TEST)))
     log_apistatus()

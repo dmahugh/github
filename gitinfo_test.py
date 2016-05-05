@@ -6,6 +6,7 @@ pass on a machine that doesn't have those credentials configured.
 github_auth() --------------> Pytest fixture for GitHub authentication.
 Test_auth_user() -----------> Tests for gitinfo.auth_user().
 Test_collaborators() -------> Tests for gitinfo.collaborators().
+Test_commits() -------------> Tests for gitinfo.commits().
 Test_members() -------------> Tests for gitinfo.members().
 Test_pagination() ----------> Tests for gitinfo.pagination().
 Test_ratelimit_status() ----> Tests for gitinfo.ratelimit_status().
@@ -56,6 +57,18 @@ class Test_collaborators():
         logins = [collab.login for collab in collabtest]
         assert 'msftclas' in logins
         assert 'msftgits' in logins
+
+#-------------------------------------------------------------------------------
+class Test_commits():
+    """Tests for gitinfo.commits().
+    """
+    def test_gitinfo(self, github_auth):
+        committest = gi.commits(owner='dmahugh', repo='gitinfo')
+        shas = [commit.sha for commit in committest]
+        # the following SHA values are known to be in the commit history for
+        # this repo ...
+        assert 'bd8059370a0612b7cd4fb01fff0947b7b341a172' in shas
+        assert 'd4a5c3ea706f8ecf66cda6f30408bcf9f145475e' in shas
 
 #-------------------------------------------------------------------------------
 class Test_members():
