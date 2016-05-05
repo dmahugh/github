@@ -4,6 +4,7 @@ auth_config() --------> Configure authentication settings.
 auth_user() ----------> Return credentials for use in GitHub API calls.
 collaborators() ------> Get collaborators for one or more repos.
 commits() ------------> Get commits for repo's default branch.
+files() --------------> Get filenames for a repo.
 githubapi_to_file() --> Call GitHub API, handle pagination, write to file.
 log_apistatus() ------> Display current API rate-limit status.
 log_config() ---------> Configure message logging settings.
@@ -301,6 +302,65 @@ def commits(*, owner=None, repo=None, fields=None):
         endpoint = pagelinks['nextURL']
         if not endpoint:
             break # no more results to process
+
+    return retval
+
+#-------------------------------------------------------------------------------
+def files(*, owner=None, repo=None):
+    """Get list of files currently in the default branch of a repo.
+
+    owner  = user or organization that owns the repo (required)
+    repo   = repo name (required)
+    fields = list of field names to be returned; names must be the same as
+             returned by the GitHub API as documented here:
+             https://developer.github.com/v3/git/trees/
+
+    Returns a list of namedtuple objects, one per file in the tree. Note that
+    this wrapper is different from the others and returns a predetermined set of
+    fields (see below).
+    """
+    if not owner or not repo:
+        log_msg('WARNING: gitinfo.files() called without required parameters.')
+        return []
+
+    endpoint = 'https://api.github.com/repos/' + owner + '/' + repo + '/commits'
+    response = github_api(endpoint=endpoint, auth=auth_user())
+    if not response.ok:
+        log_msg('ERROR: gintinfo.files() failed to find commit history for {0}/{1}'. \
+                format(owner, repo))
+        return []
+
+    commits_json = json.loads(response.text)
+    commit_json = commits_json[0] # first entry is the most recent commit
+    latest_sha = commit_json['sha']
+
+
+    endpoint = 'https://api.github.com/repos/' + owner + '/' + repo + \
+        '/git/trees/' + latest_sha + '?recursive=1'
+    response = github_api(endpoint=endpoint, auth=auth_user())
+    if not response.ok:
+        log_msg('ERROR: gintinfo.files() failed to retrieve file tree for {0}/{1}'. \
+                format(owner, repo))
+        return []
+
+    file_tuple = collections.namedtuple('file_tuple',\
+        'owner repo folder filename size sha')
+
+    tree_json = json.loads(response.text)['tree']
+    retval = []
+    for tree_item in tree_json:
+        if tree_item['type'] == 'blob':
+            filename = tree_item['path']
+            if '/' in filename:
+                folders = filename.split('/')
+                folder = '/'.join(folders[:-1])
+                filename = filename.split('/')[-1]
+            else:
+                folder = ''
+            values = {'owner': owner, 'repo': repo, 'folder': folder, \
+                'filename': filename, 'size': tree_item['size'], \
+                'sha': tree_item['sha']}
+            retval.append(file_tuple(**values))
 
     return retval
 
@@ -1286,9 +1346,7 @@ def write_csv(listobj, filename):
 #------- the following code executes when this program is run standalone -------
 if __name__ == '__main__':
     auth_config({'username': 'dmahugh'})
-    TEST = commits(owner='dmahugh', repo='gitinfo')
-    shas = [commit.sha for commit in TEST]
-    for sha in shas:
-        print(sha)
-    print('Total commits = {0}'.format(len(TEST)))
+    TEST = files(owner='dmahugh', repo='gitinfo')
+    for FILENAME in TEST:
+        print(FILENAME)
     log_apistatus()
