@@ -1347,6 +1347,7 @@ def write_csv(listobj, filename):
 if __name__ == '__main__':
     auth_config({'username': 'dmahugh'})
     TEST = files(owner='dmahugh', repo='gitinfo')
-    for FILENAME in TEST:
+    FILENAMES = [_.filename for _ in TEST]
+    for FILENAME in FILENAMES:
         print(FILENAME)
     log_apistatus()

@@ -7,6 +7,7 @@ github_auth() --------------> Pytest fixture for GitHub authentication.
 Test_auth_user() -----------> Tests for gitinfo.auth_user().
 Test_collaborators() -------> Tests for gitinfo.collaborators().
 Test_commits() -------------> Tests for gitinfo.commits().
+Test_files() ---------------> Tests for gitinfo.files().
 Test_members() -------------> Tests for gitinfo.members().
 Test_pagination() ----------> Tests for gitinfo.pagination().
 Test_ratelimit_status() ----> Tests for gitinfo.ratelimit_status().
@@ -69,6 +70,17 @@ class Test_commits():
         # this repo ...
         assert 'bd8059370a0612b7cd4fb01fff0947b7b341a172' in shas
         assert 'd4a5c3ea706f8ecf66cda6f30408bcf9f145475e' in shas
+
+#-------------------------------------------------------------------------------
+class Test_files():
+    """Tests for gitinfo.files().
+    """
+    def test_gitinfo(self, github_auth):
+        filetest = gi.files(owner='dmahugh', repo='gitinfo')
+        filenames = [_.filename for _ in filetest]
+        assert 'gitinfo.py' in filenames
+        assert 'gitinfo_test.py' in filenames
+        assert 'README.md' in filenames
 
 #-------------------------------------------------------------------------------
 class Test_members():
