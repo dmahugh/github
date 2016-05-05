@@ -3,6 +3,7 @@
 auth_config() --------> Configure authentication settings.
 auth_user() ----------> Return credentials for use in GitHub API calls.
 collaborators() ------> Get collaborators for one or more repos.
+commits() ------------> Get commits for repo's default branch.
 githubapi_to_file() --> Call GitHub API, handle pagination, write to file.
 log_apistatus() ------> Display current API rate-limit status.
 log_config() ---------> Configure message logging settings.
@@ -225,6 +226,81 @@ def collaboratorsget(owner, repo, fields):
 
     log_msg('pages processed: {0}, total members: {1}'. \
         format(totpages, len(retval)))
+
+    return retval
+
+#-------------------------------------------------------------------------------
+def commitfields(commit_json, fields, owner, repo):
+    """Get field values for a commit.
+
+    1st parameter = member's json representation as returned by GitHub API
+    2nd parameter = list of names of desired fields
+    3rd parameter = repo owner (organization or user)
+    4th parameter = repo name
+
+    Returns a namedtuple containing the desired fields and their values.
+    NOTE: in addition to the specified fields, always returns 'owner' and
+    'repo' fields.
+    <internal>
+    """
+    if not fields:
+        # if no fields specified, use default field list
+        fields = ['url', 'sha', 'commit.message']
+
+    # change '.' to '_' because can't have '.' in an identifier
+    fldnames = [_.replace('.', '_') for _ in fields]
+    commit_tuple = collections.namedtuple('commit_tuple', 'owner repo ' + ' '.join(fldnames))
+
+    values = {}
+    values['owner'] = owner
+    values['repo'] = repo
+    for fldname in fields:
+        if '.' in fldname:
+            # special case - embedded field within a JSON object
+            try:
+                values[fldname.replace('.', '_')] = \
+                    commit_json[fldname.split('.')[0]][fldname.split('.')[1]]
+            except (TypeError, KeyError):
+                values[fldname.replace('.', '_')] = None
+        else:
+            # simple case: copy a value from the JSON to the namedtuple
+            values[fldname] = commit_json[fldname]
+
+    return commit_tuple(**values)
+
+#-------------------------------------------------------------------------------
+def commits(*, owner=None, repo=None, fields=None):
+    """Get commits for repo's default branch (usually MASTER).
+
+    owner  = user or organization that owns the repo (required)
+    repo   = repo name (required)
+    fields = list of field names to be returned; names must be the same as
+             returned by the GitHub API as documented here:
+             https://developer.github.com/v3/repos/commits/#list-commits-on-a-repository
+
+    Returns a list of namedtuple objects, one per commit.
+    """
+    if not owner or not repo:
+        log_msg('WARNING: gitinfo.commits() called without required parameters.')
+        return []
+    endpoint = 'https://api.github.com/repos/' + owner + '/' + repo + '/commits'
+
+    retval = [] # the list to be returned
+    totpages = 0
+
+    while True:
+
+        response = github_api(endpoint=endpoint, auth=auth_user())
+        if response.ok:
+            totpages += 1
+            thispage = json.loads(response.text)
+            for commit_json in thispage:
+                retval.append(commitfields(commit_json, fields, owner, repo))
+
+        pagelinks = pagination(response)
+        endpoint = pagelinks['nextURL']
+        if not endpoint:
+            break # no more results to process
 
     return retval
 
@@ -1207,7 +1283,11 @@ def write_csv(listobj, filename):
     log_msg('columns:', header_row)
     log_msg('total rows:', len(listobj))
 
-# if running standalone, run tests ---------------------------------------------
+#------- the following code executes when this program is run standalone -------
 if __name__ == '__main__':
-    #pytest.main(['-v'])
-    print('gitinfo.__main__() called')
+    auth_config({'username': 'dmahugh'})
+    TEST = commits(owner='dmahugh', repo='gitinfo')
+    for TESTCOMMIT in TEST:
+        print(TESTCOMMIT)
+    print('Total commits = {0}'.format(len(TEST)))
+    log_apistatus()
