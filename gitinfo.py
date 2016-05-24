@@ -374,21 +374,23 @@ def github_api(*, endpoint=None, auth=None, headers=None):
 
     Returns the response object.
     API call through this function update session totals.
+    NOTE: passes the Accept header to use version V3 of the GitHub API. This can
+    be explicitly overridden by passing a different Accept header if desired.
     <internal>
     """
     if not endpoint:
         log_msg('ERROR: github_api() called with no endpoint')
         return
 
+    # add the V3 Accept header to the dictionary
+    headers = {} if not headers else headers
+    headers_dict = {**{"Accept": "application/vnd.github.v3+json"}, **headers}
+
     # make the API call, get response object
-    if not auth and not headers:
-        response = requests.get(endpoint)
-    elif auth and not headers:
-        response = requests.get(endpoint, auth=auth)
-    elif not auth and headers:
-        response = requests.get(endpoint, headers=headers)
+    if auth:
+        response = requests.get(endpoint, auth=auth, headers=headers_dict)
     else:
-        response = requests.get(endpoint, auth=auth, headers=headers)
+        response = requests.get(endpoint, headers=headers_dict)
 
     # update session settings
     _settings.tot_api_calls += 1
