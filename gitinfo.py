@@ -26,7 +26,7 @@ teams() --------------> Get teams for one or more organizations.
 write_csv() ----------> Write a list of namedtuples to a CSV file.
 
 Note: some classes and functions have been omitted from the above list because
-they're only used internally and don't expose useful functionality.
+they're only used internally and don't expose any useful functionality.
 """
 import collections
 import csv
