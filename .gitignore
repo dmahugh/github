@@ -4,6 +4,10 @@ _todo.txt
 check_ratelimit.py
 gitinfo.log
 
+# we create many CSV and XSLX files, don't need to put those in the repo
+*.csv
+*.xlsx
+
 # don't include these subfolders
 __pycache__/
 .cache/
