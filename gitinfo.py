@@ -37,7 +37,6 @@ import os
 import time
 
 import requests
-import pytest # only required for running tests
 
 #------------------------------------------------------------------------------
 class _settings:
@@ -747,7 +746,7 @@ def ratelimit_status(user=None):
         statusmsg = 'User: ' + str(user) + ' - rate limit info not returned!'
 
     print(statusmsg)
-    return (ratelimit, remaining) 
+    return (ratelimit, remaining)
 
 #-------------------------------------------------------------------------------
 def readme_content(*, owner=None, repo=None):
