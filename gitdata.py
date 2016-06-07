@@ -25,22 +25,38 @@ def cli():
 
 #------------------------------------------------------------------------------
 @cli.command()
-@click.option('-a', '--auth', default='', help='GitHub username', metavar='<str>')
-@click.option('-f', '--fields', default='', help='fields to include', metavar='<fld1/fld2/etc>')
-@click.option('-l', '--listfields', is_flag=True, help='list available GitHub fields')
-@click.option('-o', '--output', default='', help='output file (.csv or .txt)', metavar='<filename>')
-def members(auth, fields, fieldlist, output):
+@click.option('-o', '--org', default='',
+              help='GitHub organization', metavar='<str>')
+@click.option('-r', '--repo', default='',
+              help='GitHub repo', metavar='<str>')
+@click.option('-a', '--auth', default='',
+              help='authentication username', metavar='<str>')
+@click.option('-n', '--filename', default='',
+              help='output file (.csv or .txt)', metavar='<filename>')
+@click.option('-f', '--fields', default='',
+              help='fields to include', metavar='<fld1/fld2/etc>')
+@click.option('-l', '--fieldlist', is_flag=True,
+              help='list available GitHub fields')
+def members(org, repo, auth, filename, fields, fieldlist):
     """Get member info for an org or repo.
     """
     click.echo('/// members subcommand')
 
 #------------------------------------------------------------------------------
 @cli.command()
-@click.option('-a', '--auth', default='', help='GitHub username', metavar='<str>')
-@click.option('-f', '--fields', default='', help='fields to include', metavar='<fld1/fld2/etc>')
-@click.option('-l', '--listfields', is_flag=True, help='list available GitHub fields')
-@click.option('-o', '--output', default='', help='output file (.csv or .txt)', metavar='<filename>')
-def repos(auth, fields, output):
+@click.option('-o', '--org', default='',
+              help='GitHub organization', metavar='<str>')
+@click.option('-u', '--user', default='',
+              help='GitHub user', metavar='<str>')
+@click.option('-a', '--auth', default='',
+              help='authentication username', metavar='<str>')
+@click.option('-n', '--filename', default='',
+              help='output file (.csv or .txt)', metavar='<filename>')
+@click.option('-f', '--fields', default='',
+              help='fields to include', metavar='<fld1/fld2/etc>')
+@click.option('-l', '--fieldlist', is_flag=True,
+              help='list available GitHub fields')
+def repos(org, user, auth, filename, fields, fieldlist):
     """Get repo info for an org or user.
     """
     click.echo('/// repos subcommand')
