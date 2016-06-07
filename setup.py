@@ -1,16 +1,18 @@
-"""Setup program for gitinfo
+"""Setup program for gitdata CLI
 """
 from setuptools import setup
 
 setup(
-    name='Gitinfo',
+    name='GitData',
     version='1.0',
     license='MIT License',
     author='Doug Mahugh',
-    py_modules=['gitinfo'],
+    py_modules=['gitdata'],
     install_requires=[
-        'requests', 'pytest',
+        'Click',
     ],
     entry_points='''
+        [console_scripts]
+        gitdata=gitdata:cli
     '''
 )
