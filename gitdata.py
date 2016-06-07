@@ -24,13 +24,19 @@ def cli():
 #------------------------------------------------------------------------------
 @cli.command()
 @click.option('-a', '--auth', default='', help='GitHub username', metavar='<str>')
-def members(auth):
+@click.option('-f', '--fields', default='', help='fields to include', metavar='<fld1/fld2/etc>')
+@click.option('-l', '--listfields', is_flag=True, help='list available GitHub fields')
+@click.option('-o', '--output', default='', help='output file (.csv or .txt)', metavar='<filename>')
+def members(auth, fields, fieldlist, output):
     click.echo('/// members subcommand')
 
 #------------------------------------------------------------------------------
 @cli.command()
 @click.option('-a', '--auth', default='', help='GitHub username', metavar='<str>')
-def repos(auth):
+@click.option('-f', '--fields', default='', help='fields to include', metavar='<fld1/fld2/etc>')
+@click.option('-l', '--listfields', is_flag=True, help='list available GitHub fields')
+@click.option('-o', '--output', default='', help='output file (.csv or .txt)', metavar='<filename>')
+def repos(auth, fields, output):
     click.echo('/// repos subcommand')
 
 # code to execute when running standalone: -------------------------------------
