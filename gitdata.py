@@ -28,18 +28,20 @@ def cli():
 #------------------------------------------------------------------------------
 @cli.command()
 @click.option('-o', '--org', default='',
-              help='GitHub organization', metavar='<str>')
+              help='GitHub organization', metavar='')
 @click.option('-r', '--repo', default='',
-              help='GitHub repo', metavar='<str>')
+              help='GitHub repo', metavar='')
 @click.option('-a', '--auth', default='',
-              help='authentication username', metavar='<str>')
+              help='authentication username', metavar='')
 @click.option('-n', '--filename', default='',
-              help='output file (.csv or .txt)', metavar='<filename>')
+              help='output filename', metavar='')
+@click.option('-j', '--json', is_flag=True,
+              help='JSON format (default=CSV)')
 @click.option('-f', '--fields', default='',
               help='fields to include', metavar='<fld1/fld2/etc>')
 @click.option('-l', '--fieldlist', is_flag=True,
               help='list available GitHub fields')
-def members(org, repo, auth, filename, fields, fieldlist):
+def members(org, repo, auth, filename, json, fields, fieldlist):
     """Get member info for an org or repo.
     """
     if fieldlist:
@@ -67,18 +69,20 @@ def members_listfields():
 #------------------------------------------------------------------------------
 @cli.command()
 @click.option('-o', '--org', default='',
-              help='GitHub organization', metavar='<str>')
+              help='GitHub organization', metavar='')
 @click.option('-u', '--user', default='',
-              help='GitHub user', metavar='<str>')
+              help='GitHub user', metavar='')
 @click.option('-a', '--auth', default='',
-              help='authentication username', metavar='<str>')
+              help='authentication username', metavar='')
 @click.option('-n', '--filename', default='',
-              help='output file (.csv or .txt)', metavar='<filename>')
+              help='output filename', metavar='')
+@click.option('-j', '--json', is_flag=True,
+              help='JSON format (default=CSV)')
 @click.option('-f', '--fields', default='',
               help='fields to include', metavar='<fld1/fld2/etc>')
 @click.option('-l', '--fieldlist', is_flag=True,
               help='list available GitHub fields')
-def repos(org, user, auth, filename, fields, fieldlist):
+def repos(org, user, auth, filename, json, fields, fieldlist):
     """Get repo info for an org or user.
     """
     if fieldlist:
