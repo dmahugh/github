@@ -13,11 +13,11 @@ CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'])
 @click.version_option(version='1.0', prog_name='Photerino')
 def cli():
     """\b
-    ---------------
-     | ? | ? | ? |      /// gitdata
-    ---------------
-     | ? | ? | ? |      Retrieve data via GitHub REST API.
-    ---------------
+    _______________
+      |____________  GitData CLI - retrieve data via GitHub REST API
+      |____________
+          |________  For command help: gitdata <command> -h/--help
+          |________
     """
     click.echo('/// NOT IMPLEMENTED')
 
