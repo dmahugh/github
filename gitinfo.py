@@ -1,5 +1,6 @@
 """Helper functions for retrieving data via the GitHub API.
 
+access_token() -------> Get GitHub access token from private JSON data.
 auth_config() --------> Configure authentication settings.
 auth_user() ----------> Return credentials for use in GitHub API calls.
 collaborators() ------> Get collaborators for one or more repos.
@@ -60,6 +61,21 @@ class _settings:
     last_remaining = 0 # remaining portion of rate limit after last API call
 
 #-------------------------------------------------------------------------------
+def access_token(username):
+    """Get GitHub access token from private JSON data.
+
+    username = GitHub username
+
+    Returns the access token for this username, or None if not found.
+    """
+    datafile = os.path.join(os.path.dirname(os.path.realpath(__file__)),
+                            'private/github_users.json')
+
+    with open(datafile, 'r') as jsonfile:
+        github_users = json.load(jsonfile)
+        return github_users[username]
+
+#-------------------------------------------------------------------------------
 def auth_config(settings=None):
     """Configure authentication settings.
 
@@ -77,9 +93,7 @@ def auth_config(settings=None):
         if settings['username'] is None:
             settings['accesstoken'] = None
         else:
-            with open('private/github_users.json', 'r') as jsonfile:
-                github_users = json.load(jsonfile)
-                settings['accesstoken'] = github_users[settings['username']]
+            settings['accesstoken'] = access_token(settings['username'])
 
     if settings:
         for setting in config_settings:
