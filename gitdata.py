@@ -1,6 +1,8 @@
 """GitHub query CLI.
 
 cli() --------------> Handle command-line arguments.
+members() ----------> Get member info for an org or repo.
+repos() ------------> Get repo info for an org or user.
 """
 import os
 
@@ -28,6 +30,8 @@ def cli():
 @click.option('-l', '--listfields', is_flag=True, help='list available GitHub fields')
 @click.option('-o', '--output', default='', help='output file (.csv or .txt)', metavar='<filename>')
 def members(auth, fields, fieldlist, output):
+    """Get member info for an org or repo.
+    """
     click.echo('/// members subcommand')
 
 #------------------------------------------------------------------------------
@@ -37,6 +41,8 @@ def members(auth, fields, fieldlist, output):
 @click.option('-l', '--listfields', is_flag=True, help='list available GitHub fields')
 @click.option('-o', '--output', default='', help='output file (.csv or .txt)', metavar='<filename>')
 def repos(auth, fields, output):
+    """Get repo info for an org or user.
+    """
     click.echo('/// repos subcommand')
 
 # code to execute when running standalone: -------------------------------------
