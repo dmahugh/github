@@ -17,6 +17,3 @@ data/
 OSPO/
 private/
 reports/
-
-# don't include microsoft-specific scripts
-ms*.*
