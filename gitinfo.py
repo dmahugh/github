@@ -891,28 +891,24 @@ def repo_tags(*, owner=None, repo=None):
     return retval
 
 #-------------------------------------------------------------------------------
-def repofields(repo_json, fields, org, user):
+def repofields(repo_json, fields):
     """Get field values for a repo.
 
     1st parameter = repo's json representation as returned by GitHub API
     2nd parameter = list of names of desired fields
-    3rd parameter = organization (for including in output fields)
-    4th parameter = username (for including in output fields)
 
     Returns a namedtuple containing the desired fields and their values.
     <internal>
     """
     if not fields:
         # if no fields specified, use default field list
-        fields = ['full_name', 'watchers', 'forks', 'license.name', 'private']
+        fields = ['owner.login', 'full_name', 'watchers', 'forks', 'license.name', 'private']
 
     # change '.' to '_' because can't have '.' in an identifier
     fldnames = [_.replace('.', '_') for _ in fields]
 
     values = {}
-    values['org'] = org
-    values['user'] = user
-    repo_tuple = collections.namedtuple('repo_tuple', 'org user ' + ' '.join(fldnames))
+    repo_tuple = collections.namedtuple('repo_tuple', ' '.join(fldnames))
 
     for fldname in fields:
         if '.' in fldname:
@@ -1036,7 +1032,7 @@ def reposget(*, org=None, user=None, fields=None):
             totpages += 1
             thispage = json.loads(response.text)
             for repo_json in thispage:
-                retval.append(repofields(repo_json, fields, org, user))
+                retval.append(repofields(repo_json, fields))
 
         pagelinks = pagination(response)
         endpoint = pagelinks['nextURL']
@@ -1361,6 +1357,6 @@ def write_csv(listobj, filename):
 #------- the following code executes when this program is run standalone -------
 if __name__ == '__main__':
     auth_config({'username': 'dmahugh'})
-    testrepos = repos(org='deployr', fields=['org', 'name', 'private', 'description'])
+    testrepos = repos(org='deployr')
     print(testrepos)
     log_apistatus()
