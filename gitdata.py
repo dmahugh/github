@@ -106,8 +106,11 @@ def repos(org, user, authuser, filename, json, fields, fieldlist):
         repolist = gi.repos(org=org, user=user)
 
     for repo in repolist:
-        #/// this is printing the namedtuple objects; need to default to comma-delimited output
-        click.echo(str(repo))
+        #/// need to design this carefully; allow for CSV or JSON, need a switch for whether to display CSV version to console
+        #/// note that order of fields in namedtuple is not determinant, so need to iterate through the passed fieldnames list to get order correct
+        for item in repo:
+            click.echo(str(item) + ',', nl=False)
+        click.echo('')
 
 #------------------------------------------------------------------------------
 def repos_listfields():
