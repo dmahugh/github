@@ -11,6 +11,7 @@ import os
 import click
 from click.testing import CliRunner
 
+import gitinfo as gi
 #------------------------------------------------------------------------------
 CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'])
 @click.group(context_settings=CONTEXT_SETTINGS, options_metavar='')
@@ -31,7 +32,7 @@ def cli():
               help='GitHub organization', metavar='')
 @click.option('-r', '--repo', default='',
               help='GitHub repo', metavar='')
-@click.option('-a', '--auth', default='',
+@click.option('-a', '--authuser', default='',
               help='authentication username', metavar='')
 @click.option('-n', '--filename', default='',
               help='output filename', metavar='')
@@ -41,7 +42,7 @@ def cli():
               help='fields to include', metavar='<fld1/fld2/etc>')
 @click.option('-l', '--fieldlist', is_flag=True,
               help='list available GitHub fields')
-def members(org, repo, auth, filename, json, fields, fieldlist):
+def members(org, repo, authuser, filename, json, fields, fieldlist):
     """Get member info for an org or repo.
     """
     if fieldlist:
@@ -51,6 +52,9 @@ def members(org, repo, auth, filename, json, fields, fieldlist):
     if not org:
         click.echo('ERROR: must specify an org')
         return
+
+    if authuser:
+        gi.auth_config({'username': authuser})
 
     click.echo('/// members subcommand')
 
@@ -72,7 +76,7 @@ def members_listfields():
               help='GitHub organization', metavar='')
 @click.option('-u', '--user', default='',
               help='GitHub user', metavar='')
-@click.option('-a', '--auth', default='',
+@click.option('-a', '--authuser', default='',
               help='authentication username', metavar='')
 @click.option('-n', '--filename', default='',
               help='output filename', metavar='')
@@ -82,7 +86,7 @@ def members_listfields():
               help='fields to include', metavar='<fld1/fld2/etc>')
 @click.option('-l', '--fieldlist', is_flag=True,
               help='list available GitHub fields')
-def repos(org, user, auth, filename, json, fields, fieldlist):
+def repos(org, user, authuser, filename, json, fields, fieldlist):
     """Get repo info for an org or user.
     """
     if fieldlist:
@@ -93,7 +97,17 @@ def repos(org, user, auth, filename, json, fields, fieldlist):
         click.echo('ERROR: must specify an org or user')
         return
 
-    click.echo('/// repos subcommand')
+    if authuser:
+        gi.auth_config({'username': authuser})
+
+    if fields:
+        repolist = gi.repos(org=org, user=user, fields=fields.split('/'))
+    else:
+        repolist = gi.repos(org=org, user=user)
+
+    for repo in repolist:
+        #/// this is printing the namedtuple objects; need to default to comma-delimited output
+        click.echo(str(repo))
 
 #------------------------------------------------------------------------------
 def repos_listfields():

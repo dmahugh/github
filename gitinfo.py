@@ -1361,6 +1361,6 @@ def write_csv(listobj, filename):
 #------- the following code executes when this program is run standalone -------
 if __name__ == '__main__':
     auth_config({'username': 'dmahugh'})
-    msotrepos = repos(org='msopentech', fields=['name', 'private', 'description'])
-    write_csv(msotrepos, 'msopentech.csv')
+    testrepos = repos(org='deployr', fields=['org', 'name', 'private', 'description'])
+    print(testrepos)
     log_apistatus()
