@@ -50,7 +50,7 @@ class _settings:
     accesstoken = '' # auth_config() may set this from the 'private' folder
 
     # logging settings used by log_*() functions
-    verbose = True # default = messages displayed to console
+    verbose = False # default = messages displayed to console
     logfile = None # default = messages not logged to a file
 
     # initialize gitinfo session settings
