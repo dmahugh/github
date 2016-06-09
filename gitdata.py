@@ -100,11 +100,12 @@ def repos(org, user, authuser, view, filename, json, fields, fieldlist):
         gi.auth_config({'username': authuser})
 
     if fields:
-        repolist = gi.repos(org=org, user=user, fields=fields.split('/'))
+        repolist = gi.repos(org=org, user=user, fields=fields.split('/'), view_options=view)
     else:
-        repolist = gi.repos(org=org, user=user)
+        repolist = gi.repos(org=org, user=user, view_options=view)
 
     if 'd' in view.lower():
+        # display data on the console
         for repo in repolist:
             values = [str(item) for item in repo]
             click.echo(click.style(','.join(values), fg='cyan'))

@@ -927,7 +927,7 @@ def repofields(repo_json, fields):
     return repo_tuple(**values)
 
 #-------------------------------------------------------------------------------
-def repos(*, org=None, user=None, fields=None):
+def repos(*, org=None, user=None, fields=None, view_options=None):
     """Get repo information for one or more organizations or users.
 
     org    = organization; an organization or list of organizations
@@ -938,6 +938,8 @@ def repos(*, org=None, user=None, fields=None):
              Note: dot notation for embedded elements is supported.
              For example, pass a field named 'license.name' to get the 'name'
              element of the 'license' entry for each repo.
+    view_options = optional string containing either 'a' (to display API calls)
+                   or 'h' (to display HTTP status codes)
 
     Returns a list of namedtuple objects, one per repo.
     """
@@ -987,25 +989,25 @@ def repos(*, org=None, user=None, fields=None):
         # get repos by organization
         if isinstance(org, str):
             # one organization
-            repolist.extend(reposget(org=org, fields=fields))
+            repolist.extend(reposget(org=org, fields=fields, view_options=view_options))
         else:
             # list of organizations
             for orgid in org:
-                repolist.extend(reposget(org=orgid, fields=fields))
+                repolist.extend(reposget(org=orgid, fields=fields, view_options=view_options))
     else:
         # get repos by user
         if isinstance(user, str):
             # one user
-            repolist.extend(reposget(user=user, fields=fields))
+            repolist.extend(reposget(user=user, fields=fields, view_options=view_options))
         else:
             # list of users
             for userid in user:
-                repolist.extend(reposget(user=userid, fields=fields))
+                repolist.extend(reposget(user=userid, fields=fields, view_options=view_options))
 
     return repolist
 
 #-------------------------------------------------------------------------------
-def reposget(*, org=None, user=None, fields=None):
+def reposget(*, org=None, user=None, fields=None, view_options=None):
     """Get repo information for a specified org or user. Called by repos() to
     aggregate repo information for multiple orgs or users.
 
@@ -1029,8 +1031,13 @@ def reposget(*, org=None, user=None, fields=None):
 
     while True:
 
+        if view_options and 'a' in view_options.lower():
+            print('API call: ' + endpoint)
+
         response = github_api(endpoint=endpoint, auth=auth_user(), headers=headers)
-        print(response) #/// for temporary diagnostic info
+        if view_options and 'h' in view_options.lower():
+            print(response)
+
         if response.ok:
             totpages += 1
             thispage = json.loads(response.text)
@@ -1360,7 +1367,8 @@ def write_csv(listobj, filename):
 #------- the following code executes when this program is run standalone -------
 if __name__ == '__main__':
     auth_config({'username': 'dmahugh'})
-    testrepos = repos(org='deployr')
-    print(testrepos)
+    testrepos = repos(user='dmahugh')
+    for testrepo in testrepos:
+        print(testrepo)
     print(auth_user())
     log_apistatus()

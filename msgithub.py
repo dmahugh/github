@@ -874,7 +874,7 @@ def teams_update():
 if __name__ == '__main__':
     gi.auth_config({'username': 'msftgits'})
     gi.session_start('msgithub updates')
-    #orgs_update()
+    orgs_update()
     #repos_update_all()
     #gi.session_end()
     #_adminteams_to_csv()
@@ -885,22 +885,19 @@ if __name__ == '__main__':
     #_repos_to_csv()
     #_teammembers_to_csv()
 
-    TODO = 4
-
-    outfile = 'org_admins.csv'
-
-    import requests
-    for org in orgs():
-        endpoint = 'https://api.github.com/orgs/' + org + '/members?role=admin'
-        response = requests.get(endpoint, auth=gi.auth_user())
-        members = json.loads(response.text)
-        for member in members:
-            login = member['login']
-            email = ms_email(login)
-            outputstr = org + ',' + login + ',' + email
-            print(outputstr)
-            with open(outfile, 'a') as fhandle:
-                fhandle.write(org + ',' + login + ',' + email + '\n')
+    #outfile = 'org_admins.csv'
+    #import requests
+    #for org in orgs():
+    #    endpoint = 'https://api.github.com/orgs/' + org + '/members?role=admin'
+    #    response = requests.get(endpoint, auth=gi.auth_user())
+    #    members = json.loads(response.text)
+    #    for member in members:
+    #        login = member['login']
+    #        email = ms_email(login)
+    #        outputstr = org + ',' + login + ',' + email
+    #        print(outputstr)
+    #        with open(outfile, 'a') as fhandle:
+    #            fhandle.write(org + ',' + login + ',' + email + '\n')
 
     gi.session_end('msgithub updates')
 
