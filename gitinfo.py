@@ -378,7 +378,7 @@ def files(*, owner=None, repo=None):
     return retval
 
 #-------------------------------------------------------------------------------
-def github_api(*, endpoint=None, auth=None, headers=None):
+def github_api(*, endpoint=None, auth=None, headers=None, view_options=None):
     """Call the GitHub API (wrapper for requests.get()).
 
     endpoint = the HTTP endpoint to call
@@ -419,6 +419,11 @@ def github_api(*, endpoint=None, auth=None, headers=None):
         # crash a long-running process.
         _settings.last_ratelimit = 999999
         _settings.last_remaining = 999999
+
+    if view_options and 'r' in view_options.lower():
+        print('Rate Limit: ' + str(_settings.last_ratelimit) + ' (' + \
+              str(_settings.last_ratelimit - _settings.last_remaining) +\
+              ' used, ' + str(_settings.last_remaining) + ' remaining)')
 
     return response
 
@@ -1037,11 +1042,11 @@ def reposget(*, org=None, user=None, fields=None, view_options=None):
     while True:
 
         if view_options and 'a' in view_options.lower():
-            print('Endpoint: ' + endpoint)
+            print('  Endpoint: ' + endpoint)
 
-        response = github_api(endpoint=endpoint, auth=auth_user(), headers=headers)
+        response = github_api(endpoint=endpoint, auth=auth_user(), headers=headers, view_options=view_options)
         if view_options and 'h' in view_options.lower():
-            print('  Status: ' + str(response))
+            print('    Status: ' + str(response))
 
         if response.ok:
             totpages += 1

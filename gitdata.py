@@ -74,7 +74,7 @@ def members():
 @click.option('-a', '--authuser', default='',
               help='authentication username', metavar='')
 @click.option('-v', '--view', default='',
-              help='D=data, A=API calls, H=HTTP status', metavar='')
+              help='D=data, A=API calls, H=HTTP status codes, R=rate-limit status', metavar='')
 @click.option('-n', '--filename', default='',
               help='output filename', metavar='')
 @click.option('-j', '--json', is_flag=True,
