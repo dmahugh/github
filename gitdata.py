@@ -32,6 +32,8 @@ def cli():
               help='GitHub repo', metavar='')
 @click.option('-a', '--authuser', default='',
               help='authentication username', metavar='')
+@click.option('-v', '--view', default='',
+              help='D=data, A=API calls, H=HTTP status', metavar='')
 @click.option('-n', '--filename', default='',
               help='output filename', metavar='')
 @click.option('-j', '--json', is_flag=True,
@@ -40,7 +42,7 @@ def cli():
               help='fields to include', metavar='<fld1/fld2/etc>')
 @click.option('-l', '--fieldlist', is_flag=True,
               help='list available GitHub fields')
-def members(org, repo, authuser, filename, json, fields, fieldlist):
+def members(org, repo, authuser, view, filename, json, fields, fieldlist):
     """Get member info for an org or repo.
     """
     if fieldlist:
@@ -76,6 +78,8 @@ def members_listfields():
               help='GitHub user', metavar='')
 @click.option('-a', '--authuser', default='',
               help='authentication username', metavar='')
+@click.option('-v', '--view', default='',
+              help='D=data, A=API calls, H=HTTP status', metavar='')
 @click.option('-n', '--filename', default='',
               help='output filename', metavar='')
 @click.option('-j', '--json', is_flag=True,
@@ -84,7 +88,7 @@ def members_listfields():
               help='fields to include', metavar='<fld1/fld2/etc>')
 @click.option('-l', '--fieldlist', is_flag=True,
               help='list available GitHub fields')
-def repos(org, user, authuser, filename, json, fields, fieldlist):
+def repos(org, user, authuser, view, filename, json, fields, fieldlist):
     """Get repo info for an org or user.
     """
     if fieldlist:
