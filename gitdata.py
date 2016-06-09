@@ -4,7 +4,6 @@ cli() ----------------> Handle command-line arguments.
 
 admins() -------------> /// NOT IMPLEMENTED
 collaborators --------> /// NOT IMPLEMENTED
-commits --------------> /// NOT IMPLEMENTED
 files ----------------> /// NOT IMPLEMENTED
 members() ------------> /// NOT IMPLEMENTED
 repos() --------------> Get repo info for an org or user.
@@ -39,17 +38,10 @@ def admins():
 
 #------------------------------------------------------------------------------
 @cli.command()
-def collaborators():
+def collabs():
     """/// NOT IMPLEMENTED
     """
-    click.echo('/// NOT IMPLEMENTED: collaborators()')
-
-#------------------------------------------------------------------------------
-@cli.command()
-def commits():
-    """/// NOT IMPLEMENTED
-    """
-    click.echo('/// NOT IMPLEMENTED: commits()')
+    click.echo('/// NOT IMPLEMENTED: collabs()')
 
 #------------------------------------------------------------------------------
 @cli.command()
@@ -76,14 +68,12 @@ def members():
 @click.option('-v', '--view', default='',
               help='D=data, A=API calls, H=HTTP status codes, R=rate-limit status', metavar='')
 @click.option('-n', '--filename', default='',
-              help='output filename', metavar='')
-@click.option('-j', '--json', is_flag=True,
-              help='JSON format (default=CSV)')
+              help='output filename (.CSV or .JSON)', metavar='')
 @click.option('-f', '--fields', default='',
               help='fields to include', metavar='<fld1/fld2/etc>')
 @click.option('-l', '--fieldlist', is_flag=True,
               help='list available GitHub fields')
-def repos(org, user, authuser, view, filename, json, fields, fieldlist):
+def repos(org, user, authuser, view, filename, fields, fieldlist):
     """Get repository information.
     """
     if fieldlist:
@@ -93,6 +83,12 @@ def repos(org, user, authuser, view, filename, json, fields, fieldlist):
     if not org and not user:
         click.echo('ERROR: must specify an org or user')
         return
+
+    if filename:
+        nameonly, file_ext = os.path.splitext(filename)
+        if file_ext.lower() not in ['.csv', '.json']:
+            click.echo('ERROR: output file must be .CSV or .JSON')
+            return
 
     view = 'd' if not view else view
 
@@ -109,6 +105,15 @@ def repos(org, user, authuser, view, filename, json, fields, fieldlist):
         for repo in repolist:
             values = [str(item) for item in repo]
             click.echo(click.style(','.join(values), fg='cyan'))
+
+    if filename:
+        if file_ext.lower() == '.json':
+            # write JSON file
+            gi.json_write(source=repolist, filename=filename)
+        else:
+            # write CSV file
+            gi.write_csv(repolist, filename)
+        click.echo('Output file written: ' + filename)
 
 #------------------------------------------------------------------------------
 def repos_listfields():
