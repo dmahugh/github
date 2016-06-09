@@ -1,10 +1,15 @@
 """GitHub query CLI.
 
 cli() ----------------> Handle command-line arguments.
-members() ------------> Get member info for an org or repo.
-members_listfields() -> List valid field names for members().
+
+admins() -------------> /// NOT IMPLEMENTED
+collaborators --------> /// NOT IMPLEMENTED
+commits --------------> /// NOT IMPLEMENTED
+files ----------------> /// NOT IMPLEMENTED
+members() ------------> /// NOT IMPLEMENTED
 repos() --------------> Get repo info for an org or user.
 repos_listfields() ---> List valid field names for repos().
+teams ----------------> /// NOT IMPLEMENTED
 """
 import os
 
@@ -12,6 +17,7 @@ import click
 from click.testing import CliRunner
 
 import gitinfo as gi
+
 #------------------------------------------------------------------------------
 CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'])
 @click.group(context_settings=CONTEXT_SETTINGS, options_metavar='')
@@ -26,49 +32,38 @@ def cli():
 
 #------------------------------------------------------------------------------
 @cli.command()
-@click.option('-o', '--org', default='',
-              help='GitHub organization', metavar='')
-@click.option('-r', '--repo', default='',
-              help='GitHub repo', metavar='')
-@click.option('-a', '--authuser', default='',
-              help='authentication username', metavar='')
-@click.option('-v', '--view', default='',
-              help='D=data, A=API calls, H=HTTP status', metavar='')
-@click.option('-n', '--filename', default='',
-              help='output filename', metavar='')
-@click.option('-j', '--json', is_flag=True,
-              help='JSON format (default=CSV)')
-@click.option('-f', '--fields', default='',
-              help='fields to include', metavar='<fld1/fld2/etc>')
-@click.option('-l', '--fieldlist', is_flag=True,
-              help='list available GitHub fields')
-def members(org, repo, authuser, view, filename, json, fields, fieldlist):
-    """Get member info for an org or repo.
+def admins():
+    """/// NOT IMPLEMENTED
     """
-    if fieldlist:
-        members_listfields()
-        return
-
-    if not org:
-        click.echo('ERROR: must specify an org')
-        return
-
-    if authuser:
-        gi.auth_config({'username': authuser})
-
-    click.echo('/// members subcommand')
+    click.echo('/// NOT IMPLEMENTED: admins()')
 
 #------------------------------------------------------------------------------
-def members_listfields():
-    """List valid field names for members().
+@cli.command()
+def collaborators():
+    """/// NOT IMPLEMENTED
     """
-    click.echo('\nValid GitHub API field names for MEMBERS:\n' + 60*'-')
-    click.echo('id                  events_url          organizations_url')
-    click.echo('login               followers_url       received_events_url')
-    click.echo('site_admin          following_url       repos_url')
-    click.echo('type                gists_url           starred_url')
-    click.echo('url                 gravatar_id         subscriptions_url')
-    click.echo('avatar_url          html_url')
+    click.echo('/// NOT IMPLEMENTED: collaborators()')
+
+#------------------------------------------------------------------------------
+@cli.command()
+def commits():
+    """/// NOT IMPLEMENTED
+    """
+    click.echo('/// NOT IMPLEMENTED: commits()')
+
+#------------------------------------------------------------------------------
+@cli.command()
+def files():
+    """/// NOT IMPLEMENTED
+    """
+    click.echo('/// NOT IMPLEMENTED: files()')
+
+#------------------------------------------------------------------------------
+@cli.command()
+def members():
+    """/// NOT IMPLEMENTED
+    """
+    click.echo('/// NOT IMPLEMENTED: members()')
 
 #------------------------------------------------------------------------------
 @cli.command()
@@ -89,7 +84,7 @@ def members_listfields():
 @click.option('-l', '--fieldlist', is_flag=True,
               help='list available GitHub fields')
 def repos(org, user, authuser, view, filename, json, fields, fieldlist):
-    """Get repo info for an org or user.
+    """Get repository information.
     """
     if fieldlist:
         repos_listfields()
@@ -118,10 +113,14 @@ def repos(org, user, authuser, view, filename, json, fields, fieldlist):
 def repos_listfields():
     """List valid field names for repos().
     """
-    click.echo(click.style('\n     specified fields -->  --fields=fld1/fld2/etc', fg='cyan'))
-    click.echo(click.style('           ALL fields -->  --fields=*', fg='cyan'))
-    click.echo(click.style('              No URLs -->  --fields=nourls', fg='cyan'))
-    click.echo(click.style('            Only URLs -->  --fields=urls', fg='cyan'))
+    click.echo(click.style('\n     specified fields -->  --fields=', fg='white'), nl=False)
+    click.echo(click.style('fld1/fld2/etc', fg='cyan'))
+    click.echo(click.style('           ALL fields -->  --fields=', fg='white'), nl=False)
+    click.echo(click.style('*', fg='cyan'))
+    click.echo(click.style('              No URLs -->  --fields=', fg='white'), nl=False)
+    click.echo(click.style('nourls', fg='cyan'))
+    click.echo(click.style('            Only URLs -->  --fields=', fg='white'), nl=False)
+    click.echo(click.style('urls', fg='cyan'))
     click.echo(click.style(60*'-', fg='blue'))
     click.echo(click.style('archive_url         git_tags_url         open_issues', fg='cyan'))
     click.echo(click.style('assignees_url       git_url              open_issues_count', fg='cyan'))
@@ -147,20 +146,24 @@ def repos_listfields():
     click.echo(click.style('git_commits_url     name', fg='cyan'))
     click.echo(click.style('git_refs_url        notifications_url', fg='cyan'))
     click.echo(click.style(60*'-', fg='blue'))
-    click.echo(click.style('license.featured              permissions.admin', fg='cyan'))
-    click.echo(click.style('license.key                   permissions.pull', fg='cyan'))
-    click.echo(click.style('license.name                  permissions.push', fg='cyan'))
-    click.echo(click.style('license.url', fg='cyan'))
-    click.echo(click.style(60*'-', fg='blue'))
-    click.echo(click.style('owner.avatar_url              owner.organizations_url', fg='cyan'))
-    click.echo(click.style('owner.events_url              owner.received_events_url', fg='cyan'))
-    click.echo(click.style('owner.followers_url           owner.repos_url', fg='cyan'))
-    click.echo(click.style('owner.following_url           owner.site_admin', fg='cyan'))
-    click.echo(click.style('owner.gists_url               owner.starred_url', fg='cyan'))
-    click.echo(click.style('owner.gravatar_id             owner.subscriptions_url', fg='cyan'))
-    click.echo(click.style('owner.html_url                owner.type', fg='cyan'))
-    click.echo(click.style('owner.id                      owner.url', fg='cyan'))
-    click.echo(click.style('owner.login', fg='cyan'))
+    click.echo(click.style('license.featured              owner.login', fg='cyan'))
+    click.echo(click.style('license.key                   owner.organizations_url', fg='cyan'))
+    click.echo(click.style('license.name                  owner.received_events_url', fg='cyan'))
+    click.echo(click.style('license.url                   owner.repos_url', fg='cyan'))
+    click.echo(click.style('owner.avatar_url              owner.site_admin', fg='cyan'))
+    click.echo(click.style('owner.events_url              owner.starred_url', fg='cyan'))
+    click.echo(click.style('owner.followers_url           owner.subscriptions_url', fg='cyan'))
+    click.echo(click.style('owner.following_url           owner.type', fg='cyan'))
+    click.echo(click.style('owner.gists_url               owner.url', fg='cyan'))
+    click.echo(click.style('owner.gravatar_id             permissions.admin', fg='cyan'))
+    click.echo(click.style('owner.html_url                permissions.pull', fg='cyan'))
+    click.echo(click.style('owner.id                      permissions.push', fg='cyan'))
+
+#------------------------------------------------------------------------------
+def teams():
+    """/// NOT IMPLEMENTED
+    """
+    click.echo('/// NOT IMPLEMENTED: teams()')
 
 # code to execute when running standalone: -------------------------------------
 if __name__ == '__main__':
