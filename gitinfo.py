@@ -907,7 +907,7 @@ def repofields(repo_json, fields):
     """
     if not fields:
         # if no fields specified, use default field list
-        fields = ['full_name', 'private']
+        fields = ['owner.login', 'name']
 
     # change '.' to '_' because can't have '.' in an identifier
     fldnames = [_.replace('.', '_') for _ in fields]
