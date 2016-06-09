@@ -99,6 +99,8 @@ def repos(org, user, authuser, view, filename, json, fields, fieldlist):
         click.echo('ERROR: must specify an org or user')
         return
 
+    view = 'd' if not view else view
+
     if authuser:
         gi.auth_config({'username': authuser})
 
@@ -107,9 +109,10 @@ def repos(org, user, authuser, view, filename, json, fields, fieldlist):
     else:
         repolist = gi.repos(org=org, user=user)
 
-    for repo in repolist:
-        values = [str(item) for item in repo]
-        click.echo(click.style(','.join(values), fg='cyan'))
+    if 'd' in view.lower():
+        for repo in repolist:
+            values = [str(item) for item in repo]
+            click.echo(click.style(','.join(values), fg='cyan'))
 
 #------------------------------------------------------------------------------
 def repos_listfields():
