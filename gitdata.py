@@ -18,11 +18,9 @@ CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'])
 @click.version_option(version='1.0', prog_name='Photerino')
 def cli():
     """\b
-    _______________
-      |____________  GitData - retrieves data via GitHub REST API
-      |____________
-          |________  syntax help: gitdata COMMAND -h/--help
-          |________
+    _____  GitData - retrieves data via GitHub REST API
+     |___
+       |_  syntax help: gitdata COMMAND -h/--help
     """
     pass # this is just for grouping, all functionality is in subcommands
 
@@ -106,11 +104,12 @@ def repos(org, user, authuser, filename, json, fields, fieldlist):
         repolist = gi.repos(org=org, user=user)
 
     for repo in repolist:
-        #/// need to design this carefully; allow for CSV or JSON, need a switch for whether to display CSV version to console
-        #/// note that order of fields in namedtuple is not determinant, so need to iterate through the passed fieldnames list to get order correct
-        for item in repo:
-            click.echo(str(item) + ',', nl=False)
-        click.echo('')
+        values = [str(item) for item in repo]
+        click.echo(','.join(values))
+
+        #for item in repo:
+        #    click.echo(str(item) + ',', nl=False)
+        #click.echo('')
 
 #------------------------------------------------------------------------------
 def repos_listfields():

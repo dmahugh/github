@@ -902,7 +902,7 @@ def repofields(repo_json, fields):
     """
     if not fields:
         # if no fields specified, use default field list
-        fields = ['owner.login', 'full_name', 'watchers', 'forks', 'license.name', 'private']
+        fields = ['full_name', 'private']
 
     # change '.' to '_' because can't have '.' in an identifier
     fldnames = [_.replace('.', '_') for _ in fields]
@@ -921,6 +921,8 @@ def repofields(repo_json, fields):
         else:
             # simple case: copy a value from the JSON to the namedtuple
             values[fldname] = repo_json[fldname]
+            if fldname.lower() == 'private':
+                values[fldname] = 'private' if repo_json[fldname] else 'public'
 
     return repo_tuple(**values)
 
@@ -1028,6 +1030,7 @@ def reposget(*, org=None, user=None, fields=None):
     while True:
 
         response = github_api(endpoint=endpoint, auth=auth_user(), headers=headers)
+        print(response) #/// for temporary diagnostic info
         if response.ok:
             totpages += 1
             thispage = json.loads(response.text)
@@ -1359,4 +1362,5 @@ if __name__ == '__main__':
     auth_config({'username': 'dmahugh'})
     testrepos = repos(org='deployr')
     print(testrepos)
+    print(auth_user())
     log_apistatus()
