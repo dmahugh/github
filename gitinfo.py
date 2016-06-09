@@ -1016,6 +1016,11 @@ def reposget(*, org=None, user=None, fields=None, view_options=None):
     fields = list of fields to be returned
 
     Returns a list of namedtuples containing the specified fields.
+
+    NOTE: if authenticated user is same as specified user, the returned data
+    will NOT include their private repos. To get private repos, need to use
+    the user/repos endpoint (and that includes every repo they have access to,
+    in any org, in addition to their own repos)
     <internal>
     """
     if org:
@@ -1032,11 +1037,11 @@ def reposget(*, org=None, user=None, fields=None, view_options=None):
     while True:
 
         if view_options and 'a' in view_options.lower():
-            print('API call: ' + endpoint)
+            print('Endpoint: ' + endpoint)
 
         response = github_api(endpoint=endpoint, auth=auth_user(), headers=headers)
         if view_options and 'h' in view_options.lower():
-            print(response)
+            print('  Status: ' + str(response))
 
         if response.ok:
             totpages += 1
@@ -1367,8 +1372,7 @@ def write_csv(listobj, filename):
 #------- the following code executes when this program is run standalone -------
 if __name__ == '__main__':
     auth_config({'username': 'dmahugh'})
-    testrepos = repos(user='dmahugh')
-    for testrepo in testrepos:
-        print(testrepo)
+    testrepos = repos(org='msopentech')
+    write_csv(testrepos, 'temp.csv')
     print(auth_user())
     log_apistatus()
