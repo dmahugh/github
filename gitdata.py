@@ -26,7 +26,7 @@ CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'])
 @click.option('-a', '--auth', default='',
               help='check auth status for specified username', metavar='')
 @click.option('-t', '--token', default='',
-              help='store access token for specified username', metavar='')
+              help='store access token for specified username\ (use --token=delete to delete username)', metavar='')
 def cli(auth, token):
     """\b
     _____  Retrieves data via GitHub REST API
