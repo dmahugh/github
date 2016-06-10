@@ -34,7 +34,7 @@ def cli(auth, token):
        |_  syntax help: gitdata COMMAND -h/--help
     """
     if auth:
-        auth_status(auth, token)
+        auth_status(auth.lower(), token)
         return
 
     click.echo('Nothing to do. Type gitdata -h for help.')
