@@ -63,6 +63,9 @@ def auth_status(auth, token):
         if token == 'delete':
             config.remove_section(auth)
         else:
+            # save this token; may need to create a new section
+            if not auth in config.sections():
+                config[auth] = {}
             config[auth]['PAT'] = token
         with open(configfile, 'w') as fhandle:
             config.write(fhandle)
