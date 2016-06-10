@@ -21,20 +21,23 @@ import gitinfo as gi
 
 #------------------------------------------------------------------------------
 CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'])
-@click.group(context_settings=CONTEXT_SETTINGS, options_metavar='[options]', invoke_without_command=True)
+@click.group(context_settings=CONTEXT_SETTINGS, options_metavar='[options]',
+             invoke_without_command=True)
 @click.version_option(version='1.0', prog_name='Photerino')
 @click.option('-a', '--auth', default='',
               help='check auth status for specified username', metavar='')
 @click.option('-t', '--token', default='',
-              help='store access token for specified username (use --token=delete to delete username)', metavar='')
-def cli(auth, token):
+              help='store access token for specified username', metavar='')
+@click.option('-d', '--delete', default=False,
+              help='delete specified username', is_flag=True, metavar='')
+def cli(auth, token, delete):
     """\b
     _____  Retrieves data via GitHub REST API
      |___
        |_  syntax help: gitdata COMMAND -h/--help
     """
     if auth:
-        auth_status(auth.lower(), token)
+        auth_status(auth.lower(), token, delete)
         return
 
     #/// only display this message if no subcommands
@@ -48,20 +51,20 @@ def admins():
     click.echo('/// NOT IMPLEMENTED: admins()')
 
 #------------------------------------------------------------------------------
-def auth_status(auth, token):
+def auth_status(auth, token, delete):
     """Display status for a GitHub user.
 
-    auth = username
-    token = optional GitHub access token; if provided, the existing token in
-            the INI file is replaced with this value.
-            Note that 'delete' is a special case to delete this username
-            from the INI file.
+    auth   = username
+    token  = optional GitHub access token; if provided, the existing token in
+             the INI file is replaced with this value.
+    delete = flag for whether to delete the username from INI file
     """
-    if token:
+    if token or delete:
+        # both of these options write to the file, so initialize parser
         configfile = gi.inifile_name()
         config = configparser.ConfigParser()
         config.read(configfile)
-        if token == 'delete':
+        if delete:
             config.remove_section(auth)
         else:
             # save this token; may need to create a new section
