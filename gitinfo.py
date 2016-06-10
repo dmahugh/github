@@ -75,7 +75,12 @@ def access_token(username):
 
     config = configparser.ConfigParser()
     config.read(datafile)
-    return config.get(username, 'PAT')
+    try:
+        retval = config.get(username, 'PAT')
+    except configparser.NoSectionError:
+        retval = None
+
+    return retval
 
 #-------------------------------------------------------------------------------
 def auth_config(settings=None):

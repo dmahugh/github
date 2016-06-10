@@ -51,8 +51,8 @@ def auth_status(auth):
 
     auth = username
     """
-    click.echo('GitHub username: ' + auth)
-    click.echo('   access token: ' + gi.token_abbr(gi.access_token(auth)))
+    click.echo('  Username: ' + auth)
+    click.echo('     Token: ' + gi.token_abbr(gi.access_token(auth)))
 
     # call GitHub API with 'r' view option to display current rate-limit status
     gi.auth_config({'username': auth})
