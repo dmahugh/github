@@ -11,6 +11,7 @@ repos() --------------> Get repo info for an org or user.
 repos_listfields() ---> List valid field names for repos().
 teams ----------------> /// NOT IMPLEMENTED
 """
+import configparser
 import os
 
 import click
@@ -33,7 +34,7 @@ def cli(auth, token):
        |_  syntax help: gitdata COMMAND -h/--help
     """
     if auth:
-        auth_status(auth)
+        auth_status(auth, token)
         return
 
     click.echo('Nothing to do. Type gitdata -h for help.')
@@ -46,11 +47,27 @@ def admins():
     click.echo('/// NOT IMPLEMENTED: admins()')
 
 #------------------------------------------------------------------------------
-def auth_status(auth):
+def auth_status(auth, token):
     """Display status for a GitHub user.
 
     auth = username
+    token = optional GitHub access token; if provided, the existing token in
+            the INI file is replaced with this value.
+            Note that 'delete' is a special case to delete this username
+            from the INI file.
     """
+    if token:
+        configfile = gi.inifile_name()
+        config = configparser.ConfigParser()
+        config.read(configfile)
+        if token == 'delete':
+            config.remove_section(auth)
+        else:
+            config[auth]['PAT'] = token
+        with open(configfile, 'w') as fhandle:
+            config.write(fhandle)
+
+    # display username and access token
     click.echo('  Username: ' + auth)
     click.echo('     Token: ' + gi.token_abbr(gi.access_token(auth)))
 

@@ -7,6 +7,7 @@ collaborators() ------> Get collaborators for one or more repos.
 commits() ------------> Get commits for repo's default branch.
 files() --------------> Get filenames for a repo.
 githubapi_to_file() --> Call GitHub API, handle pagination, write to file.
+inifile_name() -------> Return name of INI file where GitHub tokens are stored.
 log_apistatus() ------> Display current API rate-limit status.
 log_config() ---------> Configure message logging settings.
 log_msg() ------------> Log a status message.
@@ -70,8 +71,7 @@ def access_token(username):
 
     Returns the access token for this username, or None if not found.
     """
-    datafile = os.path.join(os.path.dirname(os.path.realpath(__file__)),
-                            'private/github_users.ini')
+    datafile = inifile_name()
 
     config = configparser.ConfigParser()
     config.read(datafile)
@@ -491,6 +491,15 @@ def json_write(source=None, filename=None):
 
     with open(filename, 'w') as fhandle:
         fhandle.write(json.dumps(source, indent=4, sort_keys=True))
+
+#-------------------------------------------------------------------------------
+def inifile_name():
+    """Return full name of INI file where GitHub tokens are stored.
+    Note that this file is stored in a 'private' subfolder under the location of
+    the gitinfo module.
+    """
+    return os.path.join(os.path.dirname(os.path.realpath(__file__)),
+                        'private/github_users.ini')
 
 #-------------------------------------------------------------------------------
 def log_apistatus():
