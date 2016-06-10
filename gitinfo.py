@@ -30,6 +30,7 @@ Note: some classes and functions have been omitted from the above list because
 they're only used internally and don't expose any useful functionality.
 """
 import collections
+import configparser
 import csv
 import datetime
 import inspect
@@ -62,18 +63,18 @@ class _settings:
 
 #-------------------------------------------------------------------------------
 def access_token(username):
-    """Get GitHub access token from private JSON data.
+    """Get GitHub access token from private INI data.
 
     username = GitHub username
 
     Returns the access token for this username, or None if not found.
     """
     datafile = os.path.join(os.path.dirname(os.path.realpath(__file__)),
-                            'private/github_users.json')
+                            'private/github_users.ini')
 
-    with open(datafile, 'r') as jsonfile:
-        github_users = json.load(jsonfile)
-        return github_users[username]
+    config = configparser.ConfigParser()
+    config.read(datafile)
+    return config.get(username, 'PAT')
 
 #-------------------------------------------------------------------------------
 def auth_config(settings=None):
@@ -88,7 +89,7 @@ def auth_config(settings=None):
     config_settings = ['username', 'accesstoken']
 
     # if username is specified but no accesstoken specified, look up this
-    # user's PAT in github_users.json
+    # user's PAT in github_users.ini
     if settings and 'username' in settings and not 'accesstoken' in settings:
         if settings['username'] is None:
             settings['accesstoken'] = None
