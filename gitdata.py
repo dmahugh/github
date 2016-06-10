@@ -21,7 +21,11 @@ import gitinfo as gi
 CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'])
 @click.group(context_settings=CONTEXT_SETTINGS, options_metavar='')
 @click.version_option(version='1.0', prog_name='Photerino')
-def cli():
+@click.option('-a', '--auth', default='',
+              help='check auth status for specified username', metavar='')
+@click.option('-t', '--token', default='',
+              help='store access token for specified username', metavar='')
+def cli(ratelimit):
     """\b
     _____  GitData - retrieves data via GitHub REST API
      |___
@@ -85,7 +89,7 @@ def repos(org, user, authuser, view, filename, fields, fieldlist):
         return
 
     if filename:
-        nameonly, file_ext = os.path.splitext(filename)
+        _, file_ext = os.path.splitext(filename)
         if file_ext.lower() not in ['.csv', '.json']:
             click.echo('ERROR: output file must be .CSV or .JSON')
             return

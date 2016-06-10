@@ -3,6 +3,7 @@ _pyfind
 _todo.txt
 check_ratelimit.py
 gitinfo.log
+people.json
 
 # we create many CSV and XSLX files, don't need to put those in the repo
 *.csv
