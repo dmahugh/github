@@ -24,6 +24,7 @@ session_end() --------> Log summary of completed gitinfo "session."
 session_start() ------> Initiate a gitinfo session for logging/tracking purposes.
 teammembers() --------> Get team members for specified team.
 teams() --------------> Get teams for one or more organizations.
+token_abbr() ---------> Get abbreviated access token (for display purposes). 
 write_csv() ----------> Write a list of namedtuples to a CSV file.
 
 Note: some classes and functions have been omitted from the above list because
@@ -107,12 +108,8 @@ def auth_config(settings=None):
 
     username = str(_settings.username)
     accesstoken = _settings.accesstoken
-    if accesstoken:
-        # if a PAT is stored, only display first 2 and last 2 characters
-        pat = accesstoken[0:2] + '...' + accesstoken[-2:]
-    else:
-        pat = "*none*"
-    log_msg('username:', username + ', PAT:', pat)
+
+    log_msg('username:', username + ', PAT:', token_abbr(accesstoken))
 
     return retval
 
@@ -1351,6 +1348,18 @@ def timestamp():
     return '{:%Y-%m-%d %H:%M:%S}'.format(datetime.datetime.now())
 
 #-------------------------------------------------------------------------------
+def token_abbr(accesstoken):
+    """Get abbreviated access token (for display purposes).
+
+    Returns an abbreviated version of the passed access token, including only
+    the first 2 and last 2 characters.
+    """
+    if accesstoken:
+        return accesstoken[0:2] + '...' + accesstoken[-2:]
+    else:
+        return "*none*"
+
+#-------------------------------------------------------------------------------
 def write_csv(listobj, filename):
     """Write a list of namedtuples to a CSV file.
 
@@ -1378,7 +1387,6 @@ def write_csv(listobj, filename):
 #------- the following code executes when this program is run standalone -------
 if __name__ == '__main__':
     auth_config({'username': 'dmahugh'})
-    testrepos = repos(org='msopentech')
-    write_csv(testrepos, 'temp.csv')
-    print(auth_user())
+    testrepos = repos(user='dmahugh')
+    print(testrepos)
     log_apistatus()

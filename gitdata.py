@@ -3,6 +3,7 @@
 cli() ----------------> Handle command-line arguments.
 
 admins() -------------> /// NOT IMPLEMENTED
+auth_status() --------> Display status for GitHub username.
 collaborators --------> /// NOT IMPLEMENTED
 files ----------------> /// NOT IMPLEMENTED
 members() ------------> /// NOT IMPLEMENTED
@@ -19,7 +20,7 @@ import gitinfo as gi
 
 #------------------------------------------------------------------------------
 CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'])
-@click.group(context_settings=CONTEXT_SETTINGS, options_metavar='[options]')
+@click.group(context_settings=CONTEXT_SETTINGS, options_metavar='[options]', invoke_without_command=True)
 @click.version_option(version='1.0', prog_name='Photerino')
 @click.option('-a', '--auth', default='',
               help='check auth status for specified username', metavar='')
@@ -31,7 +32,11 @@ def cli(auth, token):
      |___
        |_  syntax help: gitdata COMMAND -h/--help
     """
-    pass # this is just for grouping, all functionality is in subcommands
+    if auth:
+        auth_status(auth)
+        return
+
+    click.echo('Nothing to do. Type gitdata -h for help.')
 
 #------------------------------------------------------------------------------
 @cli.command(help='syntax help: gitdata admins -h')
@@ -39,6 +44,19 @@ def admins():
     """/// NOT IMPLEMENTED
     """
     click.echo('/// NOT IMPLEMENTED: admins()')
+
+#------------------------------------------------------------------------------
+def auth_status(auth):
+    """Display status for a GitHub user.
+
+    auth = username
+    """
+    click.echo('GitHub username: ' + auth)
+    click.echo('   access token: ' + gi.token_abbr(gi.access_token(auth)))
+
+    # call GitHub API with 'r' view option to display current rate-limit status
+    gi.auth_config({'username': auth})
+    gi.github_api(endpoint='https://api.github.com', auth=gi.auth_user(), view_options='r')
 
 #------------------------------------------------------------------------------
 @cli.command(help='syntax help: gitdata collabs -h')
