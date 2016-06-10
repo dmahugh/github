@@ -19,50 +19,50 @@ import gitinfo as gi
 
 #------------------------------------------------------------------------------
 CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'])
-@click.group(context_settings=CONTEXT_SETTINGS, options_metavar='')
+@click.group(context_settings=CONTEXT_SETTINGS, options_metavar='[options]')
 @click.version_option(version='1.0', prog_name='Photerino')
 @click.option('-a', '--auth', default='',
               help='check auth status for specified username', metavar='')
 @click.option('-t', '--token', default='',
               help='store access token for specified username', metavar='')
-def cli(ratelimit):
+def cli(auth, token):
     """\b
-    _____  GitData - retrieves data via GitHub REST API
+    _____  Retrieves data via GitHub REST API
      |___
        |_  syntax help: gitdata COMMAND -h/--help
     """
     pass # this is just for grouping, all functionality is in subcommands
 
 #------------------------------------------------------------------------------
-@cli.command()
+@cli.command(help='syntax help: gitdata admins -h')
 def admins():
     """/// NOT IMPLEMENTED
     """
     click.echo('/// NOT IMPLEMENTED: admins()')
 
 #------------------------------------------------------------------------------
-@cli.command()
+@cli.command(help='syntax help: gitdata collabs -h')
 def collabs():
     """/// NOT IMPLEMENTED
     """
     click.echo('/// NOT IMPLEMENTED: collabs()')
 
 #------------------------------------------------------------------------------
-@cli.command()
+@cli.command(help='syntax help: gitdata files -h')
 def files():
     """/// NOT IMPLEMENTED
     """
     click.echo('/// NOT IMPLEMENTED: files()')
 
 #------------------------------------------------------------------------------
-@cli.command()
+@cli.command(help='syntax help: gitdata members -h')
 def members():
     """/// NOT IMPLEMENTED
     """
     click.echo('/// NOT IMPLEMENTED: members()')
 
 #------------------------------------------------------------------------------
-@cli.command()
+@cli.command(help='syntax help: gitdata repos -h')
 @click.option('-o', '--org', default='',
               help='GitHub organization', metavar='')
 @click.option('-u', '--user', default='',
