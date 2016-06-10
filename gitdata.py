@@ -26,7 +26,7 @@ CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'])
 @click.option('-a', '--auth', default='',
               help='check auth status for specified username', metavar='')
 @click.option('-t', '--token', default='',
-              help='store access token for specified username\ (use --token=delete to delete username)', metavar='')
+              help='store access token for specified username (use --token=delete to delete username)', metavar='')
 def cli(auth, token):
     """\b
     _____  Retrieves data via GitHub REST API
@@ -37,7 +37,8 @@ def cli(auth, token):
         auth_status(auth.lower(), token)
         return
 
-    click.echo('Nothing to do. Type gitdata -h for help.')
+    #/// only display this message if no subcommands
+    #click.echo('Nothing to do. Type gitdata -h for help.')
 
 #------------------------------------------------------------------------------
 @cli.command(help='syntax help: gitdata admins -h')
