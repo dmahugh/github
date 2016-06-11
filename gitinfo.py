@@ -25,7 +25,7 @@ session_end() --------> Log summary of completed gitinfo "session."
 session_start() ------> Initiate a gitinfo session for logging/tracking purposes.
 teammembers() --------> Get team members for specified team.
 teams() --------------> Get teams for one or more organizations.
-token_abbr() ---------> Get abbreviated access token (for display purposes). 
+token_abbr() ---------> Get abbreviated access token (for display purposes).
 write_csv() ----------> Write a list of namedtuples to a CSV file.
 
 Note: some classes and functions have been omitted from the above list because
@@ -129,10 +129,7 @@ def auth_user():
     if not _settings.username:
         return None
 
-    username = _settings.username
-    access_token = _settings.accesstoken
-
-    return (username, access_token)
+    return (_settings.username, _settings.accesstoken)
 
 #-------------------------------------------------------------------------------
 def collaboratorfields(collab_json, fields, owner, repo):
@@ -1056,7 +1053,8 @@ def reposget(*, org=None, user=None, fields=None, view_options=None):
         if view_options and 'a' in view_options.lower():
             print('  Endpoint: ' + endpoint)
 
-        response = github_api(endpoint=endpoint, auth=auth_user(), headers=headers, view_options=view_options)
+        response = github_api(endpoint=endpoint, auth=auth_user(),
+                              headers=headers, view_options=view_options)
         if view_options and 'h' in view_options.lower():
             print('    Status: ' + str(response))
 
@@ -1401,6 +1399,6 @@ def write_csv(listobj, filename):
 #------- the following code executes when this program is run standalone -------
 if __name__ == '__main__':
     auth_config({'username': 'dmahugh'})
-    testrepos = repos(user='dmahugh')
-    print(testrepos)
+    TESTREPOS = repos(user='dmahugh')
+    print(TESTREPOS)
     log_apistatus()
