@@ -912,31 +912,50 @@ def repofields(repo_json, fields):
     2nd parameter = list of names of desired fields
 
     Returns a namedtuple containing the desired fields and their values.
+    Note special cases:
+    fields=['*'] -------> return all fields returned by GitHub API
+    fields=['nonurls'] -> return all non-URL fields (not *_url or url)
+    fields=['urls'] ----> return all URL fields (*_url and url)
     <internal>
     """
     if not fields:
         # if no fields specified, use default field list
         fields = ['owner.login', 'name']
 
-    # change '.' to '_' because can't have '.' in an identifier
-    fldnames = [_.replace('.', '_') for _ in fields]
+    # handle special cases
+    if fields[0] in ['*', 'urls', 'nonurls']:
+        # special cases to return all fields or all url/non-url fields
+        values = {}
+        fldnames = []
+        for fldname in repo_json:
+            if fields[0] == '*' or \
+                (fields[0] == 'urls' and fldname.endswith('url')) or \
+                (fields[0] == 'nonurls' and not fldname.endswith('url')):
+                fldnames.append(fldname)
+                values[fldname] = repo_json[fldname]
+        repo_tuple = collections.namedtuple('repo_tuple', ' '.join(fldnames))
+    else:
+        # fields == an actual list of fieldnames, not a special case
 
-    values = {}
-    repo_tuple = collections.namedtuple('repo_tuple', ' '.join(fldnames))
+        # change '.' to '_' because can't have '.' in an identifier
+        fldnames = [_.replace('.', '_') for _ in fields]
 
-    for fldname in fields:
-        if '.' in fldname:
-            # special case - embedded field within a JSON object
-            try:
-                values[fldname.replace('.', '_')] = \
-                    repo_json[fldname.split('.')[0]][fldname.split('.')[1]]
-            except (TypeError, KeyError):
-                values[fldname.replace('.', '_')] = None
-        else:
-            # simple case: copy a value from the JSON to the namedtuple
-            values[fldname] = repo_json[fldname]
-            if fldname.lower() == 'private':
-                values[fldname] = 'private' if repo_json[fldname] else 'public'
+        values = {}
+        repo_tuple = collections.namedtuple('repo_tuple', ' '.join(fldnames))
+
+        for fldname in fields:
+            if '.' in fldname:
+                # special case - embedded field within a JSON object
+                try:
+                    values[fldname.replace('.', '_')] = \
+                        repo_json[fldname.split('.')[0]][fldname.split('.')[1]]
+                except (TypeError, KeyError):
+                    values[fldname.replace('.', '_')] = None
+            else:
+                # simple case: copy a value from the JSON to the namedtuple
+                values[fldname] = repo_json[fldname]
+                if fldname.lower() == 'private':
+                    values[fldname] = 'private' if repo_json[fldname] else 'public'
 
     return repo_tuple(**values)
 
@@ -949,9 +968,13 @@ def repos(*, org=None, user=None, fields=None, view_options=None):
              user is ignored)
     fields = list of fields to be returned; names must be the same as
              returned by the GitHub API (see below).
-             Note: dot notation for embedded elements is supported.
-             For example, pass a field named 'license.name' to get the 'name'
-             element of the 'license' entry for each repo.
+             Dot notation for embedded elements is supported. For example,
+             pass a field named 'license.name' to get the 'name' element of
+             the 'license' entry for each repo.
+             These special cases are also supported:
+             fields=['*'] -------> return all fields returned by GitHub API
+             fields=['nonurls'] -> return all non-URL fields (not *_url or url)
+             fields=['urls'] ----> return all URL fields (*_url and url)
     view_options = optional string containing either 'a' (to display API calls)
                    or 'h' (to display HTTP status codes)
 
