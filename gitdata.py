@@ -30,18 +30,18 @@ CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'])
               help='store access token for specified username', metavar='')
 @click.option('-d', '--delete', default=False,
               help='delete specified username', is_flag=True, metavar='')
-def cli(auth, token, delete):
+@click.pass_context
+def cli(ctx, auth, token, delete):
     """\b
-    _____  Retrieves data via GitHub REST API
-     |___
-       |_  syntax help: gitdata COMMAND -h/--help
-    """
+--------------------------------------------------------
+command syntax help --> gitdata COMMAND -h
+--------------------------------------------------------"""
     if auth:
         auth_status(auth.lower(), token, delete)
         return
 
-    #/// only display this message if no subcommands
-    #click.echo('Nothing to do. Type gitdata -h for help.')
+    if ctx.invoked_subcommand is None:
+        click.echo('Nothing to do. Type gitdata -h for help.')
 
 #------------------------------------------------------------------------------
 @cli.command(help='syntax help: gitdata admins -h')
