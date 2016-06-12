@@ -26,6 +26,7 @@ token_abbr() ---------> Get abbreviated access token (for display purposes).
 write_csv() ----------> Write list of dictionaries to a CSV file.
 write_json() ---------> Write list of dictionaries to a JSON file.
 """
+import collections
 import configparser
 import csv
 import datetime
@@ -420,7 +421,7 @@ def repofields(repo_json, fields):
     # handle special cases
     if fields[0] in ['*', 'urls', 'nonurls']:
         # special cases to return all fields or all url/non-url fields
-        values = {}
+        values = collections.OrderedDict()
         fldnames = []
         for fldname in repo_json:
             if fields[0] == '*' or \
@@ -434,7 +435,7 @@ def repofields(repo_json, fields):
         # change '.' to '_' because can't have '.' in an identifier
         fldnames = [_.replace('.', '_') for _ in fields]
 
-        values = {}
+        values = collections.OrderedDict()
         for fldname in fields:
             if '.' in fldname:
                 # special case - embedded field within a JSON object
@@ -668,7 +669,6 @@ def token_abbr(accesstoken):
         return "*none*"
 
 #-------------------------------------------------------------------------------
-#/// need changes here, because list contains dictionaries instead of namedtuples
 def write_csv(listobj, filename):
     """Write list of dictionaries to a CSV file.
 
@@ -705,10 +705,9 @@ def write_json(source=None, filename=None):
     if not source or not filename:
         return # nothing to do
 
-    #/// is this working correctly with dictionaries instead of namedtuples?
     with open(filename, 'w') as fhandle:
         fhandle.write(json.dumps(source, indent=4, sort_keys=True))
 
 # code to execute when running standalone: -------------------------------------
 if __name__ == '__main__':
-    print('/// need to implement tests here')
+    print('implement tests here')
