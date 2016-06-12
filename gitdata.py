@@ -677,15 +677,15 @@ def write_csv(listobj, filename):
     """
     csvfile = open(filename, 'w', newline='')
 
-    #/// note that we assume all dictionaries have the same keys
+    # note that we assume all dictionaries in the list have the same keys
     csvwriter = csv.writer(csvfile, dialect='excel')
-    header_row = listobj[0]._fields
+    header_row = [key for key, _ in listobj[0].items()]
     csvwriter.writerow(header_row)
 
     for row in listobj:
         values = []
         for fldname in header_row:
-            values.append(getattr(row, fldname))
+            values.append(row[fldname])
         csvwriter.writerow(values)
 
     csvfile.close()
