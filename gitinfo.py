@@ -1,11 +1,12 @@
-"""Helper functions for retrieving data via the GitHub API.
+"""GitHub API wrapper and related functionality.
 
-access_token() -------> Get GitHub access token from private JSON data.
+access_token() -------> Get GitHub access token from private settings.
 auth_config() --------> Configure authentication settings.
 auth_user() ----------> Return credentials for use in GitHub API calls.
 collaborators() ------> Get collaborators for one or more repos.
 commits() ------------> Get commits for repo's default branch.
 files() --------------> Get filenames for a repo.
+github_api() ---------> Call the GitHub API (wrapper for requests.get()).
 githubapi_to_file() --> Call GitHub API, handle pagination, write to file.
 inifile_name() -------> Return name of INI file where GitHub tokens are stored.
 log_apistatus() ------> Display current API rate-limit status.
@@ -529,6 +530,7 @@ def log_config(settings=None):
         retval[setting] = getattr(_settings, setting)
 
     return retval
+
 #-------------------------------------------------------------------------------
 def log_msg(*args):
     """Log a status message.
