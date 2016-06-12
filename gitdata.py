@@ -1,31 +1,31 @@
 """GitHub query CLI.
 
+Entry point:
 cli() ----------------> Handle command-line arguments.
 
 access_token() -------> Get GitHub access token from private settings.
-admins() -------------> /// NOT IMPLEMENTED
+admins() -------------> not implemented
 auth_config() --------> Configure authentication settings.
 auth_status() --------> Display status for GitHub username.
 auth_user() ----------> Return credentials for use in GitHub API calls.
-collaborators --------> /// NOT IMPLEMENTED
-files ----------------> /// NOT IMPLEMENTED
+collabs() ------------> not implemented
+files() --------------> not implemented
 github_api() ---------> Call the GitHub API (wrapper for requests.get()).
 inifile_name() -------> Return name of INI file where GitHub tokens are stored.
 log_msg() ------------> Log a status message.
-members() ------------> /// NOT IMPLEMENTED
+members() ------------> not implemented
 pagination() ---------> Parse pagination URLs from 'link' HTTP header.
 repos() --------------> Get repo info for an org or user.
 repofields() ---------> Get fields/values for a repo.
 reposdata() ----------> Get repo information for organizations or users.
 reposget() -----------> Get repo information for a specified org or user.
 repos_listfields() ---> List valid field names for repos().
-teams ----------------> /// NOT IMPLEMENTED
+teams() --------------> not implemented
 timestamp() ----------> Get current timestamp 'YYYY-MM-DD HH:MM:SS''
 token_abbr() ---------> Get abbreviated access token (for display purposes).
-write_csv() ----------> Write a list of namedtuples to a CSV file.
-write_json() ---------> Write Python object to a JSON file.
+write_csv() ----------> Write list of dictionaries to a CSV file.
+write_json() ---------> Write list of dictionaries to a JSON file.
 """
-import collections
 import configparser
 import csv
 import datetime
@@ -37,27 +37,6 @@ import time
 import click
 #from click.testing import CliRunner
 import requests
-
-#------------------------------------------------------------------------------
-class _settings:
-    """This class exists to provide a namespace used for global settings.
-    Use auth_config() or log_config() to change these settings.
-    """
-
-    # authentication settings used by auth_*() functions
-    username = '' # default = no GitHub authentication
-    accesstoken = '' # auth_config() may set this from the 'private' folder
-
-    # logging settings used by log_*() functions
-    verbose = False # default = messages displayed to console
-    logfile = None # default = messages not logged to a file
-
-    # initialize gitinfo session settings
-    start_time = time.time() # session start time (seconds)
-    tot_api_calls = 0 # number of API calls made through gitinfo
-    tot_api_bytes = 0 # total bytes returned by these API calls
-    last_ratelimit = 0 # API rate limit for the most recent API call
-    last_remaining = 0 # remaining portion of rate limit after last API call
 
 #------------------------------------------------------------------------------
 CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'])
@@ -84,11 +63,32 @@ command syntax help --> gitdata COMMAND -h
         click.echo('Nothing to do. Type gitdata -h for help.')
 
 #------------------------------------------------------------------------------
+class _settings:
+    """This class exists to provide a namespace used for global settings.
+    Use auth_config() or log_config() to change these settings.
+    """
+
+    # authentication settings used by auth_*() functions
+    username = '' # default = no GitHub authentication
+    accesstoken = '' # auth_config() may set this from the 'private' folder
+
+    # logging settings used by log_*() functions
+    verbose = False # default = messages displayed to console
+    logfile = None # default = messages not logged to a file
+
+    # initialize gitinfo session settings
+    start_time = time.time() # session start time (seconds)
+    tot_api_calls = 0 # number of API calls made through gitinfo
+    tot_api_bytes = 0 # total bytes returned by these API calls
+    last_ratelimit = 0 # API rate limit for the most recent API call
+    last_remaining = 0 # remaining portion of rate limit after last API call
+
+#------------------------------------------------------------------------------
 @cli.command(help='syntax help: gitdata admins -h')
 def admins():
-    """/// NOT IMPLEMENTED
+    """NOT IMPLEMENTED
     """
-    click.echo('/// NOT IMPLEMENTED: admins()')
+    click.echo('NOT IMPLEMENTED: admins()')
 
 #-------------------------------------------------------------------------------
 def access_token(username):
@@ -193,16 +193,16 @@ def auth_user():
 #------------------------------------------------------------------------------
 @cli.command(help='syntax help: gitdata collabs -h')
 def collabs():
-    """/// NOT IMPLEMENTED
+    """NOT IMPLEMENTED
     """
-    click.echo('/// NOT IMPLEMENTED: collabs()')
+    click.echo('NOT IMPLEMENTED: collabs()')
 
 #------------------------------------------------------------------------------
 @cli.command(help='syntax help: gitdata files -h')
 def files():
-    """/// NOT IMPLEMENTED
+    """NOT IMPLEMENTED
     """
-    click.echo('/// NOT IMPLEMENTED: files()')
+    click.echo('NOT IMPLEMENTED: files()')
 
 #-------------------------------------------------------------------------------
 def github_api(*, endpoint=None, auth=None, headers=None, view_options=None):
@@ -299,9 +299,9 @@ def log_msg(*args):
 #------------------------------------------------------------------------------
 @cli.command(help='syntax help: gitdata members -h')
 def members():
-    """/// NOT IMPLEMENTED
+    """NOT IMPLEMENTED
     """
-    click.echo('/// NOT IMPLEMENTED: members()')
+    click.echo('NOT IMPLEMENTED: members()')
 
 #------------------------------------------------------------------------------
 def pagination(link_header):
@@ -387,7 +387,7 @@ def repos(org, user, authuser, view, filename, fields, fieldlist):
     if 'd' in view.lower():
         # display data on the console
         for repo in repolist:
-            values = [str(item) for item in repo]
+            values = [str(item) for _, item in repo.items()]
             click.echo(click.style(','.join(values), fg='cyan'))
 
     if filename:
@@ -406,7 +406,7 @@ def repofields(repo_json, fields):
     1st parameter = repo's json representation as returned by GitHub API
     2nd parameter = list of names of desired fields
 
-    Returns a namedtuple containing the desired fields and their values.
+    Returns a dictionary containing the desired fields and their values.
     Note special cases:
     fields=['*'] -------> return all fields returned by GitHub API
     fields=['nonurls'] -> return all non-URL fields (not *_url or url)
@@ -428,7 +428,6 @@ def repofields(repo_json, fields):
                 (fields[0] == 'nonurls' and not fldname.endswith('url')):
                 fldnames.append(fldname)
                 values[fldname] = repo_json[fldname]
-        repo_tuple = collections.namedtuple('repo_tuple', ' '.join(fldnames))
     else:
         # fields == an actual list of fieldnames, not a special case
 
@@ -436,8 +435,6 @@ def repofields(repo_json, fields):
         fldnames = [_.replace('.', '_') for _ in fields]
 
         values = {}
-        repo_tuple = collections.namedtuple('repo_tuple', ' '.join(fldnames))
-
         for fldname in fields:
             if '.' in fldname:
                 # special case - embedded field within a JSON object
@@ -447,12 +444,12 @@ def repofields(repo_json, fields):
                 except (TypeError, KeyError):
                     values[fldname.replace('.', '_')] = None
             else:
-                # simple case: copy a value from the JSON to the namedtuple
+                # simple case: copy a field/value pair
                 values[fldname] = repo_json[fldname]
                 if fldname.lower() == 'private':
                     values[fldname] = 'private' if repo_json[fldname] else 'public'
 
-    return repo_tuple(**values)
+    return values
 
 #-------------------------------------------------------------------------------
 def reposdata(*, org=None, user=None, fields=None, view_options=None):
@@ -473,7 +470,7 @@ def reposdata(*, org=None, user=None, fields=None, view_options=None):
     view_options = optional string containing either 'a' (to display API calls)
                    or 'h' (to display HTTP status codes)
 
-    Returns a list of namedtuple objects, one per repo.
+    Returns a list of dictionary objects, one per repo.
     """
     # GitHub API fields (as of March 2016):
     # archive_url         git_tags_url         open_issues
@@ -547,7 +544,7 @@ def reposget(*, org=None, user=None, fields=None, view_options=None):
     user = username (ignored if org is provided)
     fields = list of fields to be returned
 
-    Returns a list of namedtuples containing the specified fields.
+    Returns a list of dictionaries containing the specified fields.
 
     NOTE: if authenticated user is same as specified user, the returned data
     will NOT include their private repos. To get private repos, need to use
@@ -647,9 +644,9 @@ def repos_listfields():
 
 #------------------------------------------------------------------------------
 def teams():
-    """/// NOT IMPLEMENTED
+    """NOT IMPLEMENTED
     """
-    click.echo('/// NOT IMPLEMENTED: teams()')
+    click.echo('NOT IMPLEMENTED: teams()')
 
 #-------------------------------------------------------------------------------
 def timestamp():
@@ -671,14 +668,16 @@ def token_abbr(accesstoken):
         return "*none*"
 
 #-------------------------------------------------------------------------------
+#/// need changes here, because list contains dictionaries instead of namedtuples
 def write_csv(listobj, filename):
-    """Write a list of namedtuples to a CSV file.
+    """Write list of dictionaries to a CSV file.
 
-    1st parameter = the list
+    1st parameter = the list of dictionaries
     2nd parameter = name of CSV file to be written
     """
     csvfile = open(filename, 'w', newline='')
 
+    #/// note that we assume all dictionaries have the same keys
     csvwriter = csv.writer(csvfile, dialect='excel')
     header_row = listobj[0]._fields
     csvwriter.writerow(header_row)
@@ -697,15 +696,16 @@ def write_csv(listobj, filename):
 
 #-------------------------------------------------------------------------------
 def write_json(source=None, filename=None):
-    """Write Python object to a .json file.
+    """Write list of dictionaries to a JSON file.
 
-    source = the object to be serialized
+    source = the list of dictionaries
     filename = the filename (will be over-written if it already exists)
     <internal>
     """
     if not source or not filename:
         return # nothing to do
 
+    #/// is this working correctly with dictionaries instead of namedtuples?
     with open(filename, 'w') as fhandle:
         fhandle.write(json.dumps(source, indent=4, sort_keys=True))
 
