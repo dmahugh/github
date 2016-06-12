@@ -410,7 +410,7 @@ def repofields(repo_json, fields):
     Returns a dictionary containing the desired fields and their values.
     Note special cases:
     fields=['*'] -------> return all fields returned by GitHub API
-    fields=['nonurls'] -> return all non-URL fields (not *_url or url)
+    fields=['nourls'] -> return all non-URL fields (not *_url or url)
     fields=['urls'] ----> return all URL fields (*_url and url)
     <internal>
     """
@@ -419,22 +419,25 @@ def repofields(repo_json, fields):
         fields = ['owner.login', 'name']
 
     # handle special cases
-    if fields[0] in ['*', 'urls', 'nonurls']:
+    if fields[0] in ['*', 'urls', 'nourls']:
         # special cases to return all fields or all url/non-url fields
         values = collections.OrderedDict()
-        fldnames = []
         for fldname in repo_json:
             if fields[0] == '*' or \
                 (fields[0] == 'urls' and fldname.endswith('url')) or \
-                (fields[0] == 'nonurls' and not fldname.endswith('url')):
-                fldnames.append(fldname)
-                values[fldname] = repo_json[fldname]
+                (fields[0] == 'nourls' and not fldname.endswith('url')):
+                this_item = repo_json[fldname]
+                if str(this_item.__class__) == "<class 'dict'>" and \
+                    fields[0] == 'nourls':
+                    # this is an embedded dictionary, so for the 'nourls' case
+                    # remove *url fields ...
+                    values[fldname] = {key:value for
+                                       (key, value) in this_item.items()
+                                       if not key.endswith('url')}
+                else:
+                    values[fldname] = this_item
     else:
         # fields == an actual list of fieldnames, not a special case
-
-        # change '.' to '_' because can't have '.' in an identifier
-        fldnames = [_.replace('.', '_') for _ in fields]
-
         values = collections.OrderedDict()
         for fldname in fields:
             if '.' in fldname:
@@ -443,6 +446,7 @@ def repofields(repo_json, fields):
                     values[fldname.replace('.', '_')] = \
                         repo_json[fldname.split('.')[0]][fldname.split('.')[1]]
                 except (TypeError, KeyError):
+                    # change '.' to '_' because can't have '.' in an identifier
                     values[fldname.replace('.', '_')] = None
             else:
                 # simple case: copy a field/value pair
@@ -466,7 +470,7 @@ def reposdata(*, org=None, user=None, fields=None, view_options=None):
              the 'license' entry for each repo.
              These special cases are also supported:
              fields=['*'] -------> return all fields returned by GitHub API
-             fields=['nonurls'] -> return all non-URL fields (not *_url or url)
+             fields=['nourls'] -> return all non-URL fields (not *_url or url)
              fields=['urls'] ----> return all URL fields (*_url and url)
     view_options = optional string containing either 'a' (to display API calls)
                    or 'h' (to display HTTP status codes)
