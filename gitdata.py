@@ -4,7 +4,7 @@ Entry point:
 cli() ----------------> Handle command-line arguments.
 
 access_token() -------> Get GitHub access token from private settings.
-admins() -------------> not implemented
+adminstats() ---------> not implemented
 auth_config() --------> Configure authentication settings.
 auth_status() --------> Display status for GitHub username.
 auth_user() ----------> Return credentials for use in GitHub API calls.
@@ -85,8 +85,8 @@ class _settings:
     last_remaining = 0 # remaining portion of rate limit after last API call
 
 #------------------------------------------------------------------------------
-@cli.command(help='syntax help: gitdata admins -h')
-def admins():
+@cli.command(help='syntax help: gitdata adminstats -h')
+def adminstats():
     """NOT IMPLEMENTED
     """
     click.echo('NOT IMPLEMENTED: admins()')
@@ -400,6 +400,9 @@ def repos(org, user, authuser, view, filename, fields, fieldlist):
             write_csv(repolist, filename)
         click.echo('Output file written: ' + filename)
 
+    if _settings.unknownfieldname:
+        click.echo('Unknown field name: ' + _settings.unknownfieldname)
+
 #-------------------------------------------------------------------------------
 def repofields(repo_json, fields):
     """Get field values for a repo.
@@ -450,9 +453,12 @@ def repofields(repo_json, fields):
                     values[fldname.replace('.', '_')] = None
             else:
                 # simple case: copy a field/value pair
-                values[fldname] = repo_json[fldname]
-                if fldname.lower() == 'private':
-                    values[fldname] = 'private' if repo_json[fldname] else 'public'
+                try:
+                    values[fldname] = repo_json[fldname]
+                    if fldname.lower() == 'private':
+                        values[fldname] = 'private' if repo_json[fldname] else 'public'
+                except KeyError:
+                    _settings.unknownfieldname = fldname
 
     return values
 
