@@ -86,10 +86,92 @@ class _settings:
 
 #------------------------------------------------------------------------------
 @cli.command(help='syntax help: gitdata adminstats -h')
-def adminstats():
-    """NOT IMPLEMENTED
+@click.option('-a', '--authuser', default='',
+              help='authentication username (required)', metavar='')
+@click.option('-v', '--view', default='',
+              help='D=data, A=API calls, H=HTTP status codes, R=rate-limit status', metavar='')
+@click.option('-n', '--filename', default='',
+              help='output filename (.CSV or .JSON)', metavar='')
+@click.option('-f', '--fields', default='',
+              help='field type (default=all)', metavar='')
+@click.option('-l', '--fieldlist', is_flag=True,
+              help='list available field types')
+def adminstats(authuser, view, filename, fields, fieldlist):
+    """Get admin stats for GitHub Enterprise account.
     """
-    click.echo('NOT IMPLEMENTED: admins()')
+    if fieldlist:
+        adminstats_listfields()
+        return
+
+    if not authuser:
+        click.echo('ERROR: authentication username is REQUIRED for adminstats.')
+        return
+
+    if filename:
+        _, file_ext = os.path.splitext(filename)
+        if file_ext.lower() not in ['.csv', '.json']:
+            click.echo('ERROR: output file must be .CSV or .JSON')
+            return
+
+    view = 'd' if not view else view
+
+    if authuser:
+        userandtoken = auth_config({'username': authuser})
+        if not userandtoken['accesstoken']:
+            click.echo('Unknown authentication username: ' + authuser)
+            return
+
+    #/// valid values for field type - ['issues','hooks','milestones','orgs','comments','pages','users','gists','pulls','repos','all']
+
+    pass
+    #/// handle fields argument
+    #if fields:
+    #    repolist = reposdata(org=org, user=user, fields=fields.split('/'), view_options=view)
+    #else:
+    #    repolist = reposdata(org=org, user=user, view_options=view)
+
+    #if 'd' in view.lower():
+    #    # display data on the console
+    #    for repo in repolist:
+    #        values = [str(item) for _, item in repo.items()]
+    #        click.echo(click.style(','.join(values), fg='cyan'))
+
+    #if filename:
+    #    if file_ext.lower() == '.json':
+    #        # write JSON file
+    #        write_json(source=repolist, filename=filename)
+    #    else:
+    #        # write CSV file
+    #        write_csv(repolist, filename)
+    #    click.echo('Output file written: ' + filename)
+
+#-------------------------------------------------------------------------------
+def adminstats_listfields():
+    """List available field types for admin stats.
+    """
+    click.echo('\nAvailable field types for admin stats:')
+    click.echo(click.style('issues     ', fg='cyan'), nl=False)
+    click.echo('The number of open and closed issues.')
+    click.echo(click.style('hooks      ', fg='cyan'), nl=False)
+    click.echo('The number of active and inactive hooks.')
+    click.echo(click.style('milestones ', fg='cyan'), nl=False)
+    click.echo('The number of open and closed milestones.')
+    click.echo(click.style('orgs       ', fg='cyan'), nl=False)
+    click.echo('The number of orgs, teams, team members, and disabled orgs.') 
+    click.echo(click.style('comments   ', fg='cyan'), nl=False)
+    click.echo('The number of comments on issues, pull requests, commits, and gists.') 
+    click.echo(click.style('pages      ', fg='cyan'), nl=False)
+    click.echo('The number of GitHub Pages sites.')
+    click.echo(click.style('users      ', fg='cyan'), nl=False)
+    click.echo('The number of suspended and admin users.')
+    click.echo(click.style('gists      ', fg='cyan'), nl=False)
+    click.echo('The number of private and public gists.')
+    click.echo(click.style('pulls      ', fg='cyan'), nl=False)
+    click.echo('The number of merged, mergeable, and unmergeable pull requests.')
+    click.echo(click.style('repos      ', fg='cyan'), nl=False)
+    click.echo('The number of repos, root repos, forks, pushed commits, and wikis.') 
+    click.echo(click.style('all        ', fg='cyan'), nl=False)
+    click.echo('All of the above.')
 
 #-------------------------------------------------------------------------------
 def access_token(username):
@@ -378,8 +460,8 @@ def repos(org, user, authuser, view, filename, fields, fieldlist):
     view = 'd' if not view else view
 
     if authuser:
-        xxx = auth_config({'username': authuser})
-        if not xxx['accesstoken']:
+        userandtoken = auth_config({'username': authuser})
+        if not userandtoken['accesstoken']:
             click.echo('Unknown authentication username: ' + authuser)
 
     if fields:
