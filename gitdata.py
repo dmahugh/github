@@ -378,7 +378,9 @@ def repos(org, user, authuser, view, filename, fields, fieldlist):
     view = 'd' if not view else view
 
     if authuser:
-        auth_config({'username': authuser})
+        xxx = auth_config({'username': authuser})
+        if not xxx['accesstoken']:
+            click.echo('Unknown authentication username: ' + authuser)
 
     if fields:
         repolist = reposdata(org=org, user=user, fields=fields.split('/'), view_options=view)
@@ -400,8 +402,12 @@ def repos(org, user, authuser, view, filename, fields, fieldlist):
             write_csv(repolist, filename)
         click.echo('Output file written: ' + filename)
 
-    if _settings.unknownfieldname:
-        click.echo('Unknown field name: ' + _settings.unknownfieldname)
+    try:
+        if _settings.unknownfieldname:
+            click.echo('Unknown field name: ' + _settings.unknownfieldname)
+    except AttributeError:
+        # no unknown fields have been logged
+        pass
 
 #-------------------------------------------------------------------------------
 def repofields(repo_json, fields):
@@ -581,6 +587,7 @@ def reposget(*, org=None, user=None, fields=None, view_options=None):
 
         response = github_api(endpoint=endpoint, auth=auth_user(),
                               headers=headers, view_options=view_options)
+
         if view_options and 'h' in view_options.lower():
             print('    Status: ' + str(response))
 
