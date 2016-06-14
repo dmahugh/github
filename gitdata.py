@@ -13,6 +13,7 @@ github_api() ---------> Call the GitHub API (wrapper for requests.get()).
 inifile_name() -------> Return name of INI file where GitHub tokens are stored.
 log_msg() ------------> Log a status message.
 members() ------------> Get member for an organization or team.
+members_listfields() -> List valid field names for members().
 pagination() ---------> Parse pagination URLs from 'link' HTTP header.
 repofields() ---------> Get fields/values for a repo.
 repos() --------------> Get repo info for an org or user.
@@ -307,7 +308,7 @@ def log_msg(*args):
               help='fields to include', metavar='<fld1/fld2/etc>')
 @click.option('-l', '--fieldlist', is_flag=True,
               help='list available GitHub fields')
-def members(org, twofa, authuser, view, filename, fields, fieldlist):
+def members(org, team, audit2fa, authuser, view, filename, fields, fieldlist):
     """Get member info for an organization or team.
     """
     if fieldlist:
@@ -357,6 +358,19 @@ def members(org, twofa, authuser, view, filename, fields, fieldlist):
     except AttributeError:
         # no unknown fields have been logged
         pass
+
+#------------------------------------------------------------------------------
+def members_listfields():
+    """List valid field names for members().
+    """
+
+    click.echo('\nAvailable field names for member data:')
+    click.echo(click.style('id                  avatar_url          html_url', fg='cyan'))
+    click.echo(click.style('login               events_url          organizations_url', fg='cyan'))
+    click.echo(click.style('site_admin          followers_url       received_events_url', fg='cyan'))
+    click.echo(click.style('type                following_url       repos_url', fg='cyan'))
+    click.echo(click.style('url                 gists_url           starred_url', fg='cyan'))
+    click.echo(click.style('                    gravatar_id         subscriptions_url', fg='cyan'))
 
 #------------------------------------------------------------------------------
 def pagination(link_header):
