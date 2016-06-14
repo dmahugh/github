@@ -12,10 +12,10 @@ files() --------------> not implemented
 github_api() ---------> Call the GitHub API (wrapper for requests.get()).
 inifile_name() -------> Return name of INI file where GitHub tokens are stored.
 log_msg() ------------> Log a status message.
-members() ------------> not implemented
+members() ------------> Get member for an organization or team.
 pagination() ---------> Parse pagination URLs from 'link' HTTP header.
-repos() --------------> Get repo info for an org or user.
 repofields() ---------> Get fields/values for a repo.
+repos() --------------> Get repo info for an org or user.
 reposdata() ----------> Get repo information for organizations or users.
 reposget() -----------> Get repo information for a specified org or user.
 repos_listfields() ---> List valid field names for repos().
@@ -52,9 +52,9 @@ CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'])
 @click.pass_context
 def cli(ctx, auth, token, delete):
     """\b
---------------------------------------------------------
-command syntax help --> gitdata COMMAND -h
---------------------------------------------------------"""
+Get repo/member/team/file/collaborator data from GitHub REST API
+----------------------------------------------------------------
+subcommand help: gitdata <subcommand> -h"""
     if auth:
         auth_status(auth.lower(), token, delete)
         return
@@ -184,14 +184,14 @@ def auth_user():
     return (_settings.username, _settings.accesstoken)
 
 #------------------------------------------------------------------------------
-@cli.command(help='syntax help: gitdata collabs -h')
+@cli.command(help='not implemented yet')
 def collabs():
     """NOT IMPLEMENTED
     """
     click.echo('NOT IMPLEMENTED: collabs()')
 
 #------------------------------------------------------------------------------
-@cli.command(help='syntax help: gitdata files -h')
+@cli.command(help='not implemented yet')
 def files():
     """NOT IMPLEMENTED
     """
@@ -290,11 +290,73 @@ def log_msg(*args):
             fhandle.write(timestamp() + ' ' + msg + '\n')
 
 #------------------------------------------------------------------------------
-@cli.command(help='syntax help: gitdata members -h')
-def members():
-    """NOT IMPLEMENTED
+@cli.command(help='Get member information by org or team ID.')
+@click.option('-o', '--org', default='',
+              help='GitHub organization', metavar='')
+@click.option('-t', '--team', default='',
+              help='team ID', metavar='')
+@click.option('--audit2fa', is_flag=True,
+              help='include only 2FA-not-enabled members')
+@click.option('-a', '--authuser', default='',
+              help='authentication username', metavar='')
+@click.option('-v', '--view', default='',
+              help='D=data, A=API calls, H=HTTP status codes, R=rate-limit status', metavar='')
+@click.option('-n', '--filename', default='',
+              help='output filename (.CSV or .JSON)', metavar='')
+@click.option('-f', '--fields', default='',
+              help='fields to include', metavar='<fld1/fld2/etc>')
+@click.option('-l', '--fieldlist', is_flag=True,
+              help='list available GitHub fields')
+def members(org, twofa, authuser, view, filename, fields, fieldlist):
+    """Get member info for an organization or team.
     """
-    click.echo('NOT IMPLEMENTED: members()')
+    if fieldlist:
+        members_listfields()
+        return
+
+    if not org:
+        click.echo('ERROR: must specify an org')
+        return
+
+    if filename:
+        _, file_ext = os.path.splitext(filename)
+        if file_ext.lower() not in ['.csv', '.json']:
+            click.echo('ERROR: output file must be .CSV or .JSON')
+            return
+
+    view = 'd' if not view else view
+
+    if authuser:
+        userandtoken = auth_config({'username': authuser})
+        if not userandtoken['accesstoken']:
+            click.echo('Unknown authentication username: ' + authuser)
+
+    if fields:
+        memberlist = membersdata(org=org, team=team, audit2fa=audit2fa, fields=fields.split('/'), view_options=view)
+    else:
+        memberlist = membersdata(org=org, team=team, audit2fa=audit2fa, view_options=view)
+
+    if 'd' in view.lower():
+        # display data on the console
+        for member in memberlist:
+            values = [str(item) for _, item in member.items()]
+            click.echo(click.style(','.join(values), fg='cyan'))
+
+    if filename:
+        if file_ext.lower() == '.json':
+            # write JSON file
+            write_json(source=memberlist, filename=filename)
+        else:
+            # write CSV file
+            write_csv(memberlist, filename)
+        click.echo('Output file written: ' + filename)
+
+    try:
+        if _settings.unknownfieldname:
+            click.echo('Unknown field name: ' + _settings.unknownfieldname)
+    except AttributeError:
+        # no unknown fields have been logged
+        pass
 
 #------------------------------------------------------------------------------
 def pagination(link_header):
@@ -335,7 +397,7 @@ def pagination(link_header):
     return retval
 
 #------------------------------------------------------------------------------
-@cli.command(help='syntax help: gitdata repos -h')
+@cli.command(help='Get repo information by org or user/owner.')
 @click.option('-o', '--org', default='',
               help='GitHub organization', metavar='')
 @click.option('-u', '--user', default='',
