@@ -12,8 +12,9 @@ files() --------------> not implemented
 github_api() ---------> Call the GitHub API (wrapper for requests.get()).
 inifile_name() -------> Return name of INI file where GitHub tokens are stored.
 log_msg() ------------> Log a status message.
-members() ------------> Get member for an organization or team.
+members() ------------> Get member info for organizations or teams.
 members_listfields() -> List valid field names for members().
+membersdata() --------> Get member information for a single org or team.
 pagination() ---------> Parse pagination URLs from 'link' HTTP header.
 repofields() ---------> Get fields/values for a repo.
 repos() --------------> Get repo info for an org or user.
@@ -242,9 +243,10 @@ def github_api(*, endpoint=None, auth=None, headers=None, view_options=None):
         _settings.last_remaining = 999999
 
     if view_options and 'r' in view_options.lower():
-        print('Rate Limit: ' + str(_settings.last_ratelimit) + ' (' + \
+        click.echo('Rate Limit: ' + str(_settings.last_ratelimit) + ' - ' + \
               str(_settings.last_ratelimit - _settings.last_remaining) +\
-              ' used, ' + str(_settings.last_remaining) + ' remaining)')
+              ' used, ', nl=False)
+        click.echo(click.style(str(_settings.last_remaining) + ' remaining', fg='cyan'))
 
     return response
 
@@ -371,6 +373,46 @@ def members_listfields():
     click.echo(click.style('type                following_url       repos_url', fg='cyan'))
     click.echo(click.style('url                 gists_url           starred_url', fg='cyan'))
     click.echo(click.style('                    gravatar_id         subscriptions_url', fg='cyan'))
+
+#-------------------------------------------------------------------------------
+def membersdata(*, org=None, team=None, fields=None, audit2fa=False,
+                view_options=None):
+    """Get members for one or more teams or organizations.
+
+    org = an organization ID or list of organizations
+    team = a team ID or list of teams; if provided, org is ignored
+    fields = list of field names to be returned; names must be the same as
+             returned by the GitHub API (see members_listfields() for the list).
+    audit2fa = whether to only return members with 2FA disabled. You must be
+               authenticated via auth_config() as an admin of the org(s) to use
+               this option.
+
+    Returns a list of dictionary objects, one per member.
+    """
+    memberlist = [] # the list of members that will be returned
+
+    if team:
+        # get members by team
+        if isinstance(team, str):
+            # one team
+            memberlist.extend(membersget(team=team, fields=fields))
+        else:
+            # list of teams
+            for teamid in team:
+                memberlist.extend(membersget(team=teamid, fields=fields))
+    else:
+        # get members by organization
+        if isinstance(org, str):
+            # one organization
+            memberlist.extend( \
+                membersget(org=org, fields=fields, audit2fa=audit2fa))
+        else:
+            # list of organizations
+            for orgid in org:
+                memberlist.extend( \
+                    membersget(org=orgid, fields=fields, audit2fa=audit2fa))
+
+    return memberlist
 
 #------------------------------------------------------------------------------
 def pagination(link_header):
@@ -544,7 +586,7 @@ def reposdata(*, org=None, user=None, fields=None, view_options=None):
     user   = username; a username or list of usernames (if org is provided,
              user is ignored)
     fields = list of fields to be returned; names must be the same as
-             returned by the GitHub API (see below).
+             returned by the GitHub API (see repos_listfields() for the list).
              Dot notation for embedded elements is supported. For example,
              pass a field named 'license.name' to get the 'name' element of
              the 'license' entry for each repo.
@@ -557,47 +599,7 @@ def reposdata(*, org=None, user=None, fields=None, view_options=None):
 
     Returns a list of dictionary objects, one per repo.
     """
-    # GitHub API fields (as of March 2016):
-    # archive_url         git_tags_url         open_issues
-    # assignees_url       git_url              open_issues_count
-    # blobs_url           has_downloads        private
-    # branches_url        has_issues           pulls_url
-    # clone_url           has_pages            pushed_at
-    # collaborators_url   has_wiki             releases_url
-    # commits_url         homepage             size
-    # compare_url         hooks_url            ssh_url
-    # contents_url        html_url             stargazers_count
-    # contributors_url    id                   stargazers_url
-    # created_at          issue_comment_url    statuses_url
-    # default_branch      issue_events_url     subscribers_url
-    # deployments_url     issues_url           subscription_url
-    # description         keys_url             svn_url
-    # downloads_url       labels_url           tags_url
-    # events_url          language             teams_url
-    # fork                languages_url        trees_url
-    # forks               master_branch        updated_at
-    # forks_count         merges_url           url
-    # forks_url           milestones_url       watchers
-    # full_name           mirror_url           watchers_count
-    # git_commits_url     name
-    # git_refs_url        notifications_url
-    # -------------------------------------------------------------
-    # license.featured              permissions.admin
-    # license.key                   permissions.pull
-    # license.name                  permissions.push
-    # license.url
-    # -------------------------------------------------------------
-    # owner.avatar_url              owner.organizations_url
-    # owner.events_url              owner.received_events_url
-    # owner.followers_url           owner.repos_url
-    # owner.following_url           owner.site_admin
-    # owner.gists_url               owner.starred_url
-    # owner.gravatar_id             owner.subscriptions_url
-    # owner.html_url                owner.type
-    # owner.id                      owner.url
-    # owner.login
-
-    repolist = [] # the list that will be returned
+    repolist = [] # the list of repos that will be returned
 
     if org:
         # get repos by organization
@@ -651,13 +653,16 @@ def reposget(*, org=None, user=None, fields=None, view_options=None):
     while True:
 
         if view_options and 'a' in view_options.lower():
-            print('  Endpoint: ' + endpoint)
+            click.echo('  Endpoint: ', nl=False)
+            click.echo(click.style(endpoint, fg='cyan'))
 
         response = github_api(endpoint=endpoint, auth=auth_user(),
                               headers=headers, view_options=view_options)
 
         if view_options and 'h' in view_options.lower():
-            print('    Status: ' + str(response))
+            click.echo('    Status: ', nl=False)
+            click.echo(click.style(str(response), fg='cyan'), nl=False)
+            click.echo(', ' + str(len(response.text)) + ' bytes returned')
 
         if response.ok:
             totpages += 1
