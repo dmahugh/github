@@ -11,10 +11,11 @@ collabs() ------------> not implemented
 files() --------------> not implemented
 github_api() ---------> Call the GitHub API (wrapper for requests.get()).
 inifile_name() -------> Return name of INI file where GitHub tokens are stored.
-log_msg() ------------> Log a status message.
+memberfields() -------> Get field values for a member of a team or org.
 members() ------------> Get member info for organizations or teams.
 members_listfields() -> List valid field names for members().
-membersdata() --------> Get member information for a single org or team.
+membersdata() --------> Get member information for orgs or teams.
+membersget() ---------> Get member info for a specified organization.
 pagination() ---------> Parse pagination URLs from 'link' HTTP header.
 repofields() ---------> Get fields/values for a repo.
 repos() --------------> Get repo info for an org or user.
@@ -136,8 +137,6 @@ def auth_config(settings=None):
     username = str(_settings.username)
     accesstoken = _settings.accesstoken
 
-    log_msg('username:', username + ', PAT:', token_abbr(accesstoken))
-
     return retval
 
 #------------------------------------------------------------------------------
@@ -206,6 +205,8 @@ def github_api(*, endpoint=None, auth=None, headers=None, view_options=None):
     endpoint = the HTTP endpoint to call
     auth = optional tuple for authentication
     headers = optional dictionary of HTTP headers to pass
+    view_options = optional string containing 'a' (API calls), 'h' (HTTP status
+                   codes), 'r' (rate-limit status), or 'd' (data).
 
     Returns the response object.
     API call through this function update session totals.
@@ -214,7 +215,7 @@ def github_api(*, endpoint=None, auth=None, headers=None, view_options=None):
     <internal>
     """
     if not endpoint:
-        log_msg('ERROR: github_api() called with no endpoint')
+        click.echo('ERROR: github_api() called with no endpoint')
         return
 
     # add the V3 Accept header to the dictionary
@@ -260,44 +261,32 @@ def inifile_name():
                         'private/github_users.ini')
 
 #-------------------------------------------------------------------------------
-def log_msg(*args):
-    """Log a status message.
+def memberfields(member_json, fields, org):
+    """Get field values for a member/user.
 
-    parameters = message to be displayed if log_config(True) is set.
+    1st parameter = member's json representation as returned by GitHub API
+    2nd parameter = list of names of desired fields
+    3rd parameter = organization ID
 
-    NOTE: can pass any number of parameters, which will be displayed as a single
-    string delimited by spaces.
+    Returns a dictionary containing the desired fields and their values.
+    <internal>
     """
-    # convert all arguments to strings, so they can be .join()ed
-    string_args = [str(_) for _ in args]
+    if not fields:
+        # if no fields specified, use default field list
+        fields = ['login', 'id', 'type', 'site_admin']
 
-    # get the caller of log_msg(), which is displayed with the message
-    # Note: we populate a complete callstack list here, just because it
-    # may be useful at times in the future.
-    callstack = []
-    frame = inspect.currentframe()
-    while True:
-        frame = frame.f_back
-        name = frame.f_code.co_name
-        if name[0] == '<':
-            break
-        callstack.append(name)
-    caller = callstack[0]
-    msg = (caller + '() ').ljust(20, '-') + '> ' + ' '.join(string_args)
+    values = {}
+    for fldname in fields:
+        values[fldname] = member_json[fldname]
 
-    if _settings.verbose:
-        print(msg)
-
-    if _settings.logfile:
-        with open(_settings.logfile, 'a') as fhandle:
-            fhandle.write(timestamp() + ' ' + msg + '\n')
+    return values
 
 #------------------------------------------------------------------------------
 @cli.command(help='Get member information by org or team ID.')
 @click.option('-o', '--org', default='',
-              help='GitHub organization', metavar='')
+              help='organizations', metavar='org1/org2/etc')
 @click.option('-t', '--team', default='',
-              help='team ID', metavar='')
+              help='teams', metavar='teamID1/teamID2/etc')
 @click.option('--audit2fa', is_flag=True,
               help='include only 2FA-not-enabled members')
 @click.option('-a', '--authuser', default='',
@@ -379,13 +368,15 @@ def membersdata(*, org=None, team=None, fields=None, audit2fa=False,
                 view_options=None):
     """Get members for one or more teams or organizations.
 
-    org = an organization ID or list of organizations
-    team = a team ID or list of teams; if provided, org is ignored
+    org = a /-delimited list of organizations
+    team = a /-delimited list of teams; if provided, org is ignored
     fields = list of field names to be returned; names must be the same as
              returned by the GitHub API (see members_listfields() for the list).
     audit2fa = whether to only return members with 2FA disabled. You must be
                authenticated via auth_config() as an admin of the org(s) to use
                this option.
+    view_options = optional string containing 'a' (API calls), 'h' (HTTP status
+                   codes), 'r' (rate-limit status), or 'd' (data).
 
     Returns a list of dictionary objects, one per member.
     """
@@ -393,26 +384,68 @@ def membersdata(*, org=None, team=None, fields=None, audit2fa=False,
 
     if team:
         # get members by team
-        if isinstance(team, str):
-            # one team
-            memberlist.extend(membersget(team=team, fields=fields))
-        else:
-            # list of teams
-            for teamid in team:
-                memberlist.extend(membersget(team=teamid, fields=fields))
+        for teamid in team.split('/'):
+            memberlist.extend(membersget(team=teamid, fields=fields, view_options=view_options))
     else:
         # get members by organization
-        if isinstance(org, str):
-            # one organization
+        for orgid in org.split('/'):
             memberlist.extend( \
-                membersget(org=org, fields=fields, audit2fa=audit2fa))
-        else:
-            # list of organizations
-            for orgid in org:
-                memberlist.extend( \
-                    membersget(org=orgid, fields=fields, audit2fa=audit2fa))
+                membersget(org=orgid, fields=fields, audit2fa=audit2fa, view_options=view_options))
 
     return memberlist
+
+#------------------------------------------------------------------------------
+def membersget(*, org=None, team=None, fields=None, audit2fa=False, view_options=None):
+    """Get member info for a specified organization. Called by members() to
+    aggregate member info for multiple organizations.
+
+    org = organization ID (ignored if a team is specified)
+    team = team ID
+    fields = list of fields to be returned
+    audit2fa = whether to only return members with 2FA disabled. This option
+               is only available when retrieving members by organization.
+               Note: for audit2fa=True, you must be authenticated via
+               auth_config() as an admin of the org(s).
+    view_options = optional string containing 'a' (API calls), 'h' (HTTP status
+                   codes), 'r' (rate-limit status), or 'd' (data).
+
+    Returns a list of dictionaries containing the specified fields.
+    <internal>
+    """
+    if team:
+        endpoint = 'https://api.github.com/teams/' + team + '/members'
+    else:
+        endpoint = 'https://api.github.com/orgs/' + org + '/members' + \
+            ('?filter=2fa_disabled' if audit2fa else '')
+
+    retval = [] # the list to be returned
+    totpages = 0
+
+    while True:
+
+        if view_options and 'a' in view_options.lower():
+            click.echo('  Endpoint: ', nl=False)
+            click.echo(click.style(endpoint, fg='cyan'))
+
+        response = github_api(endpoint=endpoint, auth=auth_user())
+
+        if view_options and 'h' in view_options.lower():
+            click.echo('    Status: ', nl=False)
+            click.echo(click.style(str(response), fg='cyan'), nl=False)
+            click.echo(', ' + str(len(response.text)) + ' bytes returned')
+
+        if response.ok:
+            totpages += 1
+            thispage = json.loads(response.text)
+            for member_json in thispage:
+                retval.append(memberfields(member_json, fields, org))
+
+        pagelinks = pagination(response)
+        endpoint = pagelinks['nextURL']
+        if not endpoint:
+            break # no more results to process
+
+    return retval
 
 #------------------------------------------------------------------------------
 def pagination(link_header):
@@ -594,8 +627,8 @@ def reposdata(*, org=None, user=None, fields=None, view_options=None):
              fields=['*'] -------> return all fields returned by GitHub API
              fields=['nourls'] -> return all non-URL fields (not *_url or url)
              fields=['urls'] ----> return all URL fields (*_url and url)
-    view_options = optional string containing either 'a' (to display API calls)
-                   or 'h' (to display HTTP status codes)
+    view_options = optional string containing 'a' (API calls), 'h' (HTTP status
+                   codes), 'r' (rate-limit status), or 'd' (data).
 
     Returns a list of dictionary objects, one per repo.
     """
@@ -630,6 +663,8 @@ def reposget(*, org=None, user=None, fields=None, view_options=None):
     org = organization name
     user = username (ignored if org is provided)
     fields = list of fields to be returned
+    view_options = optional string containing 'a' (API calls), 'h' (HTTP status
+                   codes), 'r' (rate-limit status), or 'd' (data).
 
     Returns a list of dictionaries containing the specified fields.
 
@@ -674,12 +709,6 @@ def reposget(*, org=None, user=None, fields=None, view_options=None):
         endpoint = pagelinks['nextURL']
         if not endpoint:
             break # there are no more results to process
-
-        log_msg('processing page {0} of {1}'. \
-                       format(pagelinks['nextpage'], pagelinks['lastpage']))
-
-    log_msg('pages processed: {0}, total members: {1}'. \
-        format(totpages, len(retval)))
 
     return retval
 
@@ -780,10 +809,6 @@ def write_csv(listobj, filename):
 
     csvfile.close()
 
-    log_msg('filename:', filename)
-    log_msg('columns:', header_row)
-    log_msg('total rows:', len(listobj))
-
 #-------------------------------------------------------------------------------
 def write_json(source=None, filename=None):
     """Write list of dictionaries to a JSON file.
@@ -801,6 +826,6 @@ def write_json(source=None, filename=None):
 # code to execute when running standalone: -------------------------------------
 if __name__ == '__main__':
     auth_config({'username': 'msftgits'})
-    endpoint = 'https://api.github.com/api/v3/enterprise/stats/all'
-    response = github_api(endpoint=endpoint, auth=auth_user(), view_options='adhr')
-    print(str(response))
+    ENDPOINT = 'https://api.github.com/api/v3/enterprise/stats/all'
+    RESPONSE = github_api(endpoint=ENDPOINT, auth=auth_user(), view_options='adhr')
+    print(str(RESPONSE))
