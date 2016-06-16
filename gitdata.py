@@ -32,13 +32,11 @@ import collections
 import configparser
 import csv
 import datetime
-import inspect
 import json
 import os
 import time
 
 import click
-#from click.testing import CliRunner
 import requests
 
 #------------------------------------------------------------------------------
@@ -134,9 +132,6 @@ def auth_config(settings=None):
     for setting in config_settings:
         retval[setting] = getattr(_settings, setting)
 
-    username = str(_settings.username)
-    accesstoken = _settings.accesstoken
-
     return retval
 
 #------------------------------------------------------------------------------
@@ -179,10 +174,10 @@ def auth_user():
     Returns None if no GitHub username/PAT is currently set.
     <internal>
     """
-    if not _settings.username:
-        return None
+    if _settings.username:
+        return (_settings.username, _settings.accesstoken)
 
-    return (_settings.username, _settings.accesstoken)
+    return None
 
 #------------------------------------------------------------------------------
 @cli.command(help='not implemented yet')
@@ -202,9 +197,9 @@ def files():
 def github_api(*, endpoint=None, auth=None, headers=None, view_options=None):
     """Call the GitHub API (wrapper for requests.get()).
 
-    endpoint = the HTTP endpoint to call
-    auth = optional tuple for authentication
-    headers = optional dictionary of HTTP headers to pass
+    endpoint     = the HTTP endpoint to call
+    auth         = optional tuple for authentication
+    headers      = optional dictionary of HTTP headers to pass
     view_options = optional string containing 'a' (API calls), 'h' (HTTP status
                    codes), 'r' (rate-limit status), or 'd' (data).
 
@@ -247,8 +242,8 @@ def github_api(*, endpoint=None, auth=None, headers=None, view_options=None):
         click.echo('Rate Limit: ' + str(_settings.last_ratelimit) + ' - ' + \
               str(_settings.last_ratelimit - _settings.last_remaining) +\
               ' used, ', nl=False)
-        click.echo(click.style(str(_settings.last_remaining) + ' remaining', fg='cyan'))
-
+        click.echo(click.style(str(_settings.last_remaining) + ' remaining',
+                               fg='cyan'))
     return response
 
 #-------------------------------------------------------------------------------
@@ -326,9 +321,11 @@ def members(org, team, audit2fa, authuser, view, filename, fields, fieldlist):
             click.echo('Unknown authentication username: ' + authuser)
 
     if fields:
-        memberlist = membersdata(org=org, team=team, audit2fa=audit2fa, fields=fields.split('/'), view_options=view)
+        memberlist = membersdata(org=org, team=team, audit2fa=audit2fa,
+                                 fields=fields.split('/'), view_options=view)
     else:
-        memberlist = membersdata(org=org, team=team, audit2fa=audit2fa, view_options=view)
+        memberlist = membersdata(org=org, team=team, audit2fa=audit2fa,
+                                 view_options=view)
 
     if 'd' in view.lower():
         # display data on the console
@@ -358,12 +355,18 @@ def members_listfields():
     """
 
     click.echo('\nAvailable field names for member data:')
-    click.echo(click.style('id                  avatar_url          html_url', fg='cyan'))
-    click.echo(click.style('login               events_url          organizations_url', fg='cyan'))
-    click.echo(click.style('site_admin          followers_url       received_events_url', fg='cyan'))
-    click.echo(click.style('type                following_url       repos_url', fg='cyan'))
-    click.echo(click.style('url                 gists_url           starred_url', fg='cyan'))
-    click.echo(click.style('                    gravatar_id         subscriptions_url', fg='cyan'))
+    click.echo(click.style('id                  avatar_url          ' +
+                           'html_url', fg='cyan'))
+    click.echo(click.style('login               events_url          ' +
+                           'organizations_url', fg='cyan'))
+    click.echo(click.style('site_admin          followers_url       ' +
+                           'received_events_url', fg='cyan'))
+    click.echo(click.style('type                following_url       ' +
+                           'repos_url', fg='cyan'))
+    click.echo(click.style('url                 gists_url           ' +
+                           'starred_url', fg='cyan'))
+    click.echo(click.style('                    gravatar_id         ' +
+                           'subscriptions_url', fg='cyan'))
 
 #-------------------------------------------------------------------------------
 def membersdata(*, org=None, team=None, fields=None, audit2fa=False,
@@ -387,17 +390,20 @@ def membersdata(*, org=None, team=None, fields=None, audit2fa=False,
     if team:
         # get members by team
         for teamid in team.split('/'):
-            memberlist.extend(membersget(team=teamid, fields=fields, view_options=view_options))
+            memberlist.extend(membersget(team=teamid, fields=fields,
+                                         view_options=view_options))
     else:
         # get members by organization
         for orgid in org.split('/'):
             memberlist.extend( \
-                membersget(org=orgid, fields=fields, audit2fa=audit2fa, view_options=view_options))
+                membersget(org=orgid, fields=fields, audit2fa=audit2fa,
+                           view_options=view_options))
 
     return memberlist
 
 #------------------------------------------------------------------------------
-def membersget(*, org=None, team=None, fields=None, audit2fa=False, view_options=None):
+def membersget(*, org=None, team=None, fields=None, audit2fa=False,
+               view_options=None):
     """Get member info for a specified organization. Called by members() to
     aggregate member info for multiple organizations.
 
@@ -530,7 +536,8 @@ def repos(org, user, authuser, view, filename, fields, fieldlist):
             click.echo('Unknown authentication username: ' + authuser)
 
     if fields:
-        repolist = reposdata(org=org, user=user, fields=fields.split('/'), view_options=view)
+        repolist = reposdata(org=org, user=user, fields=fields.split('/'),
+                             view_options=view)
     else:
         repolist = reposdata(org=org, user=user, view_options=view)
 
@@ -642,20 +649,24 @@ def reposdata(*, org=None, user=None, fields=None, view_options=None):
         # get repos by organization
         if isinstance(org, str):
             # one organization
-            repolist.extend(reposget(org=org, fields=fields, view_options=view_options))
+            repolist.extend(reposget(org=org, fields=fields,
+                                     view_options=view_options))
         else:
             # list of organizations
             for orgid in org:
-                repolist.extend(reposget(org=orgid, fields=fields, view_options=view_options))
+                repolist.extend(reposget(org=orgid, fields=fields,
+                                         view_options=view_options))
     else:
         # get repos by user
         if isinstance(user, str):
             # one user
-            repolist.extend(reposget(user=user, fields=fields, view_options=view_options))
+            repolist.extend(reposget(user=user, fields=fields,
+                                     view_options=view_options))
         else:
             # list of users
             for userid in user:
-                repolist.extend(reposget(user=userid, fields=fields, view_options=view_options))
+                repolist.extend(reposget(user=userid, fields=fields,
+                                         view_options=view_options))
 
     return repolist
 
@@ -720,51 +731,88 @@ def reposget(*, org=None, user=None, fields=None, view_options=None):
 def repos_listfields():
     """List valid field names for repos().
     """
-    click.echo(click.style('\n     specified fields -->  --fields=', fg='white'), nl=False)
+    click.echo(click.style('\n     specified fields -->  --fields=',
+                           fg='white'), nl=False)
     click.echo(click.style('fld1/fld2/etc', fg='cyan'))
-    click.echo(click.style('           ALL fields -->  --fields=', fg='white'), nl=False)
+    click.echo(click.style('           ALL fields -->  --fields=',
+                           fg='white'), nl=False)
     click.echo(click.style('*', fg='cyan'))
-    click.echo(click.style('              No URLs -->  --fields=', fg='white'), nl=False)
+    click.echo(click.style('              No URLs -->  --fields=',
+                           fg='white'), nl=False)
     click.echo(click.style('nourls', fg='cyan'))
-    click.echo(click.style('            Only URLs -->  --fields=', fg='white'), nl=False)
+    click.echo(click.style('            Only URLs -->  --fields=',
+                           fg='white'), nl=False)
     click.echo(click.style('urls', fg='cyan'))
     click.echo(click.style(60*'-', fg='blue'))
-    click.echo(click.style('archive_url         git_tags_url         open_issues', fg='cyan'))
-    click.echo(click.style('assignees_url       git_url              open_issues_count', fg='cyan'))
-    click.echo(click.style('blobs_url           has_downloads        private', fg='cyan'))
-    click.echo(click.style('branches_url        has_issues           pulls_url', fg='cyan'))
-    click.echo(click.style('clone_url           has_pages            pushed_at', fg='cyan'))
-    click.echo(click.style('collaborators_url   has_wiki             releases_url', fg='cyan'))
-    click.echo(click.style('commits_url         homepage             size', fg='cyan'))
-    click.echo(click.style('compare_url         hooks_url            ssh_url', fg='cyan'))
-    click.echo(click.style('contents_url        html_url             stargazers_count', fg='cyan'))
-    click.echo(click.style('contributors_url    id                   stargazers_url', fg='cyan'))
-    click.echo(click.style('created_at          issue_comment_url    statuses_url', fg='cyan'))
-    click.echo(click.style('default_branch      issue_events_url     subscribers_url', fg='cyan'))
-    click.echo(click.style('deployments_url     issues_url           subscription_url', fg='cyan'))
-    click.echo(click.style('description         keys_url             svn_url', fg='cyan'))
-    click.echo(click.style('downloads_url       labels_url           tags_url', fg='cyan'))
-    click.echo(click.style('events_url          language             teams_url', fg='cyan'))
-    click.echo(click.style('fork                languages_url        trees_url', fg='cyan'))
-    click.echo(click.style('forks               master_branch        updated_at', fg='cyan'))
-    click.echo(click.style('forks_count         merges_url           url', fg='cyan'))
-    click.echo(click.style('forks_url           milestones_url       watchers', fg='cyan'))
-    click.echo(click.style('full_name           mirror_url           watchers_count', fg='cyan'))
+    click.echo(click.style('archive_url         git_tags_url         ' +
+                           'open_issues', fg='cyan'))
+    click.echo(click.style('assignees_url       git_url              ' +
+                           'open_issues_count', fg='cyan'))
+    click.echo(click.style('blobs_url           has_downloads        ' +
+                           'private', fg='cyan'))
+    click.echo(click.style('branches_url        has_issues           ' +
+                           'pulls_url', fg='cyan'))
+    click.echo(click.style('clone_url           has_pages            ' +
+                           'pushed_at', fg='cyan'))
+    click.echo(click.style('collaborators_url   has_wiki             ' +
+                           'releases_url', fg='cyan'))
+    click.echo(click.style('commits_url         homepage             ' +
+                           'size', fg='cyan'))
+    click.echo(click.style('compare_url         hooks_url            ' +
+                           'ssh_url', fg='cyan'))
+    click.echo(click.style('contents_url        html_url             ' +
+                           'stargazers_count', fg='cyan'))
+    click.echo(click.style('contributors_url    id                   ' +
+                           'stargazers_url', fg='cyan'))
+    click.echo(click.style('created_at          issue_comment_url    ' +
+                           'statuses_url', fg='cyan'))
+    click.echo(click.style('default_branch      issue_events_url     ' +
+                           'subscribers_url', fg='cyan'))
+    click.echo(click.style('deployments_url     issues_url           ' +
+                           'subscription_url', fg='cyan'))
+    click.echo(click.style('description         keys_url             ' +
+                           'svn_url', fg='cyan'))
+    click.echo(click.style('downloads_url       labels_url           ' +
+                           'tags_url', fg='cyan'))
+    click.echo(click.style('events_url          language             ' +
+                           'teams_url', fg='cyan'))
+    click.echo(click.style('fork                languages_url        ' +
+                           'trees_url', fg='cyan'))
+    click.echo(click.style('forks               master_branch        ' +
+                           'updated_at', fg='cyan'))
+    click.echo(click.style('forks_count         merges_url           ' +
+                           'url', fg='cyan'))
+    click.echo(click.style('forks_url           milestones_url       ' +
+                           'watchers', fg='cyan'))
+    click.echo(click.style('full_name           mirror_url           ' +
+                           'watchers_count', fg='cyan'))
     click.echo(click.style('git_commits_url     name', fg='cyan'))
     click.echo(click.style('git_refs_url        notifications_url', fg='cyan'))
     click.echo(click.style(60*'-', fg='blue'))
-    click.echo(click.style('license.featured              owner.login', fg='cyan'))
-    click.echo(click.style('license.key                   owner.organizations_url', fg='cyan'))
-    click.echo(click.style('license.name                  owner.received_events_url', fg='cyan'))
-    click.echo(click.style('license.url                   owner.repos_url', fg='cyan'))
-    click.echo(click.style('owner.avatar_url              owner.site_admin', fg='cyan'))
-    click.echo(click.style('owner.events_url              owner.starred_url', fg='cyan'))
-    click.echo(click.style('owner.followers_url           owner.subscriptions_url', fg='cyan'))
-    click.echo(click.style('owner.following_url           owner.type', fg='cyan'))
-    click.echo(click.style('owner.gists_url               owner.url', fg='cyan'))
-    click.echo(click.style('owner.gravatar_id             permissions.admin', fg='cyan'))
-    click.echo(click.style('owner.html_url                permissions.pull', fg='cyan'))
-    click.echo(click.style('owner.id                      permissions.push', fg='cyan'))
+    click.echo(click.style('license.featured              ' +
+                           'owner.login', fg='cyan'))
+    click.echo(click.style('license.key                   ' +
+                           'owner.organizations_url', fg='cyan'))
+    click.echo(click.style('license.name                  ' +
+                           'owner.received_events_url', fg='cyan'))
+    click.echo(click.style('license.url                   ' +
+                           'owner.repos_url', fg='cyan'))
+    click.echo(click.style('owner.avatar_url              ' +
+                           'owner.site_admin', fg='cyan'))
+    click.echo(click.style('owner.events_url              ' +
+                           'owner.starred_url', fg='cyan'))
+    click.echo(click.style('owner.followers_url           ' +
+                           'owner.subscriptions_url', fg='cyan'))
+    click.echo(click.style('owner.following_url           ' +
+                           'owner.type', fg='cyan'))
+    click.echo(click.style('owner.gists_url               ' +
+                           'owner.url', fg='cyan'))
+    click.echo(click.style('owner.gravatar_id             ' +
+                           'permissions.admin', fg='cyan'))
+    click.echo(click.style('owner.html_url                ' +
+                           'permissions.pull', fg='cyan'))
+    click.echo(click.style('owner.id                      ' +
+                           'permissions.push', fg='cyan'))
 
 #------------------------------------------------------------------------------
 def teams():
