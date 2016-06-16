@@ -51,7 +51,7 @@ class _settings:
 
     # authentication settings used by auth_*() functions
     username = '' # default = no GitHub authentication
-    accesstoken = '' # auth_config() may set this from the 'private' folder
+    accesstoken = '' # auth_config() may set this from '../_private' folder
 
     # logging settings used by log_*() functions
     verbose = False # default = messages displayed to console
@@ -497,7 +497,7 @@ def inifile_name():
     the gitinfo module.
     """
     return os.path.join(os.path.dirname(os.path.realpath(__file__)),
-                        'private/github_users.ini')
+                        '../_private/github_users.ini')
 
 #-------------------------------------------------------------------------------
 def log_apistatus():

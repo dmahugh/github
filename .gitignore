@@ -1,9 +1,9 @@
 # don't include these files
 _pyfind
 _todo.txt
-check_ratelimit.py
+bus_unit.py
 gitinfo.log
-people.json
+repos_by_bu.py
 
 # we create many CSV and XSLX files, don't need to put those in the repo
 *.csv
@@ -16,6 +16,5 @@ archive/
 backups/
 data/
 OSPO/
-private/
 reports/
 *.egg-info/
