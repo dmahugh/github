@@ -292,7 +292,8 @@ def memberfields(member_json, fields, org):
 @click.option('-a', '--authuser', default='',
               help='authentication username', metavar='')
 @click.option('-v', '--view', default='',
-              help='D=data, A=API calls, H=HTTP status codes, R=rate-limit status', metavar='')
+              help='D=data, A=API calls, H=HTTP status codes, ' +
+              'R=rate-limit status, *=ALL', metavar='')
 @click.option('-n', '--filename', default='',
               help='output filename (.CSV or .JSON)', metavar='')
 @click.option('-f', '--fields', default='',
@@ -317,6 +318,7 @@ def members(org, team, audit2fa, authuser, view, filename, fields, fieldlist):
             return
 
     view = 'd' if not view else view
+    view = 'dahr' if view == '*' else view
 
     if authuser:
         userandtoken = auth_config({'username': authuser})
@@ -494,7 +496,8 @@ def pagination(link_header):
 @click.option('-a', '--authuser', default='',
               help='authentication username', metavar='')
 @click.option('-v', '--view', default='',
-              help='D=data, A=API calls, H=HTTP status codes, R=rate-limit status', metavar='')
+              help='D=data, A=API calls, H=HTTP status codes, ' +
+              'R=rate-limit status, *=ALL', metavar='')
 @click.option('-n', '--filename', default='',
               help='output filename (.CSV or .JSON)', metavar='')
 @click.option('-f', '--fields', default='',
@@ -519,6 +522,7 @@ def repos(org, user, authuser, view, filename, fields, fieldlist):
             return
 
     view = 'd' if not view else view
+    view = 'dahr' if view == '*' else view
 
     if authuser:
         userandtoken = auth_config({'username': authuser})
