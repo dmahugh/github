@@ -271,6 +271,7 @@ def memberfields(member_json, fields, org):
         fields = ['login', 'id', 'type', 'site_admin']
 
     values = {}
+    values['org'] = org
     for fldname in fields:
         values[fldname] = member_json[fldname]
 
