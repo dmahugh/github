@@ -268,12 +268,16 @@ def memberfields(member_json, fields, org):
     """
     if not fields:
         # if no fields specified, use default field list
-        fields = ['login', 'id', 'type', 'site_admin']
+        fields = ['org', 'login', 'id', 'type', 'site_admin']
 
-    values = {}
-    values['org'] = org
+    values = collections.OrderedDict()
     for fldname in fields:
-        values[fldname] = member_json[fldname]
+        if fldname == 'org':
+            # 'org' is a special case, because it is not part of the JSON
+            # payload returned by the GitHub API
+            values[fldname] = org
+        else:
+            values[fldname] = member_json[fldname]
 
     return values
 
