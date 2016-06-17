@@ -444,13 +444,17 @@ def membersget(*, org=None, team=None, fields=None, audit2fa=False,
     retval = [] # the list to be returned
     totpages = 0
 
+    # custom header to retrieve license info while License API is in preview
+    headers = {'Accept': 'application/vnd.github.drax-preview+json'}
+
     while True:
 
         if view_options and 'a' in view_options.lower():
             click.echo('  Endpoint: ', nl=False)
             click.echo(click.style(endpoint, fg='cyan'))
 
-        response = github_api(endpoint=endpoint, auth=auth_user())
+        response = github_api(endpoint=endpoint, auth=auth_user(),
+                              headers=headers, view_options=view_options)
 
         if view_options and 'h' in view_options.lower():
             click.echo('    Status: ', nl=False)
@@ -709,8 +713,8 @@ def reposget(*, org=None, user=None, fields=None, view_options=None):
     else:
         endpoint = 'https://api.github.com/users/' + user + '/repos'
 
-    totpages = 0
     retval = [] # the list to be returned
+    totpages = 0
 
     # custom header to retrieve license info while License API is in preview
     headers = {'Accept': 'application/vnd.github.drax-preview+json'}
