@@ -3,6 +3,16 @@
 Entry point:
 cli() ----------------> Handle command-line arguments.
 
+Subcommand          Query Handler       GitHub API wrapper  retrieve field values
+------------------- ------------------- ------------------- ---------------------
+repos()             reposdata()         reposget()          repofields()
+members()           membersdata()       membersget()        memberfields()
+/// TO DO:
+teams()             teamsdata()         teamsget()          teamfields()
+files()             filesdata()         filesget()          filefields()
+collabs()           collabsdata()       collabsget()        collabfields()
+
+Functions:
 access_token() -------> Get GitHub access token from private settings.
 auth_config() --------> Configure authentication settings.
 auth_status() --------> Display status for GitHub username.

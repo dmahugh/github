@@ -24,7 +24,6 @@ orgs() ------------------> Get current list of Microsoft orgs on GitHub.
 orgs_update() -----------> Update saved Microsoft orgs.
 repos() -----------------> Get repos for one or more Microsoft orgs.
 repos_update() ----------> Update saved repos for Microsoft orgs.
-repos_update_all() ------> Update saved repos for all Microsoft orgs.
 teammembers() -----------> Get members for specified team or username.
 teammembers_update() ----> Update saved members for Microsoft teams.
 teams() -----------------> Get teams for one or more organizations.
@@ -705,17 +704,6 @@ def repos_update(org='MS*'):
         gi.githubapi_to_file(endpoint=endpoint, filename=filename, headers=headers)
 
 #-------------------------------------------------------------------------------
-def repos_update_all():
-    """Update saved repos for all Microsoft orgs.
-
-    Output filenames = repos-orgname-YYYY-MM-DD-HHMM.json
-    """
-    for org in orgs():
-        print('Updating repo list for organization -> ' + org.upper())
-        repos_update(org=org)
-        gi.log_apistatus()
-
-#-------------------------------------------------------------------------------
 def teammembers(teamid=None, login=None):
     """Get members for specified team ID or GitHub username.
 
@@ -875,13 +863,13 @@ if __name__ == '__main__':
     gi.auth_config({'username': 'msftgits'})
     gi.session_start('msgithub updates')
     orgs_update()
-    #repos_update_all()
-    #gi.session_end()
+    repos_update()
+    gi.session_end('msgithub updates')
+
     #_adminteams_to_csv()
     #_collaborators_to_csv()
     #_files_to_csv()
     #_orgmembers_to_csv()
-    #repos_update_all()
     #_repos_to_csv()
     #_teammembers_to_csv()
 
@@ -898,7 +886,5 @@ if __name__ == '__main__':
     #        print(outputstr)
     #        with open(outfile, 'a') as fhandle:
     #            fhandle.write(org + ',' + login + ',' + email + '\n')
-
-    gi.session_end('msgithub updates')
 
     #_capture_files('contribute.md', 'contribute_md', '.md')
