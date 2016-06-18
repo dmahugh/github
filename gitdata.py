@@ -191,13 +191,13 @@ def collabs():
 def data_fields(*, entity=None, jsondata=None, fields=None, defaults=None):
     """Get dictionary of desired values from GitHub API JSON payload.
 
-    entity = entity type ('repo', 'member')
+    entity   = entity type ('repo', 'member')
     jsondata = a JSON payload returned by the GitHub API
-    fields = list of names of fields (entries) to include from the JSON data,
-             or one of these shorthand values:
-            '*' -------> return all fields returned by GitHub API
-            'nourls' --> return all non-URL fields (not *_url or url)
-            'urls' ----> return all URL fields (*_url and url)
+    fields   = list of names of fields (entries) to include from the JSON data,
+               or one of these shorthand values:
+               '*' -------> return all fields returned by GitHub API
+               'nourls' --> return all non-URL fields (not *_url or url)
+               'urls' ----> return all URL fields (*_url and url)
     defaults = dictionary of fieldnames/values to include in dictionary
 
     Returns a dictionary of fieldnames/values.
@@ -315,6 +315,55 @@ def github_api(*, endpoint=None, auth=None, headers=None, view_options=None):
         click.echo(click.style(str(_settings.last_remaining) + ' remaining',
                                fg='cyan'))
     return response
+
+#-------------------------------------------------------------------------------
+def github_data(*, endpoint=None, entity=None, fields=None, defaults=None,
+                headers=None, view_options=None):
+    """Get data from GitHub API.
+    endpoint     = HTTP endpoint for GitHub API call
+    entity       = entity type ('repo', 'member')
+    fields       = list of fields to be returned
+    defaults     = dictionary of fieldnames/values to include in dictionaries
+    headers      = HTTP headers to be included with API call
+    view_options = optional string containing 'a' (API calls), 'h' (HTTP status
+                   codes), 'r' (rate-limit status), or 'd' (data).
+
+    Returns a list of dictionaries containing the specified fields.
+    Returns a complete data set - if this endpoint does pagination, all pages
+    are retrieved and aggregated.
+    """
+    headers = {} if not headers else headers
+
+    retval = [] # the list to be returned
+    totpages = 0
+
+    while True:
+
+        if view_options and 'a' in view_options.lower():
+            click.echo('  Endpoint: ', nl=False)
+            click.echo(click.style(endpoint, fg='cyan'))
+
+        response = github_api(endpoint=endpoint, auth=auth_user(),
+                              view_options=view_options, headers=headers)
+
+        if view_options and 'h' in view_options.lower():
+            click.echo('    Status: ', nl=False)
+            click.echo(click.style(str(response), fg='cyan'), nl=False)
+            click.echo(', ' + str(len(response.text)) + ' bytes returned')
+
+        if response.ok:
+            totpages += 1
+            thispage = json.loads(response.text)
+            for json_item in thispage:
+                retval.append(data_fields(entity=entity, jsondata=json_item,
+                                          fields=fields, defaults=defaults))
+
+        pagelinks = pagination(response)
+        endpoint = pagelinks['nextURL']
+        if not endpoint:
+            break # no more results to process
+
+    return retval
 
 #-------------------------------------------------------------------------------
 def inifile_name():
@@ -475,38 +524,9 @@ def membersget(*, org=None, team=None, fields=None, audit2fa=False,
         endpoint = 'https://api.github.com/orgs/' + org + '/members' + \
             ('?filter=2fa_disabled' if audit2fa else '')
 
-    retval = [] # the list to be returned
-    totpages = 0
-    while True:
-
-        if view_options and 'a' in view_options.lower():
-            click.echo('  Endpoint: ', nl=False)
-            click.echo(click.style(endpoint, fg='cyan'))
-
-        response = github_api(endpoint=endpoint, auth=auth_user(),
-                              view_options=view_options)
-
-        if view_options and 'h' in view_options.lower():
-            click.echo('    Status: ', nl=False)
-            click.echo(click.style(str(response), fg='cyan'), nl=False)
-            click.echo(', ' + str(len(response.text)) + ' bytes returned')
-
-        if response.ok:
-            totpages += 1
-            thispage = json.loads(response.text)
-            for member_json in thispage:
-                retval.append(data_fields(entity='member', jsondata=member_json,
-                                          fields=fields, defaults={"org": org}))
-
-        pagelinks = pagination(response)
-        endpoint = pagelinks['nextURL']
-        if not endpoint:
-            break # no more results to process
-
-    with open('test_memberdata.json', 'w') as fhandle:
-        fhandle.write(json.dumps(retval))
-
-    return retval
+    return github_data(endpoint=endpoint, entity='member', fields=fields,
+                       defaults={"org": org}, headers={},
+                       view_options=view_options)
 
 #------------------------------------------------------------------------------
 def pagination(link_header):
@@ -691,35 +711,8 @@ def reposget(*, org=None, user=None, fields=None, view_options=None):
     # custom header to retrieve license info while License API is in preview
     headers = {'Accept': 'application/vnd.github.drax-preview+json'}
 
-    retval = [] # the list to be returned
-    totpages = 0
-    while True:
-
-        if view_options and 'a' in view_options.lower():
-            click.echo('  Endpoint: ', nl=False)
-            click.echo(click.style(endpoint, fg='cyan'))
-
-        response = github_api(endpoint=endpoint, auth=auth_user(),
-                              headers=headers, view_options=view_options)
-
-        if view_options and 'h' in view_options.lower():
-            click.echo('    Status: ', nl=False)
-            click.echo(click.style(str(response), fg='cyan'), nl=False)
-            click.echo(', ' + str(len(response.text)) + ' bytes returned')
-
-        if response.ok:
-            totpages += 1
-            thispage = json.loads(response.text)
-            for repo_json in thispage:
-                retval.append(data_fields(entity='repo', jsondata=repo_json,
-                                          fields=fields))
-
-        pagelinks = pagination(response)
-        endpoint = pagelinks['nextURL']
-        if not endpoint:
-            break # there are no more results to process
-
-    return retval
+    return github_data(endpoint=endpoint, entity='repo', fields=fields,
+                       headers=headers, view_options=view_options)
 
 #------------------------------------------------------------------------------
 def repos_listfields():
