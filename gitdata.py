@@ -9,6 +9,8 @@ auth_status() --------> Display status for GitHub username.
 auth_user() ----------> Return credentials for use in GitHub API calls.
 collabs() ------------> not implemented
 data_fields() --------> Get dictionary of values from GitHub API JSON payload.
+display_data() -------> Display data on console.
+filename_valid() -----> Check passed filename for valid file type.
 files() --------------> not implemented
 github_api() ---------> Call the GitHub API (wrapper for requests.get()).
 github_data() --------> Consolidate data returned by GitHub API.
@@ -119,10 +121,13 @@ def auth_config(settings=None):
     # if username is specified but no accesstoken specified, look up this
     # user's PAT in github_users.ini
     if settings and 'username' in settings and not 'accesstoken' in settings:
-        if settings['username'] is None:
+        if not settings['username']:
             settings['accesstoken'] = None
         else:
             settings['accesstoken'] = access_token(settings['username'])
+            if not settings['accesstoken']:
+                click.echo('Unknown authentication username: ' +
+                           settings['username'])
 
     if settings:
         for setting in config_settings:
@@ -258,11 +263,46 @@ def data_fields(*, entity=None, jsondata=None, fields=None, defaults=None):
     return values
 
 #------------------------------------------------------------------------------
+def display_data(view_options=None, datasource=None):
+    """Display data on console.
+
+    view_options = string containing 'd' to display data
+    datasource   = list of dictionaries
+    """
+    if not view_options:
+        return
+
+    if not 'd' in view_options.lower():
+        return
+
+    for data_item in datasource:
+        values = [str(value) for _, value in data_item.items()]
+        click.echo(click.style(','.join(values), fg='cyan'))
+
+#------------------------------------------------------------------------------
 @cli.command(help='not implemented yet')
 def files():
     """NOT IMPLEMENTED
     """
     click.echo('NOT IMPLEMENTED: files()')
+
+#-------------------------------------------------------------------------------
+def filename_valid(filename=None):
+    """Check filename for valid file type.
+
+    filename = output filename passed on command line
+
+    Returns True if valid, False if not.
+    """
+    if not filename:
+        return True # filename is optional
+
+    _, file_ext = os.path.splitext(filename)
+    if file_ext.lower() not in ['.csv', '.json']:
+        click.echo('ERROR: output file must be .CSV or .JSON')
+        return False
+
+    return True
 
 #-------------------------------------------------------------------------------
 def github_api(*, endpoint=None, auth=None, headers=None, view_options=None):
@@ -404,32 +444,23 @@ def members(org, team, audit2fa, authuser, view, filename, fields, fieldlist):
         click.echo('ERROR: must specify an org')
         return
 
-    if filename:
-        _, file_ext = os.path.splitext(filename)
-        if file_ext.lower() not in ['.csv', '.json']:
-            click.echo('ERROR: output file must be .CSV or .JSON')
-            return
+    if not filename_valid(filename=filename):
+        return
 
     view = 'd' if not view else view
     view = 'dahr' if view == '*' else view
 
-    if authuser:
-        userandtoken = auth_config({'username': authuser})
-        if not userandtoken['accesstoken']:
-            click.echo('Unknown authentication username: ' + authuser)
+    auth_config({'username': authuser})
 
     fldnames = fields.split('/') if fields else None
-
     memberlist = membersdata(org=org, team=team, audit2fa=audit2fa,
                              fields=fldnames, view_options=view)
 
-    if 'd' in view.lower():
-        # display data on the console
-        for member in memberlist:
-            values = [str(item) for _, item in member.items()]
-            click.echo(click.style(','.join(values), fg='cyan'))
+    display_data(view, memberlist)
 
+    #//// shared function
     if filename:
+        _, file_ext = os.path.splitext(filename)
         if file_ext.lower() == '.json':
             # write JSON file
             write_json(source=memberlist, filename=filename)
@@ -438,6 +469,7 @@ def members(org, team, audit2fa, authuser, view, filename, fields, fieldlist):
             write_csv(memberlist, filename)
         click.echo('Output file written: ' + filename)
 
+    #//// shared function
     try:
         if _settings.unknownfieldname:
             click.echo('Unknown field name: ' + _settings.unknownfieldname)
@@ -592,30 +624,22 @@ def repos(org, user, authuser, view, filename, fields, fieldlist):
         click.echo('ERROR: must specify an org or user')
         return
 
-    if filename:
-        _, file_ext = os.path.splitext(filename)
-        if file_ext.lower() not in ['.csv', '.json']:
-            click.echo('ERROR: output file must be .CSV or .JSON')
-            return
+    if not filename_valid(filename):
+        return
 
     view = 'd' if not view else view
     view = 'dahr' if view == '*' else view
 
-    if authuser:
-        userandtoken = auth_config({'username': authuser})
-        if not userandtoken['accesstoken']:
-            click.echo('Unknown authentication username: ' + authuser)
+    auth_config({'username': authuser})
 
     fldnames = fields.split('/') if fields else None
     repolist = reposdata(org=org, user=user, fields=fldnames, view_options=view)
 
-    if 'd' in view.lower():
-        # display data on the console
-        for repo in repolist:
-            values = [str(item) for _, item in repo.items()]
-            click.echo(click.style(','.join(values), fg='cyan'))
+    display_data(view, repolist)
 
+    #//// shared function
     if filename:
+        _, file_ext = os.path.splitext(filename)
         if file_ext.lower() == '.json':
             # write JSON file
             write_json(source=repolist, filename=filename)
@@ -624,6 +648,7 @@ def repos(org, user, authuser, view, filename, fields, fieldlist):
             write_csv(repolist, filename)
         click.echo('Output file written: ' + filename)
 
+    #//// shared function
     try:
         if _settings.unknownfieldname:
             click.echo('Unknown field name: ' + _settings.unknownfieldname)
