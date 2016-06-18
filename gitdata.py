@@ -3,25 +3,16 @@
 Entry point:
 cli() ----------------> Handle command-line arguments.
 
-Subcommand          Query Handler       GitHub API wrapper  retrieve field values
-------------------- ------------------- ------------------- ---------------------
-repos()             reposdata()         reposget()          repofields()
-members()           membersdata()       membersget()        memberfields()
-/// TO DO:
-teams()             teamsdata()         teamsget()          teamfields()
-files()             filesdata()         filesget()          filefields()
-collabs()           collabsdata()       collabsget()        collabfields()
-
-Functions:
 access_token() -------> Get GitHub access token from private settings.
 auth_config() --------> Configure authentication settings.
 auth_status() --------> Display status for GitHub username.
 auth_user() ----------> Return credentials for use in GitHub API calls.
 collabs() ------------> not implemented
+data_fields() --------> Get dictionary of values from GitHub API JSON payload.
 files() --------------> not implemented
 github_api() ---------> Call the GitHub API (wrapper for requests.get()).
+github_data() --------> Consolidate data returned by GitHub API.
 inifile_name() -------> Return name of INI file where GitHub tokens are stored.
-memberfields() -------> Get field values for a member of a team or org.
 members() ------------> Get member info for organizations or teams.
 members_listfields() -> List valid field names for members().
 membersdata() --------> Get member information for orgs or teams.
@@ -196,6 +187,76 @@ def collabs():
     """
     click.echo('NOT IMPLEMENTED: collabs()')
 
+#-------------------------------------------------------------------------------
+def data_fields(*, entity=None, jsondata=None, fields=None, defaults=None):
+    """Get dictionary of desired values from GitHub API JSON payload.
+
+    entity = entity type ('repo', 'member')
+    jsondata = a JSON payload returned by the GitHub API
+    fields = list of names of fields (entries) to include from the JSON data,
+             or one of these shorthand values:
+            '*' -------> return all fields returned by GitHub API
+            'nourls' --> return all non-URL fields (not *_url or url)
+            'urls' ----> return all URL fields (*_url and url)
+    defaults = dictionary of fieldnames/values to include in dictionary
+
+    Returns a dictionary of fieldnames/values.
+    """
+    if not fields:
+        # if no fields specified, use default field list
+        if entity == 'member':
+            fields = ['org', 'login', 'id', 'type', 'site_admin']
+        elif entity == 'repo':
+            fields = ['owner.login', 'name']
+        else:
+            fields = ['name']
+
+    values = collections.OrderedDict()
+
+    if defaults:
+        for fldname in defaults:
+            values[fldname] = defaults[fldname]
+
+    if fields[0] in ['*', 'urls', 'nourls']:
+        # special cases to return all fields or all url/non-url fields
+        values = collections.OrderedDict()
+        for fldname in jsondata:
+            if fields[0] == '*' or \
+                (fields[0] == 'urls' and fldname.endswith('url')) or \
+                (fields[0] == 'nourls' and not fldname.endswith('url')):
+                this_item = jsondata[fldname]
+                if str(this_item.__class__) == "<class 'dict'>" and \
+                    fields[0] == 'nourls':
+                    # this is an embedded dictionary, so for the 'nourls' case
+                    # remove *url fields ...
+                    values[fldname] = {key:value for
+                                       (key, value) in this_item.items()
+                                       if not key.endswith('url')}
+                else:
+                    values[fldname] = this_item
+    else:
+        # fields == an actual list of fieldnames, not a special case
+        values = collections.OrderedDict()
+        for fldname in fields:
+            if '.' in fldname:
+                # special case - embedded field within a JSON object
+                try:
+                    values[fldname.replace('.', '_')] = \
+                        jsondata[fldname.split('.')[0]][fldname.split('.')[1]]
+                except (TypeError, KeyError):
+                    # change '.' to '_' because can't have '.' in an identifier
+                    values[fldname.replace('.', '_')] = None
+            else:
+                # simple case: copy a field/value pair
+                try:
+                    values[fldname] = jsondata[fldname]
+                    if fldname.lower() == 'private':
+                        values[fldname] = 'private' if jsondata[fldname] else 'public'
+                except KeyError:
+                    _settings.unknownfieldname = fldname
+
+    return values
+
 #------------------------------------------------------------------------------
 @cli.command(help='not implemented yet')
 def files():
@@ -215,9 +276,8 @@ def github_api(*, endpoint=None, auth=None, headers=None, view_options=None):
 
     Returns the response object.
     API call through this function update session totals.
-    NOTE: passes the Accept header to use version V3 of the GitHub API. This can
+    NOTE: sends the Accept header to use version V3 of the GitHub API. This can
     be explicitly overridden by passing a different Accept header if desired.
-    <internal>
     """
     if not endpoint:
         click.echo('ERROR: github_api() called with no endpoint')
@@ -264,32 +324,6 @@ def inifile_name():
     """
     return os.path.join(os.path.dirname(os.path.realpath(__file__)),
                         '../_private/github_users.ini')
-
-#-------------------------------------------------------------------------------
-def memberfields(member_json, fields, org):
-    """Get field values for a member/user.
-
-    1st parameter = member's json representation as returned by GitHub API
-    2nd parameter = list of names of desired fields
-    3rd parameter = organization ID
-
-    Returns a dictionary containing the desired fields and their values.
-    <internal>
-    """
-    if not fields:
-        # if no fields specified, use default field list
-        fields = ['org', 'login', 'id', 'type', 'site_admin']
-
-    values = collections.OrderedDict()
-    for fldname in fields:
-        if fldname == 'org':
-            # 'org' is a special case, because it is not part of the JSON
-            # payload returned by the GitHub API
-            values[fldname] = org
-        else:
-            values[fldname] = member_json[fldname]
-
-    return values
 
 #------------------------------------------------------------------------------
 @cli.command(help='Get member information by org or team ID.')
@@ -443,10 +477,6 @@ def membersget(*, org=None, team=None, fields=None, audit2fa=False,
 
     retval = [] # the list to be returned
     totpages = 0
-
-    # custom header to retrieve license info while License API is in preview
-    headers = {'Accept': 'application/vnd.github.drax-preview+json'}
-
     while True:
 
         if view_options and 'a' in view_options.lower():
@@ -454,7 +484,7 @@ def membersget(*, org=None, team=None, fields=None, audit2fa=False,
             click.echo(click.style(endpoint, fg='cyan'))
 
         response = github_api(endpoint=endpoint, auth=auth_user(),
-                              headers=headers, view_options=view_options)
+                              view_options=view_options)
 
         if view_options and 'h' in view_options.lower():
             click.echo('    Status: ', nl=False)
@@ -465,12 +495,16 @@ def membersget(*, org=None, team=None, fields=None, audit2fa=False,
             totpages += 1
             thispage = json.loads(response.text)
             for member_json in thispage:
-                retval.append(memberfields(member_json, fields, org))
+                retval.append(data_fields(entity='member', jsondata=member_json,
+                                          fields=fields, defaults={"org": org}))
 
         pagelinks = pagination(response)
         endpoint = pagelinks['nextURL']
         if not endpoint:
             break # no more results to process
+
+    with open('test_memberdata.json', 'w') as fhandle:
+        fhandle.write(json.dumps(retval))
 
     return retval
 
@@ -583,65 +617,6 @@ def repos(org, user, authuser, view, filename, fields, fieldlist):
         pass
 
 #-------------------------------------------------------------------------------
-def repofields(repo_json, fields):
-    """Get field values for a repo.
-
-    1st parameter = repo's json representation as returned by GitHub API
-    2nd parameter = list of names of desired fields
-
-    Returns a dictionary containing the desired fields and their values.
-    Note special cases:
-    fields=['*'] -------> return all fields returned by GitHub API
-    fields=['nourls'] -> return all non-URL fields (not *_url or url)
-    fields=['urls'] ----> return all URL fields (*_url and url)
-    <internal>
-    """
-    if not fields:
-        # if no fields specified, use default field list
-        fields = ['owner.login', 'name']
-
-    # handle special cases
-    if fields[0] in ['*', 'urls', 'nourls']:
-        # special cases to return all fields or all url/non-url fields
-        values = collections.OrderedDict()
-        for fldname in repo_json:
-            if fields[0] == '*' or \
-                (fields[0] == 'urls' and fldname.endswith('url')) or \
-                (fields[0] == 'nourls' and not fldname.endswith('url')):
-                this_item = repo_json[fldname]
-                if str(this_item.__class__) == "<class 'dict'>" and \
-                    fields[0] == 'nourls':
-                    # this is an embedded dictionary, so for the 'nourls' case
-                    # remove *url fields ...
-                    values[fldname] = {key:value for
-                                       (key, value) in this_item.items()
-                                       if not key.endswith('url')}
-                else:
-                    values[fldname] = this_item
-    else:
-        # fields == an actual list of fieldnames, not a special case
-        values = collections.OrderedDict()
-        for fldname in fields:
-            if '.' in fldname:
-                # special case - embedded field within a JSON object
-                try:
-                    values[fldname.replace('.', '_')] = \
-                        repo_json[fldname.split('.')[0]][fldname.split('.')[1]]
-                except (TypeError, KeyError):
-                    # change '.' to '_' because can't have '.' in an identifier
-                    values[fldname.replace('.', '_')] = None
-            else:
-                # simple case: copy a field/value pair
-                try:
-                    values[fldname] = repo_json[fldname]
-                    if fldname.lower() == 'private':
-                        values[fldname] = 'private' if repo_json[fldname] else 'public'
-                except KeyError:
-                    _settings.unknownfieldname = fldname
-
-    return values
-
-#-------------------------------------------------------------------------------
 def reposdata(*, org=None, user=None, fields=None, view_options=None):
     """Get repo information for one or more organizations or users.
 
@@ -713,12 +688,11 @@ def reposget(*, org=None, user=None, fields=None, view_options=None):
     else:
         endpoint = 'https://api.github.com/users/' + user + '/repos'
 
-    retval = [] # the list to be returned
-    totpages = 0
-
     # custom header to retrieve license info while License API is in preview
     headers = {'Accept': 'application/vnd.github.drax-preview+json'}
 
+    retval = [] # the list to be returned
+    totpages = 0
     while True:
 
         if view_options and 'a' in view_options.lower():
@@ -737,7 +711,8 @@ def reposget(*, org=None, user=None, fields=None, view_options=None):
             totpages += 1
             thispage = json.loads(response.text)
             for repo_json in thispage:
-                retval.append(repofields(repo_json, fields))
+                retval.append(data_fields(entity='repo', jsondata=repo_json,
+                                          fields=fields))
 
         pagelinks = pagination(response)
         endpoint = pagelinks['nextURL']
