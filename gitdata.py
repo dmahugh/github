@@ -372,11 +372,19 @@ def github_api(*, endpoint=None, auth=None, headers=None, view_options=None):
         _settings.last_remaining = 999999
 
     if view_options and 'r' in view_options.lower():
+
+        if auth_user():
+            username = '(user = ' + auth_user()[0] + ')'
+        else:
+            username = '(non-authenticated)'
+
         click.echo('Rate Limit: ' + str(_settings.last_ratelimit) + ' - ' + \
               str(_settings.last_ratelimit - _settings.last_remaining) +\
               ' used, ', nl=False)
-        click.echo(click.style(str(_settings.last_remaining) + ' remaining',
+        click.echo(click.style(str(_settings.last_remaining) + ' remaining ' + username,
                                fg='cyan'))
+
+
     return response
 
 #-------------------------------------------------------------------------------
