@@ -8,8 +8,9 @@ auth_config() --------> Configure authentication settings.
 auth_status() --------> Display status for GitHub username.
 auth_user() ----------> Return credentials for use in GitHub API calls.
 collabs() ------------> not implemented
+data_display() -------> Display data on console.
 data_fields() --------> Get dictionary of values from GitHub API JSON payload.
-display_data() -------> Display data on console.
+data_write() ---------> Write output file.
 filename_valid() -----> Check passed filename for valid file type.
 files() --------------> not implemented
 github_api() ---------> Call the GitHub API (wrapper for requests.get()).
@@ -263,7 +264,7 @@ def data_fields(*, entity=None, jsondata=None, fields=None, defaults=None):
     return values
 
 #------------------------------------------------------------------------------
-def display_data(view_options=None, datasource=None):
+def data_display(view_options=None, datasource=None):
     """Display data on console.
 
     view_options = string containing 'd' to display data
@@ -278,6 +279,27 @@ def display_data(view_options=None, datasource=None):
     for data_item in datasource:
         values = [str(value) for _, value in data_item.items()]
         click.echo(click.style(','.join(values), fg='cyan'))
+
+#------------------------------------------------------------------------------
+def data_write(filename=None, datasource=None):
+    """Write output file.
+
+    filename   = output filename
+    datasource = list of dictionaries
+    """
+    if not filename:
+        return
+
+    _, file_ext = os.path.splitext(filename)
+
+    if file_ext.lower() == '.json':
+        write_json(source=datasource, filename=filename) # write JSON file
+    else:
+        write_csv(datasource, filename) # write CSV file
+
+    click.echo('Output file written: ' + filename)
+
+
 
 #------------------------------------------------------------------------------
 @cli.command(help='not implemented yet')
@@ -456,18 +478,8 @@ def members(org, team, audit2fa, authuser, view, filename, fields, fieldlist):
     memberlist = membersdata(org=org, team=team, audit2fa=audit2fa,
                              fields=fldnames, view_options=view)
 
-    display_data(view, memberlist)
-
-    #//// shared function
-    if filename:
-        _, file_ext = os.path.splitext(filename)
-        if file_ext.lower() == '.json':
-            # write JSON file
-            write_json(source=memberlist, filename=filename)
-        else:
-            # write CSV file
-            write_csv(memberlist, filename)
-        click.echo('Output file written: ' + filename)
+    data_display(view, memberlist)
+    data_write(filename, memberlist)
 
     #//// shared function
     try:
@@ -635,18 +647,8 @@ def repos(org, user, authuser, view, filename, fields, fieldlist):
     fldnames = fields.split('/') if fields else None
     repolist = reposdata(org=org, user=user, fields=fldnames, view_options=view)
 
-    display_data(view, repolist)
-
-    #//// shared function
-    if filename:
-        _, file_ext = os.path.splitext(filename)
-        if file_ext.lower() == '.json':
-            # write JSON file
-            write_json(source=repolist, filename=filename)
-        else:
-            # write CSV file
-            write_csv(repolist, filename)
-        click.echo('Output file written: ' + filename)
+    data_display(view, repolist)
+    data_write(filename, repolist)
 
     #//// shared function
     try:
