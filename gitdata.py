@@ -418,12 +418,10 @@ def members(org, team, audit2fa, authuser, view, filename, fields, fieldlist):
         if not userandtoken['accesstoken']:
             click.echo('Unknown authentication username: ' + authuser)
 
-    if fields:
-        memberlist = membersdata(org=org, team=team, audit2fa=audit2fa,
-                                 fields=fields.split('/'), view_options=view)
-    else:
-        memberlist = membersdata(org=org, team=team, audit2fa=audit2fa,
-                                 view_options=view)
+    fldnames = fields.split('/') if fields else None
+
+    memberlist = membersdata(org=org, team=team, audit2fa=audit2fa,
+                             fields=fldnames, view_options=view)
 
     if 'd' in view.lower():
         # display data on the console
@@ -608,11 +606,8 @@ def repos(org, user, authuser, view, filename, fields, fieldlist):
         if not userandtoken['accesstoken']:
             click.echo('Unknown authentication username: ' + authuser)
 
-    if fields:
-        repolist = reposdata(org=org, user=user, fields=fields.split('/'),
-                             view_options=view)
-    else:
-        repolist = reposdata(org=org, user=user, view_options=view)
+    fldnames = fields.split('/') if fields else None
+    repolist = reposdata(org=org, user=user, fields=fldnames, view_options=view)
 
     if 'd' in view.lower():
         # display data on the console
