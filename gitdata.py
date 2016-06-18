@@ -29,6 +29,7 @@ repos_listfields() ---> List valid field names for repos().
 teams() --------------> not implemented
 timestamp() ----------> Get current timestamp 'YYYY-MM-DD HH:MM:SS''
 token_abbr() ---------> Get abbreviated access token (for display purposes).
+unknown_fields() -----> List unknown field names encountered this session.
 write_csv() ----------> Write list of dictionaries to a CSV file.
 write_json() ---------> Write list of dictionaries to a JSON file.
 """
@@ -480,14 +481,7 @@ def members(org, team, audit2fa, authuser, view, filename, fields, fieldlist):
 
     data_display(view, memberlist)
     data_write(filename, memberlist)
-
-    #//// shared function
-    try:
-        if _settings.unknownfieldname:
-            click.echo('Unknown field name: ' + _settings.unknownfieldname)
-    except AttributeError:
-        # no unknown fields have been logged
-        pass
+    unknown_fields() # list unknown field names (if any)
 
 #------------------------------------------------------------------------------
 def members_listfields():
@@ -649,14 +643,7 @@ def repos(org, user, authuser, view, filename, fields, fieldlist):
 
     data_display(view, repolist)
     data_write(filename, repolist)
-
-    #//// shared function
-    try:
-        if _settings.unknownfieldname:
-            click.echo('Unknown field name: ' + _settings.unknownfieldname)
-    except AttributeError:
-        # no unknown fields have been logged
-        pass
+    unknown_fields() # list unknown field names (if any)
 
 #-------------------------------------------------------------------------------
 def reposdata(*, org=None, user=None, fields=None, view_options=None):
@@ -847,6 +834,17 @@ def token_abbr(accesstoken):
         return accesstoken[0:2] + '...' + accesstoken[-2:]
     else:
         return "*none*"
+
+#-------------------------------------------------------------------------------
+def unknown_fields():
+    """List unknown field names encountered in this session.
+    """
+    try:
+        if _settings.unknownfieldname:
+            click.echo('Unknown field name: ' + _settings.unknownfieldname)
+    except AttributeError:
+        # no unknown fields have been logged
+        pass
 
 #-------------------------------------------------------------------------------
 def write_csv(listobj, filename):
