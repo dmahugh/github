@@ -7,29 +7,41 @@ access_token() -------> Get GitHub access token from private settings.
 auth_config() --------> Configure authentication settings.
 auth_status() --------> Display status for GitHub username.
 auth_user() ----------> Return credentials for use in GitHub API calls.
+
 collabs() ------------> not implemented
+
 data_display() -------> Display data on console.
 data_fields() --------> Get dictionary of values from GitHub API JSON payload.
 data_write() ---------> Write output file.
+
 filename_valid() -----> Check passed filename for valid file type.
+
 files() --------------> not implemented
+
 github_api() ---------> Call the GitHub API (wrapper for requests.get()).
 github_data() --------> Consolidate data returned by GitHub API.
+
 inifile_name() -------> Return name of INI file where GitHub tokens are stored.
+
 members() ------------> Get member info for organizations or teams.
 members_listfields() -> List valid field names for members().
 membersdata() --------> Get member information for orgs or teams.
 membersget() ---------> Get member info for a specified organization.
+
 pagination() ---------> Parse pagination URLs from 'link' HTTP header.
-repofields() ---------> Get fields/values for a repo.
+
 repos() --------------> Get repo info for an org or user.
+repos_listfields() ---> List valid field names for repos().
 reposdata() ----------> Get repo information for organizations or users.
 reposget() -----------> Get repo information for a specified org or user.
-repos_listfields() ---> List valid field names for repos().
-teams() --------------> not implemented
+
+teams() --------------> Get team information for an organization.
+teams_listfields() ---> List valid field names for teams().
+
 timestamp() ----------> Get current timestamp 'YYYY-MM-DD HH:MM:SS''
 token_abbr() ---------> Get abbreviated access token (for display purposes).
 unknown_fields() -----> List unknown field names encountered this session.
+
 write_csv() ----------> Write list of dictionaries to a CSV file.
 write_json() ---------> Write list of dictionaries to a JSON file.
 """
@@ -482,11 +494,9 @@ def members(org, team, audit2fa, authuser, view, filename, fields, fieldlist):
     view = 'dahr' if view == '*' else view
 
     auth_config({'username': authuser})
-
     fldnames = fields.split('/') if fields else None
     memberlist = membersdata(org=org, team=team, audit2fa=audit2fa,
                              fields=fldnames, view_options=view)
-
     data_display(view, memberlist)
     data_write(filename, memberlist)
     unknown_fields() # list unknown field names (if any)
@@ -495,8 +505,19 @@ def members(org, team, audit2fa, authuser, view, filename, fields, fieldlist):
 def members_listfields():
     """List valid field names for members().
     """
-
-    click.echo('\nAvailable field names for member data:')
+    click.echo(click.style('\n     specified fields -->  --fields=',
+                           fg='white'), nl=False)
+    click.echo(click.style('fld1/fld2/etc', fg='cyan'))
+    click.echo(click.style('           ALL fields -->  --fields=',
+                           fg='white'), nl=False)
+    click.echo(click.style('*', fg='cyan'))
+    click.echo(click.style('              No URLs -->  --fields=',
+                           fg='white'), nl=False)
+    click.echo(click.style('nourls', fg='cyan'))
+    click.echo(click.style('            Only URLs -->  --fields=',
+                           fg='white'), nl=False)
+    click.echo(click.style('urls', fg='cyan'))
+    click.echo(click.style(60*'-', fg='blue'))
     click.echo(click.style('id                  avatar_url          ' +
                            'html_url', fg='cyan'))
     click.echo(click.style('login               events_url          ' +
@@ -645,10 +666,8 @@ def repos(org, user, authuser, view, filename, fields, fieldlist):
     view = 'dahr' if view == '*' else view
 
     auth_config({'username': authuser})
-
     fldnames = fields.split('/') if fields else None
     repolist = reposdata(org=org, user=user, fields=fldnames, view_options=view)
-
     data_display(view, repolist)
     data_write(filename, repolist)
     unknown_fields() # list unknown field names (if any)
@@ -819,10 +838,55 @@ def repos_listfields():
                            'permissions.push', fg='cyan'))
 
 #------------------------------------------------------------------------------
-def teams():
-    """NOT IMPLEMENTED
+@cli.command(help='Get team information for an organization.')
+@click.option('-o', '--org', default='',
+              help='GitHub organization', metavar='')
+@click.option('-a', '--authuser', default='',
+              help='authentication username', metavar='')
+@click.option('-v', '--view', default='',
+              help='D=data, A=API calls, H=HTTP status codes, ' +
+              'R=rate-limit status, *=ALL', metavar='')
+@click.option('-n', '--filename', default='',
+              help='output filename (.CSV or .JSON)', metavar='')
+@click.option('-f', '--fields', default='',
+              help='fields to include', metavar='<fld1/fld2/etc>')
+@click.option('-l', '--fieldlist', is_flag=True,
+              help='list available GitHub fields')
+def teams(org, authuser, view, filename, fields, fieldlist):
+    """get team information for an organization.
     """
+    if fieldlist:
+        teams_listfields()
+        return
+
     click.echo('NOT IMPLEMENTED: teams()')
+
+#-------------------------------------------------------------------------------
+def teams_listfields():
+    """List valid field names for teams().
+    """
+    click.echo(click.style('\n     specified fields -->  --fields=',
+                           fg='white'), nl=False)
+    click.echo(click.style('fld1/fld2/etc', fg='cyan'))
+    click.echo(click.style('           ALL fields -->  --fields=',
+                           fg='white'), nl=False)
+    click.echo(click.style('*', fg='cyan'))
+    click.echo(click.style('              No URLs -->  --fields=',
+                           fg='white'), nl=False)
+    click.echo(click.style('nourls', fg='cyan'))
+    click.echo(click.style('            Only URLs -->  --fields=',
+                           fg='white'), nl=False)
+    click.echo(click.style('urls', fg='cyan'))
+    click.echo(click.style(60*'-', fg='blue'))
+    click.echo(click.style('description', fg='cyan'))
+    click.echo(click.style('id', fg='cyan'))
+    click.echo(click.style('members_url', fg='cyan'))
+    click.echo(click.style('name', fg='cyan'))
+    click.echo(click.style('permission', fg='cyan'))
+    click.echo(click.style('privacy', fg='cyan'))
+    click.echo(click.style('repositories_url', fg='cyan'))
+    click.echo(click.style('slug', fg='cyan'))
+    click.echo(click.style('url', fg='cyan'))
 
 #-------------------------------------------------------------------------------
 def timestamp():
