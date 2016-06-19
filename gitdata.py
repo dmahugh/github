@@ -240,7 +240,6 @@ def data_fields(*, entity=None, jsondata=None, fields=None, defaults=None):
 
     if fields[0] in ['*', 'urls', 'nourls']:
         # special cases to return all fields or all url/non-url fields
-        values = collections.OrderedDict()
         for fldname in jsondata:
             if fields[0] == '*' or \
                 (fields[0] == 'urls' and fldname.endswith('url')) or \
@@ -257,7 +256,6 @@ def data_fields(*, entity=None, jsondata=None, fields=None, defaults=None):
                     values[fldname] = this_item
     else:
         # fields == an actual list of fieldnames, not a special case
-        values = collections.OrderedDict()
         for fldname in fields:
             if '.' in fldname:
                 # special case - embedded field within a JSON object
@@ -352,7 +350,7 @@ def github_api(*, endpoint=None, auth=None, headers=None, view_options=None):
                    codes), 'r' (rate-limit status), or 'd' (data).
 
     Returns the response object.
-    API call through this function update session totals.
+
     NOTE: sends the Accept header to use version V3 of the GitHub API. This can
     be explicitly overridden by passing a different Accept header if desired.
     """
@@ -360,19 +358,17 @@ def github_api(*, endpoint=None, auth=None, headers=None, view_options=None):
         click.echo('ERROR: github_api() called with no endpoint')
         return
 
+    # set auth to empty tuple if not used
+    auth = auth if auth else ()
+
     # add the V3 Accept header to the dictionary
     headers = {} if not headers else headers
     headers_dict = {**{"Accept": "application/vnd.github.v3+json"}, **headers}
 
-    # make the API call, get response object
-    if auth:
-        response = requests.get(endpoint, auth=auth, headers=headers_dict)
-    else:
-        response = requests.get(endpoint, headers=headers_dict)
+    # make the API call
+    response = requests.get(endpoint, auth=auth, headers=headers_dict)
 
-    # update session settings
-    _settings.tot_api_calls += 1
-    _settings.tot_api_bytes += len(response.content)
+    # update rate-limit settings
     try:
         _settings.last_ratelimit = int(response.headers['X-RateLimit-Limit'])
         _settings.last_remaining = int(response.headers['X-RateLimit-Remaining'])
@@ -386,17 +382,16 @@ def github_api(*, endpoint=None, auth=None, headers=None, view_options=None):
         _settings.last_remaining = 999999
 
     if view_options and 'r' in view_options.lower():
-
+        # display rate-limite status
         if auth_user():
             username = '(user = ' + auth_user()[0] + ')'
         else:
             username = '(non-authenticated)'
-
         click.echo('Rate Limit: ' + str(_settings.last_ratelimit) + ' - ' + \
               str(_settings.last_ratelimit - _settings.last_remaining) +\
               ' used', nl=False)
-        click.echo(click.style(', ' + str(_settings.last_remaining) + ' remaining ' + username,
-                               fg='cyan'))
+        click.echo(click.style(', ' + str(_settings.last_remaining) +
+                               ' remaining ' + username, fg='cyan'))
 
     return response
 
@@ -483,8 +478,8 @@ def members(org, team, audit2fa, authuser, view, filename, fields, fieldlist):
         members_listfields()
         return
 
-    if not org:
-        click.echo('ERROR: must specify an org')
+    if not org and not team:
+        click.echo('ERROR: must specify an org or team ID')
         return
 
     if not filename_valid(filename=filename):
