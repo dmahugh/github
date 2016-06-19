@@ -18,7 +18,7 @@ filename_valid() -----> Check passed filename for valid file type.
 
 files() --------------> not implemented
 
-github_api() ---------> Call the GitHub API (wrapper for requests.get()).
+github_api() ---------> Call the GitHub API (wrapper for requests library).
 github_data() --------> Consolidate data returned by GitHub API.
 
 inifile_name() -------> Return name of INI file where GitHub tokens are stored.
@@ -341,7 +341,7 @@ def filename_valid(filename=None):
 
 #-------------------------------------------------------------------------------
 def github_api(*, endpoint=None, auth=None, headers=None, view_options=None):
-    """Call the GitHub API (wrapper for requests.get()).
+    """Call the GitHub API.
 
     endpoint     = the HTTP endpoint to call
     auth         = optional tuple for authentication
@@ -349,14 +349,18 @@ def github_api(*, endpoint=None, auth=None, headers=None, view_options=None):
     view_options = optional string containing 'a' (API calls), 'h' (HTTP status
                    codes), 'r' (rate-limit status), or 'd' (data).
 
-    Returns the response object.
+    Returns a tuple containing the response object and the session object.
 
     NOTE: sends the Accept header to use version V3 of the GitHub API. This can
     be explicitly overridden by passing a different Accept header if desired.
     """
     if not endpoint:
         click.echo('ERROR: github_api() called with no endpoint')
-        return
+        return (None, None)
+
+    if view_options and 'a' in view_options.lower():
+        click.echo('  Endpoint: ', nl=False)
+        click.echo(click.style(endpoint, fg='white'))
 
     # set auth to empty tuple if not used
     auth = auth if auth else ()
@@ -366,7 +370,12 @@ def github_api(*, endpoint=None, auth=None, headers=None, view_options=None):
     headers_dict = {**{"Accept": "application/vnd.github.v3+json"}, **headers}
 
     # make the API call
-    response = requests.get(endpoint, auth=auth, headers=headers_dict)
+    sess = requests.session()
+    sess.auth = auth
+    response = sess.get(endpoint, headers=headers_dict)
+
+    if view_options and 'a' in view_options.lower():
+        click.echo(click.style(12*' ' +  str(sess), fg='cyan'))
 
     # update rate-limit settings
     try:
@@ -393,7 +402,7 @@ def github_api(*, endpoint=None, auth=None, headers=None, view_options=None):
         click.echo(click.style(', ' + str(_settings.last_remaining) +
                                ' remaining ' + username, fg='cyan'))
 
-    return response
+    return (response, sess)
 
 #-------------------------------------------------------------------------------
 def github_data(*, endpoint=None, entity=None, fields=None, defaults=None,
@@ -418,12 +427,8 @@ def github_data(*, endpoint=None, entity=None, fields=None, defaults=None,
 
     while True:
 
-        if view_options and 'a' in view_options.lower():
-            click.echo('  Endpoint: ', nl=False)
-            click.echo(click.style(endpoint, fg='cyan'))
-
-        response = github_api(endpoint=endpoint, auth=auth_user(),
-                              view_options=view_options, headers=headers)
+        response, sess = github_api(endpoint=endpoint, auth=auth_user(),
+                                    view_options=view_options, headers=headers)
 
         if view_options and 'h' in view_options.lower():
             click.echo('    Status: ' + str(response), nl=False)
@@ -594,7 +599,7 @@ def pagination(link_header):
 
     1st parameter = either of these options ...
                     - 'link' HTTP header passed as a string
-                    - response object returned by requests.get()
+                    - response object returned by requests library
 
     Returns a dictionary with entries for the URLs and page numbers parsed
     from the link string: firstURL, firstpage, prevURL, prevpage, nextURL,
@@ -972,5 +977,5 @@ def write_json(source=None, filename=None):
 if __name__ == '__main__':
     auth_config({'username': 'msftgits'})
     ENDPOINT = 'https://api.github.com/api/v3/enterprise/stats/all'
-    RESPONSE = github_api(endpoint=ENDPOINT, auth=auth_user(), view_options='adhr')
+    RESPONSE, _ = github_api(endpoint=ENDPOINT, auth=auth_user(), view_options='adhr')
     print(str(RESPONSE))
