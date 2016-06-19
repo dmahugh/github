@@ -394,10 +394,9 @@ def github_api(*, endpoint=None, auth=None, headers=None, view_options=None):
 
         click.echo('Rate Limit: ' + str(_settings.last_ratelimit) + ' - ' + \
               str(_settings.last_ratelimit - _settings.last_remaining) +\
-              ' used, ', nl=False)
-        click.echo(click.style(str(_settings.last_remaining) + ' remaining ' + username,
+              ' used', nl=False)
+        click.echo(click.style(', ' + str(_settings.last_remaining) + ' remaining ' + username,
                                fg='cyan'))
-
 
     return response
 
@@ -432,9 +431,8 @@ def github_data(*, endpoint=None, entity=None, fields=None, defaults=None,
                               view_options=view_options, headers=headers)
 
         if view_options and 'h' in view_options.lower():
-            click.echo('    Status: ', nl=False)
-            click.echo(click.style(str(response), fg='cyan'), nl=False)
-            click.echo(', ' + str(len(response.text)) + ' bytes returned')
+            click.echo('    Status: ' + str(response), nl=False)
+            click.echo(click.style(', ' + str(len(response.text)) + ' bytes returned', fg='cyan'))
 
         if response.ok:
             totpages += 1
