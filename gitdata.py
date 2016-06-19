@@ -90,6 +90,9 @@ class _settings:
     username = '' # default = no GitHub authentication
     accesstoken = '' # auth_config() may set this from '../_private' folder
 
+    # current session object from requests library
+    requests_session = None
+
     # logging settings used by log_*() functions
     verbose = False # default = messages displayed to console
     logfile = None # default = messages not logged to a file
@@ -340,7 +343,8 @@ def filename_valid(filename=None):
     return True
 
 #-------------------------------------------------------------------------------
-def github_api(*, endpoint=None, auth=None, headers=None, view_options=None):
+def github_api(*, endpoint=None, auth=None, headers=None,
+               view_options=None):
     """Call the GitHub API.
 
     endpoint     = the HTTP endpoint to call
@@ -349,14 +353,14 @@ def github_api(*, endpoint=None, auth=None, headers=None, view_options=None):
     view_options = optional string containing 'a' (API calls), 'h' (HTTP status
                    codes), 'r' (rate-limit status), or 'd' (data).
 
-    Returns a tuple containing the response object and the session object.
+    Returns the response object.
 
     NOTE: sends the Accept header to use version V3 of the GitHub API. This can
     be explicitly overridden by passing a different Accept header if desired.
     """
     if not endpoint:
         click.echo('ERROR: github_api() called with no endpoint')
-        return (None, None)
+        return None
 
     if view_options and 'a' in view_options.lower():
         click.echo('  Endpoint: ', nl=False)
@@ -370,7 +374,12 @@ def github_api(*, endpoint=None, auth=None, headers=None, view_options=None):
     headers_dict = {**{"Accept": "application/vnd.github.v3+json"}, **headers}
 
     # make the API call
-    sess = requests.session()
+    if _settings.requests_session:
+        sess = _settings.requests_session
+    else:
+        sess = requests.session()
+        _settings.requests_session = sess
+
     sess.auth = auth
     response = sess.get(endpoint, headers=headers_dict)
 
@@ -402,7 +411,7 @@ def github_api(*, endpoint=None, auth=None, headers=None, view_options=None):
         click.echo(click.style(', ' + str(_settings.last_remaining) +
                                ' remaining ' + username, fg='cyan'))
 
-    return (response, sess)
+    return response
 
 #-------------------------------------------------------------------------------
 def github_data(*, endpoint=None, entity=None, fields=None, defaults=None,
@@ -427,12 +436,13 @@ def github_data(*, endpoint=None, entity=None, fields=None, defaults=None,
 
     while True:
 
-        response, sess = github_api(endpoint=endpoint, auth=auth_user(),
-                                    view_options=view_options, headers=headers)
+        response = github_api(endpoint=endpoint, auth=auth_user(),
+                              view_options=view_options, headers=headers)
 
         if view_options and 'h' in view_options.lower():
             click.echo('    Status: ' + str(response), nl=False)
-            click.echo(click.style(', ' + str(len(response.text)) + ' bytes returned', fg='cyan'))
+            click.echo(click.style(', ' + str(len(response.text)) +
+                                   ' bytes returned', fg='cyan'))
 
         if response.ok:
             totpages += 1
@@ -977,5 +987,5 @@ def write_json(source=None, filename=None):
 if __name__ == '__main__':
     auth_config({'username': 'msftgits'})
     ENDPOINT = 'https://api.github.com/api/v3/enterprise/stats/all'
-    RESPONSE, _ = github_api(endpoint=ENDPOINT, auth=auth_user(), view_options='adhr')
+    RESPONSE = github_api(endpoint=ENDPOINT, auth=auth_user(), view_options='adhr')
     print(str(RESPONSE))
