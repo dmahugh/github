@@ -37,8 +37,6 @@ reposget() -----------> Get repo information for a specified org or user.
 
 teams() --------------> Main handler for "teams" subcommand.
 teams_listfields() ---> List valid field names for teams().
-teamsdata() ----------> Get team information for organizations.
-teamsget() -----------> Get team information for a specified org.
 
 timestamp() ----------> Get current timestamp 'YYYY-MM-DD HH:MM:SS''
 token_abbr() ---------> Get abbreviated access token (for display purposes).
@@ -226,7 +224,7 @@ def data_fields(*, entity=None, jsondata=None, fields=None, defaults=None):
     if not fields:
         # if no fields specified, use default field list
         if entity == 'member':
-            fields = ['org', 'login', 'id', 'type', 'site_admin']
+            fields = ['login', 'id', 'type', 'site_admin']
         elif entity == 'repo':
             fields = ['owner.login', 'name']
         elif entity == 'team':
@@ -875,7 +873,11 @@ def teams(org, authuser, view, filename, fields, fieldlist):
 
     auth_config({'username': authuser})
     fldnames = fields.split('/') if fields else None
-    teamlist = teamsdata(org=org, fields=fldnames, view_options=view)
+    teamlist = github_data(
+        endpoint='https://api.github.com/orgs/' + org + '/teams', entity='team',
+        fields=fldnames, defaults={"org": org}, headers={},
+        view_options=view)
+
     data_display(view, teamlist)
     data_write(filename, teamlist)
     unknown_fields() # list unknown field names (if any)
@@ -906,52 +908,6 @@ def teams_listfields():
     click.echo(click.style('repositories_url', fg='cyan'))
     click.echo(click.style('slug', fg='cyan'))
     click.echo(click.style('url', fg='cyan'))
-
-#-------------------------------------------------------------------------------
-def teamsdata(*, org=None, fields=None, view_options=None):
-    """Get team information for an organization.
-
-    org    = organization; an organization or list of organizations
-    fields = list of fields to be returned; names must be the same as
-             returned by the GitHub API (see repos_listfields() for the list).
-             Dot notation for embedded elements is supported. For example,
-             pass a field named 'license.name' to get the 'name' element of
-             the 'license' entry for each repo.
-             These special cases are also supported:
-             fields=['*'] -------> return all fields returned by GitHub API
-             fields=['nourls'] -> return all non-URL fields (not *_url or url)
-             fields=['urls'] ----> return all URL fields (*_url and url)
-    view_options = optional string containing 'a' (API calls), 'h' (HTTP status
-                   codes), 'r' (rate-limit status), or 'd' (data).
-
-    Returns a list of dictionary objects, one per team.
-    """
-    teamlist = [] # the list of teams that will be returned
-
-    teamlist.extend(teamsget(org=org, fields=fields, view_options=view_options))
-
-    #/// TO DO: support passing a list of orgs (org1/org2/etc or '*' for all orgs that this authuser is a member of)
-
-    return teamlist
-
-#-------------------------------------------------------------------------------
-def teamsget(*, org=None, fields=None, view_options=None):
-    """Get team information for a specified org. Called by teamsdata() to
-    aggregate repo information for multiple orgs.
-
-    org = organization name
-    fields = list of fields to be returned
-    view_options = optional string containing 'a' (API calls), 'h' (HTTP status
-                   codes), 'r' (rate-limit status), or 'd' (data).
-
-    Returns a list of dictionaries containing the specified fields.
-    <internal>
-    """
-    endpoint = 'https://api.github.com/orgs/' + org + '/teams'
-
-    return github_data(endpoint=endpoint, entity='team', fields=fields,
-                       defaults={"org": org}, headers={},
-                       view_options=view_options)
 
 #-------------------------------------------------------------------------------
 def timestamp():
