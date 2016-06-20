@@ -326,7 +326,6 @@ def elapsed_time(view_options, starttime):
 
     Displays the elapsed time if 'a', 'h', or 'r' are in view_options.
     """
-    #/// add to members(), teams()
     if 'a' in view_options or 'h' in view_options or 'r' in view_options:
         click.echo('Elapsed time: ' +\
             "{0:.2f}".format(default_timer() - starttime) + ' seconds')
@@ -517,6 +516,7 @@ def members(org, team, audit2fa, authuser, view, filename, fields, fieldlist):
     view = 'd' if not view else view
     view = 'dahr' if view == '*' else view
 
+    start_time = default_timer()
     auth_config({'username': authuser})
     fldnames = fields.split('/') if fields else None
     memberlist = membersdata(org=org, team=team, audit2fa=audit2fa,
@@ -524,6 +524,7 @@ def members(org, team, audit2fa, authuser, view, filename, fields, fieldlist):
     data_display(view, memberlist)
     data_write(filename, memberlist)
     unknown_fields() # list unknown field names (if any)
+    elapsed_time(view, start_time)
 
 #------------------------------------------------------------------------------
 def members_listfields():
@@ -895,16 +896,17 @@ def teams(org, authuser, view, filename, fields, fieldlist):
     view = 'd' if not view else view
     view = 'dahr' if view == '*' else view
 
+    start_time = default_timer()
     auth_config({'username': authuser})
     fldnames = fields.split('/') if fields else None
     teamlist = github_data(
         endpoint='https://api.github.com/orgs/' + org + '/teams', entity='team',
         fields=fldnames, defaults={"org": org}, headers={},
         view_options=view)
-
     data_display(view, teamlist)
     data_write(filename, teamlist)
     unknown_fields() # list unknown field names (if any)
+    elapsed_time(view, start_time)
 
 #-------------------------------------------------------------------------------
 def teams_listfields():
