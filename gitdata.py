@@ -13,7 +13,7 @@ collabs() ------------> not implemented
 data_display() -------> Display data on console.
 data_fields() --------> Get dictionary of values from GitHub API JSON payload.
 data_write() ---------> Write output file.
-
+elapsed_time() -------> Display elapsed time.
 filename_valid() -----> Check passed filename for valid file type.
 
 files() --------------> not implemented
@@ -52,6 +52,7 @@ import datetime
 import json
 import os
 import time
+from timeit import default_timer
 
 import click
 import requests
@@ -70,9 +71,10 @@ CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'])
 @click.pass_context
 def cli(ctx, auth, token, delete):
     """\b
-Get repo/member/team/file/collaborator data from GitHub REST API
-----------------------------------------------------------------
-subcommand help: gitdata <subcommand> -h"""
+------------------------------------
+Get information from GitHub REST API
+------------------------------------
+syntax help: gitdata <subcommand> -h"""
     if auth:
         auth_status(auth.lower(), token, delete)
         return
@@ -315,7 +317,19 @@ def data_write(filename=None, datasource=None):
 
     click.echo('Output file written: ' + filename)
 
+#------------------------------------------------------------------------------
+def elapsed_time(view_options, starttime):
+    """Display elapsed time.
 
+    view_options = /// document these in 1 place, use shorthand reference to this data type everywhere else
+    starttime    = time to measure from, as returned by default_timer()
+
+    Displays the elapsed time if 'a', 'h', or 'r' are in view_options.
+    """
+    #/// add to members(), teams()
+    if 'a' in view_options or 'h' in view_options or 'r' in view_options:
+        click.echo('Elapsed time: ' +\
+            "{0:.2f}".format(default_timer() - starttime) + ' seconds')
 
 #------------------------------------------------------------------------------
 @cli.command(help='not implemented yet')
@@ -675,12 +689,14 @@ def repos(org, user, authuser, view, filename, fields, fieldlist):
     view = 'd' if not view else view
     view = 'dahr' if view == '*' else view
 
+    start_time = default_timer()
     auth_config({'username': authuser})
     fldnames = fields.split('/') if fields else None
     repolist = reposdata(org=org, user=user, fields=fldnames, view_options=view)
     data_display(view, repolist)
     data_write(filename, repolist)
     unknown_fields() # list unknown field names (if any)
+    elapsed_time(view, start_time)
 
 #-------------------------------------------------------------------------------
 def reposdata(*, org=None, user=None, fields=None, view_options=None):
