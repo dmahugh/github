@@ -189,7 +189,7 @@ def auth_status(auth, token, delete):
 
     # call GitHub API with 'r' view option to display current rate-limit status
     auth_config({'username': auth})
-    github_api(endpoint='https://api.github.com', auth=auth_user(), view_options='r')
+    github_api(endpoint='/', auth=auth_user(), view_options='r')
 
 #------------------------------------------------------------------------------
 def auth_user():
@@ -321,7 +321,7 @@ def data_write(filename=None, datasource=None):
 def elapsed_time(view_options, starttime):
     """Display elapsed time.
 
-    view_options = /// document these in 1 place, use shorthand reference to this data type everywhere else
+    view_options = view options (see documentation in github_api())
     starttime    = time to measure from, as returned by default_timer()
 
     Displays the elapsed time if 'a', 'h', or 'r' are in view_options.
@@ -360,7 +360,8 @@ def github_api(*, endpoint=None, auth=None, headers=None,
                view_options=None):
     """Call the GitHub API.
 
-    endpoint     = the HTTP endpoint to call
+    endpoint     = the HTTP endpoint to call; should start with /, will be
+                   appended to https://api.github.com
     auth         = optional tuple for authentication
     headers      = optional dictionary of HTTP headers to pass
     view_options = optional string containing 'a' (API calls), 'h' (HTTP status
@@ -374,10 +375,6 @@ def github_api(*, endpoint=None, auth=None, headers=None,
     if not endpoint:
         click.echo('ERROR: github_api() called with no endpoint')
         return None
-
-    if view_options and 'a' in view_options.lower():
-        click.echo('  Endpoint: ', nl=False)
-        click.echo(click.style(endpoint, fg='white'))
 
     # set auth to empty tuple if not used
     auth = auth if auth else ()
@@ -394,10 +391,14 @@ def github_api(*, endpoint=None, auth=None, headers=None,
         _settings.requests_session = sess
 
     sess.auth = auth
-    response = sess.get(endpoint, headers=headers_dict)
+    response = sess.get('https://api.github.com' + endpoint, headers=headers_dict)
 
     if view_options and 'a' in view_options.lower():
-        click.echo(click.style(12*' ' +  str(sess), fg='cyan'))
+        click.echo('  Endpoint: ', nl=False)
+        click.echo(click.style(endpoint, fg='white'), nl=False)
+        click.echo( \
+            click.style(', ' +  str(sess).replace('requests.sessions.', ''),
+                        fg='cyan'))
 
     # update rate-limit settings
     try:
@@ -435,8 +436,7 @@ def github_data(*, endpoint=None, entity=None, fields=None, defaults=None,
     fields       = list of fields to be returned
     defaults     = dictionary of fieldnames/values to include in dictionaries
     headers      = HTTP headers to be included with API call
-    view_options = optional string containing 'a' (API calls), 'h' (HTTP status
-                   codes), 'r' (rate-limit status), or 'd' (data).
+    view_options = view options (see documentation in github_api())
 
     Returns a list of dictionaries containing the specified fields.
     Returns a complete data set - if this endpoint does pagination, all pages
@@ -568,8 +568,7 @@ def membersdata(*, org=None, team=None, fields=None, audit2fa=False,
     audit2fa = whether to only return members with 2FA disabled. You must be
                authenticated via auth_config() as an admin of the org(s) to use
                this option.
-    view_options = optional string containing 'a' (API calls), 'h' (HTTP status
-                   codes), 'r' (rate-limit status), or 'd' (data).
+    view_options = view options (see documentation in github_api())
 
     Returns a list of dictionary objects, one per member.
     """
@@ -595,23 +594,23 @@ def membersget(*, org=None, team=None, fields=None, audit2fa=False,
     """Get member info for a specified organization. Called by members() to
     aggregate member info for multiple organizations.
 
-    org = organization ID (ignored if a team is specified)
-    team = team ID
-    fields = list of fields to be returned
-    audit2fa = whether to only return members with 2FA disabled. This option
-               is only available when retrieving members by organization.
-               Note: for audit2fa=True, you must be authenticated via
-               auth_config() as an admin of the org(s).
-    view_options = optional string containing 'a' (API calls), 'h' (HTTP status
-                   codes), 'r' (rate-limit status), or 'd' (data).
+    org =          organization ID (ignored if a team is specified)
+    team =         team ID
+    fields =       list of fields to be returned
+    audit2fa =     whether to only return members with 2FA disabled. This
+                   option is only available when retrieving members by
+                   organization.
+                   Note: for audit2fa=True, you must be authenticated via
+                   auth_config() as an admin of the org(s).
+    view_options = view options (see documentation in github_api())
 
     Returns a list of dictionaries containing the specified fields.
     <internal>
     """
     if team:
-        endpoint = 'https://api.github.com/teams/' + team + '/members'
+        endpoint = '/teams/' + team + '/members'
     else:
-        endpoint = 'https://api.github.com/orgs/' + org + '/members' + \
+        endpoint = '/orgs/' + org + '/members' + \
             ('?filter=2fa_disabled' if audit2fa else '')
 
     return github_data(endpoint=endpoint, entity='member', fields=fields,
@@ -715,8 +714,7 @@ def reposdata(*, org=None, user=None, fields=None, view_options=None):
              fields=['*'] -------> return all fields returned by GitHub API
              fields=['nourls'] -> return all non-URL fields (not *_url or url)
              fields=['urls'] ----> return all URL fields (*_url and url)
-    view_options = optional string containing 'a' (API calls), 'h' (HTTP status
-                   codes), 'r' (rate-limit status), or 'd' (data).
+    view_options = view options (see documentation in github_api())
 
     Returns a list of dictionary objects, one per repo.
     """
@@ -755,8 +753,7 @@ def reposget(*, org=None, user=None, fields=None, view_options=None):
     org = organization name
     user = username (ignored if org is provided)
     fields = list of fields to be returned
-    view_options = optional string containing 'a' (API calls), 'h' (HTTP status
-                   codes), 'r' (rate-limit status), or 'd' (data).
+    view_options = view options (see documentation in github_api())
 
     Returns a list of dictionaries containing the specified fields.
 
@@ -767,9 +764,9 @@ def reposget(*, org=None, user=None, fields=None, view_options=None):
     <internal>
     """
     if org:
-        endpoint = 'https://api.github.com/orgs/' + org + '/repos'
+        endpoint = '/orgs/' + org + '/repos'
     else:
-        endpoint = 'https://api.github.com/users/' + user + '/repos'
+        endpoint = '/users/' + user + '/repos'
 
     # custom header to retrieve license info while License API is in preview
     headers = {'Accept': 'application/vnd.github.drax-preview+json'}
@@ -900,7 +897,7 @@ def teams(org, authuser, view, filename, fields, fieldlist):
     auth_config({'username': authuser})
     fldnames = fields.split('/') if fields else None
     teamlist = github_data(
-        endpoint='https://api.github.com/orgs/' + org + '/teams', entity='team',
+        endpoint='/orgs/' + org + '/teams', entity='team',
         fields=fldnames, defaults={"org": org}, headers={},
         view_options=view)
     data_display(view, teamlist)
@@ -1004,6 +1001,6 @@ def write_json(source=None, filename=None):
 # code to execute when running standalone: -------------------------------------
 if __name__ == '__main__':
     auth_config({'username': 'msftgits'})
-    ENDPOINT = 'https://api.github.com/api/v3/enterprise/stats/all'
+    ENDPOINT = '/v3/enterprise/stats/all'
     RESPONSE = github_api(endpoint=ENDPOINT, auth=auth_user(), view_options='adhr')
     print(str(RESPONSE))
