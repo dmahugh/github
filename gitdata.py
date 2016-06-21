@@ -7,6 +7,7 @@ access_token() -------> Get GitHub access token from private settings.
 auth_config() --------> Configure authentication settings.
 auth_status() --------> Display status for GitHub username.
 auth_user() ----------> Return credentials for use in GitHub API calls.
+cachefile() ----------> Get cache filename for specified user/endpoint.
 
 collabs() ------------> not implemented
 
@@ -203,6 +204,20 @@ def auth_user():
         return (_settings.username, _settings.accesstoken)
 
     return None
+
+#------------------------------------------------------------------------------
+def cachefile(endpoint, auth=None):
+    """Get cache filename for specified user/endpoint.
+
+    endpoint = the endpoint at https://api.github.com (starts with /)
+    auth = authentication username
+
+    Returns the filename for caching data returned from this API call.
+    """
+    if not auth:
+        auth = _settings.username if _settings.username else '_anon'
+
+    return 'gh_cache/' + auth + '_' + endpoint.replace('/', '-').strip('-') + '.json'
 
 #------------------------------------------------------------------------------
 @cli.command(help='not implemented yet')
@@ -447,9 +462,11 @@ def github_data(*, endpoint=None, entity=None, fields=None, defaults=None,
     retval = [] # the list to be returned
     totpages = 0
 
+    page_endpoint = endpoint # endpoint of each page in the loop below
+
     while True:
 
-        response = github_api(endpoint=endpoint, auth=auth_user(),
+        response = github_api(endpoint=page_endpoint, auth=auth_user(),
                               view_options=view_options, headers=headers)
 
         if view_options and 'h' in view_options.lower():
@@ -465,9 +482,11 @@ def github_data(*, endpoint=None, entity=None, fields=None, defaults=None,
                                           fields=fields, defaults=defaults))
 
         pagelinks = pagination(response)
-        endpoint = pagelinks['nextURL']
-        if not endpoint:
+        page_endpoint = pagelinks['nextURL']
+        if not page_endpoint:
             break # no more results to process
+
+    click.echo('DATA WOULD BE CACHED TO: ' + cachefile(endpoint))
 
     return retval
 
