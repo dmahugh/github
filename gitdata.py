@@ -215,7 +215,7 @@ def cachefile(endpoint, auth=None):
     return 'gh_cache/' + auth + '_' + endpoint.replace('/', '-').strip('-') + '.json'
 
 #------------------------------------------------------------------------------
-@cli.command(help='not implemented yet')
+@cli.command(help='<not implemented>')
 def collabs():
     """NOT IMPLEMENTED
     """
@@ -338,7 +338,7 @@ def elapsed_time(starttime):
             "{0:.2f}".format(default_timer() - starttime) + ' seconds')
 
 #------------------------------------------------------------------------------
-@cli.command(help='not implemented yet')
+@cli.command(help='<not implemented>')
 def files():
     """NOT IMPLEMENTED
     """
@@ -488,7 +488,7 @@ def inifile_name():
                         '../_private/github_users.ini')
 
 #------------------------------------------------------------------------------
-@cli.command(help='Get member information by org or team ID.')
+@cli.command(help='Get member information by org or team ID')
 @click.option('-o', '--org', default='',
               help='organizations', metavar='org1/org2/etc')
 @click.option('-t', '--team', default='',
@@ -657,7 +657,7 @@ def pagination(link_header):
     return retval
 
 #------------------------------------------------------------------------------
-@cli.command(help='Get repo information by org or user/owner.')
+@cli.command(help='Get repo information by org or user/owner')
 @click.option('-o', '--org', default='',
               help='GitHub organization', metavar='')
 @click.option('-u', '--user', default='',
@@ -858,15 +858,15 @@ def repos_listfields():
                            'permissions.push', fg='cyan'))
 
 #------------------------------------------------------------------------------
-@cli.command(help='Get team information for an organization.')
+@cli.command(help='Get team information for an organization')
 @click.option('-o', '--org', default='',
               help='GitHub organization', metavar='')
 @click.option('-a', '--authuser', default='',
               help='authentication username', metavar='')
 @click.option('-d', '--display', is_flag=True, default=True,
-              help="Display retrieved data.")
+              help="Display retrieved data")
 @click.option('-v', '--verbose', is_flag=True, default=False,
-              help="Verbose status information.")
+              help="Verbose status information")
 @click.option('-n', '--filename', default='',
               help='output filename (.CSV or .JSON)', metavar='')
 @click.option('-f', '--fields', default='',
