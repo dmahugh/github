@@ -501,13 +501,15 @@ def inifile_name():
               help="Display retrieved data.")
 @click.option('-v', '--verbose', is_flag=True, default=False,
               help="Verbose status information.")
+@click.option('-s', '--source', default='p',
+              help='data source - a/API, c/cache, or p/prompt', metavar='')
 @click.option('-n', '--filename', default='',
               help='output filename (.CSV or .JSON)', metavar='')
 @click.option('-f', '--fields', default='',
               help='fields to include', metavar='<fld1/fld2/etc>')
 @click.option('-l', '--fieldlist', is_flag=True,
               help='list available GitHub fields')
-def members(org, team, audit2fa, authuser, display, verbose, filename, fields, fieldlist):
+def members(org, team, audit2fa, authuser, display, verbose, source, filename, fields, fieldlist):
     """Get member info for an organization or team.
     """
     if fieldlist:
@@ -668,13 +670,15 @@ def pagination(link_header):
               help="Display retrieved data.")
 @click.option('-v', '--verbose', is_flag=True, default=False,
               help="Verbose status information.")
+@click.option('-s', '--source', default='p',
+              help='data source - a/API, c/cache, or p/prompt', metavar='')
 @click.option('-n', '--filename', default='',
               help='output filename (.CSV or .JSON)', metavar='')
 @click.option('-f', '--fields', default='',
               help='fields to include', metavar='<fld1/fld2/etc>')
 @click.option('-l', '--fieldlist', is_flag=True,
               help='list available GitHub fields')
-def repos(org, user, authuser, display, verbose, filename, fields, fieldlist):
+def repos(org, user, authuser, display, verbose, source, filename, fields, fieldlist):
     """Get repository information.
     """
     if fieldlist:
@@ -867,13 +871,15 @@ def repos_listfields():
               help="Display retrieved data")
 @click.option('-v', '--verbose', is_flag=True, default=False,
               help="Verbose status information")
+@click.option('-s', '--source', default='p',
+              help='data source - a/API, c/cache, or p/prompt', metavar='')
 @click.option('-n', '--filename', default='',
               help='output filename (.CSV or .JSON)', metavar='')
 @click.option('-f', '--fields', default='',
               help='fields to include', metavar='<fld1/fld2/etc>')
 @click.option('-l', '--fieldlist', is_flag=True,
               help='list available GitHub fields')
-def teams(org, authuser, display, verbose, filename, fields, fieldlist):
+def teams(org, authuser, display, verbose, source, filename, fields, fieldlist):
     """get team information for an organization.
     """
     if fieldlist:
