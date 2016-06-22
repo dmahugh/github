@@ -96,9 +96,8 @@ class _settings:
     # current session object from requests library
     requests_session = None
 
-    # logging settings used by log_*() functions
-    verbose = False # default = messages displayed to console
-    logfile = None # default = messages not logged to a file
+    verbose = False # whether to display status information on console
+    display_data = True # whether to display retrieved data on console
 
     # initialize gitinfo session settings
     start_time = time.time() # session start time (seconds)
@@ -187,10 +186,6 @@ def auth_status(auth, token, delete):
     # display username and access token
     click.echo('  Username: ' + auth)
     click.echo('     Token: ' + token_abbr(access_token(auth)))
-
-    # call GitHub API with 'r' view option to display current rate-limit status
-    auth_config({'username': auth})
-    github_api(endpoint='/', auth=auth_user(), view_options='r')
 
 #------------------------------------------------------------------------------
 def auth_user():
@@ -297,16 +292,14 @@ def data_fields(*, entity=None, jsondata=None, fields=None, defaults=None):
     return values
 
 #------------------------------------------------------------------------------
-def data_display(view_options=None, datasource=None):
+def data_display(datasource=None):
     """Display data on console.
 
-    view_options = string containing 'd' to display data
     datasource   = list of dictionaries
-    """
-    if not view_options:
-        return
 
-    if not 'd' in view_options.lower():
+    If _settings.display_data, displays the data in console output
+    """
+    if not _settings.display_data:
         return
 
     for data_item in datasource:
@@ -333,15 +326,14 @@ def data_write(filename=None, datasource=None):
     click.echo('Output file written: ' + filename)
 
 #------------------------------------------------------------------------------
-def elapsed_time(view_options, starttime):
+def elapsed_time(starttime):
     """Display elapsed time.
 
-    view_options = view options (see documentation in github_api())
     starttime    = time to measure from, as returned by default_timer()
 
-    Displays the elapsed time if 'a', 'h', or 'r' are in view_options.
+    If _settings.verbose, displays elapsed time in seconds.
     """
-    if 'a' in view_options or 'h' in view_options or 'r' in view_options:
+    if _settings.verbose:
         click.echo('Elapsed time: ' +\
             "{0:.2f}".format(default_timer() - starttime) + ' seconds')
 
@@ -371,16 +363,13 @@ def filename_valid(filename=None):
     return True
 
 #-------------------------------------------------------------------------------
-def github_api(*, endpoint=None, auth=None, headers=None,
-               view_options=None):
+def github_api(*, endpoint=None, auth=None, headers=None):
     """Call the GitHub API.
 
     endpoint     = the HTTP endpoint to call; should start with /, will be
                    appended to https://api.github.com
     auth         = optional tuple for authentication
     headers      = optional dictionary of HTTP headers to pass
-    view_options = optional string containing 'a' (API calls), 'h' (HTTP status
-                   codes), 'r' (rate-limit status), or 'd' (data).
 
     Returns the response object.
 
@@ -408,7 +397,7 @@ def github_api(*, endpoint=None, auth=None, headers=None,
     sess.auth = auth
     response = sess.get('https://api.github.com' + endpoint, headers=headers_dict)
 
-    if view_options and 'a' in view_options.lower():
+    if _settings.verbose:
         click.echo('  Endpoint: ', nl=False)
         click.echo(click.style(endpoint, fg='white'), nl=False)
         click.echo( \
@@ -428,7 +417,7 @@ def github_api(*, endpoint=None, auth=None, headers=None,
         _settings.last_ratelimit = 999999
         _settings.last_remaining = 999999
 
-    if view_options and 'r' in view_options.lower():
+    if _settings.verbose:
         # display rate-limite status
         if auth_user():
             username = '(user = ' + auth_user()[0] + ')'
@@ -444,14 +433,13 @@ def github_api(*, endpoint=None, auth=None, headers=None,
 
 #-------------------------------------------------------------------------------
 def github_data(*, endpoint=None, entity=None, fields=None, defaults=None,
-                headers=None, view_options=None):
+                headers=None):
     """Get data from GitHub API.
     endpoint     = HTTP endpoint for GitHub API call
     entity       = entity type ('repo', 'member')
     fields       = list of fields to be returned
     defaults     = dictionary of fieldnames/values to include in dictionaries
     headers      = HTTP headers to be included with API call
-    view_options = view options (see documentation in github_api())
 
     Returns a list of dictionaries containing the specified fields.
     Returns a complete data set - if this endpoint does pagination, all pages
@@ -467,9 +455,9 @@ def github_data(*, endpoint=None, entity=None, fields=None, defaults=None,
     while True:
 
         response = github_api(endpoint=page_endpoint, auth=auth_user(),
-                              view_options=view_options, headers=headers)
+                              headers=headers)
 
-        if view_options and 'h' in view_options.lower():
+        if _settings.verbose:
             click.echo('    Status: ' + str(response), nl=False)
             click.echo(click.style(', ' + str(len(response.text)) +
                                    ' bytes returned', fg='cyan'))
@@ -509,16 +497,17 @@ def inifile_name():
               help='include only 2FA-not-enabled members')
 @click.option('-a', '--authuser', default='',
               help='authentication username', metavar='')
-@click.option('-v', '--view', default='',
-              help='D=data, A=API calls, H=HTTP status codes, ' +
-              'R=rate-limit status, *=ALL', metavar='')
+@click.option('-d', '--display', is_flag=True, default=True,
+              help="Display retrieved data.")
+@click.option('-v', '--verbose', is_flag=True, default=False,
+              help="Verbose status information.")
 @click.option('-n', '--filename', default='',
               help='output filename (.CSV or .JSON)', metavar='')
 @click.option('-f', '--fields', default='',
               help='fields to include', metavar='<fld1/fld2/etc>')
 @click.option('-l', '--fieldlist', is_flag=True,
               help='list available GitHub fields')
-def members(org, team, audit2fa, authuser, view, filename, fields, fieldlist):
+def members(org, team, audit2fa, authuser, display, verbose, filename, fields, fieldlist):
     """Get member info for an organization or team.
     """
     if fieldlist:
@@ -532,18 +521,18 @@ def members(org, team, audit2fa, authuser, view, filename, fields, fieldlist):
     if not filename_valid(filename=filename):
         return
 
-    view = 'd' if not view else view
-    view = 'dahr' if view == '*' else view
+    _settings.display_data = display
+    _settings.verbose = verbose
 
     start_time = default_timer()
     auth_config({'username': authuser})
     fldnames = fields.split('/') if fields else None
     memberlist = membersdata(org=org, team=team, audit2fa=audit2fa,
-                             fields=fldnames, view_options=view)
-    data_display(view, memberlist)
+                             fields=fldnames)
+    data_display(memberlist)
     data_write(filename, memberlist)
     unknown_fields() # list unknown field names (if any)
-    elapsed_time(view, start_time)
+    elapsed_time(start_time)
 
 #------------------------------------------------------------------------------
 def members_listfields():
@@ -576,8 +565,7 @@ def members_listfields():
                            'subscriptions_url', fg='cyan'))
 
 #-------------------------------------------------------------------------------
-def membersdata(*, org=None, team=None, fields=None, audit2fa=False,
-                view_options=None):
+def membersdata(*, org=None, team=None, fields=None, audit2fa=False):
     """Get members for one or more teams or organizations.
 
     org = a /-delimited list of organizations
@@ -587,7 +575,6 @@ def membersdata(*, org=None, team=None, fields=None, audit2fa=False,
     audit2fa = whether to only return members with 2FA disabled. You must be
                authenticated via auth_config() as an admin of the org(s) to use
                this option.
-    view_options = view options (see documentation in github_api())
 
     Returns a list of dictionary objects, one per member.
     """
@@ -596,20 +583,17 @@ def membersdata(*, org=None, team=None, fields=None, audit2fa=False,
     if team:
         # get members by team
         for teamid in team.split('/'):
-            memberlist.extend(membersget(team=teamid, fields=fields,
-                                         view_options=view_options))
+            memberlist.extend(membersget(team=teamid, fields=fields))
     else:
         # get members by organization
         for orgid in org.split('/'):
             memberlist.extend( \
-                membersget(org=orgid, fields=fields, audit2fa=audit2fa,
-                           view_options=view_options))
+                membersget(org=orgid, fields=fields, audit2fa=audit2fa))
 
     return memberlist
 
 #------------------------------------------------------------------------------
-def membersget(*, org=None, team=None, fields=None, audit2fa=False,
-               view_options=None):
+def membersget(*, org=None, team=None, fields=None, audit2fa=False):
     """Get member info for a specified organization. Called by members() to
     aggregate member info for multiple organizations.
 
@@ -621,7 +605,6 @@ def membersget(*, org=None, team=None, fields=None, audit2fa=False,
                    organization.
                    Note: for audit2fa=True, you must be authenticated via
                    auth_config() as an admin of the org(s).
-    view_options = view options (see documentation in github_api())
 
     Returns a list of dictionaries containing the specified fields.
     <internal>
@@ -633,8 +616,7 @@ def membersget(*, org=None, team=None, fields=None, audit2fa=False,
             ('?filter=2fa_disabled' if audit2fa else '')
 
     return github_data(endpoint=endpoint, entity='member', fields=fields,
-                       defaults={"org": org}, headers={},
-                       view_options=view_options)
+                       defaults={"org": org}, headers={})
 
 #------------------------------------------------------------------------------
 def pagination(link_header):
@@ -682,16 +664,17 @@ def pagination(link_header):
               help='GitHub user', metavar='')
 @click.option('-a', '--authuser', default='',
               help='authentication username', metavar='')
-@click.option('-v', '--view', default='',
-              help='D=data, A=API calls, H=HTTP status codes, ' +
-              'R=rate-limit status, *=ALL', metavar='')
+@click.option('-d', '--display', is_flag=True, default=True,
+              help="Display retrieved data.")
+@click.option('-v', '--verbose', is_flag=True, default=False,
+              help="Verbose status information.")
 @click.option('-n', '--filename', default='',
               help='output filename (.CSV or .JSON)', metavar='')
 @click.option('-f', '--fields', default='',
               help='fields to include', metavar='<fld1/fld2/etc>')
 @click.option('-l', '--fieldlist', is_flag=True,
               help='list available GitHub fields')
-def repos(org, user, authuser, view, filename, fields, fieldlist):
+def repos(org, user, authuser, display, verbose, filename, fields, fieldlist):
     """Get repository information.
     """
     if fieldlist:
@@ -705,20 +688,20 @@ def repos(org, user, authuser, view, filename, fields, fieldlist):
     if not filename_valid(filename):
         return
 
-    view = 'd' if not view else view
-    view = 'dahr' if view == '*' else view
+    _settings.display_data = display
+    _settings.verbose = verbose
 
     start_time = default_timer()
     auth_config({'username': authuser})
     fldnames = fields.split('/') if fields else None
-    repolist = reposdata(org=org, user=user, fields=fldnames, view_options=view)
-    data_display(view, repolist)
+    repolist = reposdata(org=org, user=user, fields=fldnames)
+    data_display(repolist)
     data_write(filename, repolist)
     unknown_fields() # list unknown field names (if any)
-    elapsed_time(view, start_time)
+    elapsed_time(start_time)
 
 #-------------------------------------------------------------------------------
-def reposdata(*, org=None, user=None, fields=None, view_options=None):
+def reposdata(*, org=None, user=None, fields=None):
     """Get repo information for one or more organizations or users.
 
     org    = organization; an organization or list of organizations
@@ -733,7 +716,6 @@ def reposdata(*, org=None, user=None, fields=None, view_options=None):
              fields=['*'] -------> return all fields returned by GitHub API
              fields=['nourls'] -> return all non-URL fields (not *_url or url)
              fields=['urls'] ----> return all URL fields (*_url and url)
-    view_options = view options (see documentation in github_api())
 
     Returns a list of dictionary objects, one per repo.
     """
@@ -743,36 +725,31 @@ def reposdata(*, org=None, user=None, fields=None, view_options=None):
         # get repos by organization
         if isinstance(org, str):
             # one organization
-            repolist.extend(reposget(org=org, fields=fields,
-                                     view_options=view_options))
+            repolist.extend(reposget(org=org, fields=fields))
         else:
             # list of organizations
             for orgid in org:
-                repolist.extend(reposget(org=orgid, fields=fields,
-                                         view_options=view_options))
+                repolist.extend(reposget(org=orgid, fields=fields))
     else:
         # get repos by user
         if isinstance(user, str):
             # one user
-            repolist.extend(reposget(user=user, fields=fields,
-                                     view_options=view_options))
+            repolist.extend(reposget(user=user, fields=fields))
         else:
             # list of users
             for userid in user:
-                repolist.extend(reposget(user=userid, fields=fields,
-                                         view_options=view_options))
+                repolist.extend(reposget(user=userid, fields=fields))
 
     return repolist
 
 #-------------------------------------------------------------------------------
-def reposget(*, org=None, user=None, fields=None, view_options=None):
+def reposget(*, org=None, user=None, fields=None):
     """Get repo information for a specified org or user. Called by repos() to
     aggregate repo information for multiple orgs or users.
 
     org = organization name
     user = username (ignored if org is provided)
     fields = list of fields to be returned
-    view_options = view options (see documentation in github_api())
 
     Returns a list of dictionaries containing the specified fields.
 
@@ -791,7 +768,7 @@ def reposget(*, org=None, user=None, fields=None, view_options=None):
     headers = {'Accept': 'application/vnd.github.drax-preview+json'}
 
     return github_data(endpoint=endpoint, entity='repo', fields=fields,
-                       headers=headers, view_options=view_options)
+                       headers=headers)
 
 #------------------------------------------------------------------------------
 def repos_listfields():
@@ -886,16 +863,17 @@ def repos_listfields():
               help='GitHub organization', metavar='')
 @click.option('-a', '--authuser', default='',
               help='authentication username', metavar='')
-@click.option('-v', '--view', default='',
-              help='D=data, A=API calls, H=HTTP status codes, ' +
-              'R=rate-limit status, *=ALL', metavar='')
+@click.option('-d', '--display', is_flag=True, default=True,
+              help="Display retrieved data.")
+@click.option('-v', '--verbose', is_flag=True, default=False,
+              help="Verbose status information.")
 @click.option('-n', '--filename', default='',
               help='output filename (.CSV or .JSON)', metavar='')
 @click.option('-f', '--fields', default='',
               help='fields to include', metavar='<fld1/fld2/etc>')
 @click.option('-l', '--fieldlist', is_flag=True,
               help='list available GitHub fields')
-def teams(org, authuser, view, filename, fields, fieldlist):
+def teams(org, authuser, display, verbose, filename, fields, fieldlist):
     """get team information for an organization.
     """
     if fieldlist:
@@ -909,20 +887,19 @@ def teams(org, authuser, view, filename, fields, fieldlist):
     if not filename_valid(filename):
         return
 
-    view = 'd' if not view else view
-    view = 'dahr' if view == '*' else view
+    _settings.display_data = display
+    _settings.verbose = verbose
 
     start_time = default_timer()
     auth_config({'username': authuser})
     fldnames = fields.split('/') if fields else None
     teamlist = github_data(
         endpoint='/orgs/' + org + '/teams', entity='team',
-        fields=fldnames, defaults={"org": org}, headers={},
-        view_options=view)
-    data_display(view, teamlist)
+        fields=fldnames, defaults={"org": org}, headers={})
+    data_display(teamlist)
     data_write(filename, teamlist)
     unknown_fields() # list unknown field names (if any)
-    elapsed_time(view, start_time)
+    elapsed_time(start_time)
 
 #-------------------------------------------------------------------------------
 def teams_listfields():
@@ -1021,5 +998,5 @@ def write_json(source=None, filename=None):
 if __name__ == '__main__':
     auth_config({'username': 'msftgits'})
     ENDPOINT = '/v3/enterprise/stats/all'
-    RESPONSE = github_api(endpoint=ENDPOINT, auth=auth_user(), view_options='adhr')
+    RESPONSE = github_api(endpoint=ENDPOINT, auth=auth_user())
     print(str(RESPONSE))
