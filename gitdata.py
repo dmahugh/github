@@ -7,7 +7,9 @@ access_token() -------> Get GitHub access token from private settings.
 auth_config() --------> Configure authentication settings.
 auth_status() --------> Display status for GitHub username.
 auth_user() ----------> Return credentials for use in GitHub API calls.
-cachefile() ----------> Get cache filename for specified user/endpoint.
+
+cache_filename() -----> Get cache filename for specified user/endpoint.
+cache_update() -------> Updated cached data for specified endpoint.
 
 collabs() ------------> not implemented
 
@@ -201,7 +203,7 @@ def auth_user():
     return None
 
 #------------------------------------------------------------------------------
-def cachefile(endpoint, auth=None):
+def cache_filename(endpoint, auth=None):
     """Get cache filename for specified user/endpoint.
 
     endpoint = the endpoint at https://api.github.com (starts with /)
@@ -213,6 +215,29 @@ def cachefile(endpoint, auth=None):
         auth = _settings.username if _settings.username else '_anon'
 
     return 'gh_cache/' + auth + '_' + endpoint.replace('/', '-').strip('-') + '.json'
+
+#------------------------------------------------------------------------------
+def cache_update(endpoint, payload):
+    """Update cached data.
+
+    endpoint = the API endpoint (e.g., '/repos/org')
+    payload = the list of JSON to be cached
+
+    Writes the cache file for this endpoint. Overwrites existing cached data.
+    """
+    filename = cache_filename(endpoint)
+
+    # determine whether a cache file already exists for this endpoint
+    cache_exists = os.path.isfile(filename)
+
+    # write the cached data
+    write_json(source=payload, filename=filename)
+
+    if _settings.verbose:
+        if cache_exists:
+            click.echo('Cache updated: ' + filename)
+        else:
+            click.echo('Cache created: ' + filename)
 
 #------------------------------------------------------------------------------
 @cli.command(help='<not implemented>')
@@ -444,10 +469,15 @@ def github_data(*, endpoint=None, entity=None, fields=None, defaults=None,
     Returns a list of dictionaries containing the specified fields.
     Returns a complete data set - if this endpoint does pagination, all pages
     are retrieved and aggregated.
+
+    /// document caching behavior
     """
     headers = {} if not headers else headers
 
+    #/// implement _settings.datasource to control caching behavior
+
     retval = [] # the list to be returned
+    to_cache = [] # the full data set (all fields, all pages) to be cached
     totpages = 0
 
     page_endpoint = endpoint # endpoint of each page in the loop below
@@ -465,6 +495,7 @@ def github_data(*, endpoint=None, entity=None, fields=None, defaults=None,
         if response.ok:
             totpages += 1
             thispage = json.loads(response.text)
+            to_cache.extend(thispage)
             for json_item in thispage:
                 retval.append(data_fields(entity=entity, jsondata=json_item,
                                           fields=fields, defaults=defaults))
@@ -474,7 +505,8 @@ def github_data(*, endpoint=None, entity=None, fields=None, defaults=None,
         if not page_endpoint:
             break # no more results to process
 
-    click.echo('DATA WOULD BE CACHED TO: ' + cachefile(endpoint))
+    #/// don't do this if we have read from the cached data instead of API above
+    cache_update(endpoint, to_cache)
 
     return retval
 
@@ -525,6 +557,9 @@ def members(org, team, audit2fa, authuser, display, verbose, source, filename, f
 
     _settings.display_data = display
     _settings.verbose = verbose
+    # for source option, store the 1st character, lower-case
+    source = source if source else 'p'
+    _settings.datasource = source.lower()[0]
 
     start_time = default_timer()
     auth_config({'username': authuser})
@@ -694,6 +729,9 @@ def repos(org, user, authuser, display, verbose, source, filename, fields, field
 
     _settings.display_data = display
     _settings.verbose = verbose
+    # for source option, store the 1st character, lower-case
+    source = source if source else 'p'
+    _settings.datasource = source.lower()[0]
 
     start_time = default_timer()
     auth_config({'username': authuser})
@@ -895,6 +933,9 @@ def teams(org, authuser, display, verbose, source, filename, fields, fieldlist):
 
     _settings.display_data = display
     _settings.verbose = verbose
+    # for source option, store the 1st character, lower-case
+    source = source if source else 'p'
+    _settings.datasource = source.lower()[0]
 
     start_time = default_timer()
     auth_config({'username': authuser})
