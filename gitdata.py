@@ -405,8 +405,9 @@ def filename_valid(filename=None):
 def github_api(*, endpoint=None, auth=None, headers=None):
     """Call the GitHub API.
 
-    endpoint     = the HTTP endpoint to call; should start with /, will be
+    endpoint     = the HTTP endpoint to call; if it start with /, will be
                    appended to https://api.github.com
+
     auth         = optional tuple for authentication
     headers      = optional dictionary of HTTP headers to pass
 
@@ -434,7 +435,8 @@ def github_api(*, endpoint=None, auth=None, headers=None):
         _settings.requests_session = sess
 
     sess.auth = auth
-    response = sess.get('https://api.github.com' + endpoint, headers=headers_dict)
+    full_endpoint = 'https://api.github.com' + endpoint if endpoint[0] == '/' else endpoint
+    response = sess.get(full_endpoint, headers=headers_dict)
 
     if _settings.verbose:
         click.echo('    Endpoint: ', nl=False)
@@ -514,6 +516,10 @@ def github_data(*, endpoint=None, entity=None, fields=None, defaults=None,
         cache_update(endpoint, all_fields)
     elif read_from == 'c':
         all_fields = github_data_from_cache(endpoint=endpoint)
+        if _settings.verbose:
+            nameonly = os.path.basename(cache_filename(endpoint))
+            click.echo(' Data source: ', nl=False)
+            click.echo(click.style(nameonly, fg='cyan'))
     else:
         all_fields = []
 
