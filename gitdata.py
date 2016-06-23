@@ -1,52 +1,54 @@
 """GitHub query CLI.
 
 Entry point:
-cli() ----------------> Handle command-line arguments.
+cli() --------------------> Handle command-line arguments.
 
-access_token() -------> Get GitHub access token from private settings.
-auth_config() --------> Configure authentication settings.
-auth_status() --------> Display status for GitHub username.
-auth_user() ----------> Return credentials for use in GitHub API calls.
+access_token() -----------> Get GitHub access token from private settings.
+auth_config() ------------> Configure authentication settings.
+auth_status() ------------> Display status for GitHub username.
+auth_user() --------------> Return credentials for use in GitHub API calls.
 
-cache_filename() -----> Get cache filename for specified user/endpoint.
-cache_update() -------> Updated cached data for specified endpoint.
+cache_filename() ---------> Get cache filename for specified user/endpoint.
+cache_update() -----------> Updated cached data for specified endpoint.
 
-collabs() ------------> not implemented
+collabs() ----------------> not implemented
 
-data_display() -------> Display data on console.
-data_fields() --------> Get dictionary of values from GitHub API JSON payload.
-data_write() ---------> Write output file.
-elapsed_time() -------> Display elapsed time.
-filename_valid() -----> Check passed filename for valid file type.
+data_display() -----------> Display data on console.
+data_fields() ------------> Get dictionary of values from GitHub API JSON payload.
+data_write() -------------> Write output file.
+elapsed_time() -----------> Display elapsed time.
+filename_valid() ---------> Check passed filename for valid file type.
 
-files() --------------> not implemented
+files() ------------------> not implemented
 
-github_api() ---------> Call the GitHub API (wrapper for requests library).
-github_data() --------> Consolidate data returned by GitHub API.
+github_api() -------------> Call the GitHub API (wrapper for requests library).
+github_data() ------------> Get data for specified GitHub API endpoint.
+github_data_from_api() ---> Get data from GitHub REST API.
+github_data_from_cache() -> Get data from local cache file.
 
-inifile_name() -------> Return name of INI file where GitHub tokens are stored.
+inifile_name() -----------> Return name of INI file.
 
-members() ------------> Main handler for "members" subcommand.
+members() ----------------> Main handler for "members" subcommand.
 members_listfields() -> List valid field names for members().
-membersdata() --------> Get member information for orgs or teams.
-membersget() ---------> Get member info for a specified organization.
+membersdata() ------------> Get member information for orgs or teams.
+membersget() -------------> Get member info for a specified organization.
 
-pagination() ---------> Parse pagination URLs from 'link' HTTP header.
+pagination() -------------> Parse pagination URLs from 'link' HTTP header.
 
-repos() --------------> Main handler for "repos" subcommand.
-repos_listfields() ---> List valid field names for repos().
-reposdata() ----------> Get repo information for organizations or users.
-reposget() -----------> Get repo information for a specified org or user.
+repos() ------------------> Main handler for "repos" subcommand.
+repos_listfields() -------> List valid field names for repos().
+reposdata() --------------> Get repo information for organizations or users.
+reposget() ---------------> Get repo information for a specified org or user.
 
-teams() --------------> Main handler for "teams" subcommand.
-teams_listfields() ---> List valid field names for teams().
+teams() ------------------> Main handler for "teams" subcommand.
+teams_listfields() -------> List valid field names for teams().
 
-timestamp() ----------> Get current timestamp 'YYYY-MM-DD HH:MM:SS''
-token_abbr() ---------> Get abbreviated access token (for display purposes).
-unknown_fields() -----> List unknown field names encountered this session.
+timestamp() --------------> Get current timestamp 'YYYY-MM-DD HH:MM:SS''
+token_abbr() -------------> Get abbreviated access token (for display purposes).
+unknown_fields() ---------> List unknown field names encountered this session.
 
-write_csv() ----------> Write list of dictionaries to a CSV file.
-write_json() ---------> Write list of dictionaries to a JSON file.
+write_csv() --------------> Write list of dictionaries to a CSV file.
+write_json() -------------> Write list of dictionaries to a JSON file.
 """
 import collections
 import configparser
@@ -214,7 +216,10 @@ def cache_filename(endpoint, auth=None):
     if not auth:
         auth = _settings.username if _settings.username else '_anon'
 
-    return 'gh_cache/' + auth + '_' + endpoint.replace('/', '-').strip('-') + '.json'
+    source_folder = os.path.dirname(os.path.realpath(__file__))
+    filename = auth + '_' + endpoint.replace('/', '-').strip('-') + '.json'
+
+    return os.path.join(source_folder, 'gh_cache/' + filename)
 
 #------------------------------------------------------------------------------
 def cache_update(endpoint, payload):
@@ -459,7 +464,7 @@ def github_api(*, endpoint=None, auth=None, headers=None):
 #-------------------------------------------------------------------------------
 def github_data(*, endpoint=None, entity=None, fields=None, defaults=None,
                 headers=None):
-    """Get data from GitHub API.
+    """Get data for specified GitHub API endpoint.
     endpoint     = HTTP endpoint for GitHub API call
     entity       = entity type ('repo', 'member')
     fields       = list of fields to be returned
@@ -469,55 +474,79 @@ def github_data(*, endpoint=None, entity=None, fields=None, defaults=None,
     Returns a list of dictionaries containing the specified fields.
     Returns a complete data set - if this endpoint does pagination, all pages
     are retrieved and aggregated.
+    """
 
-    /// document caching behavior
+    # _settings.datasource contains one of these three values:
+    # 'a' = call the GitHub REST API to get the data
+    # 'c' = get data from the locally cached data for this endpoint/username
+    # 'p' (or None) = prompt the user for which data to use
+    if _settings.datasource == 'c' and \
+        not os.path.isfile(cache_filename(endpoint)):
+        click.echo('ERROR: cached data requested, but none found.')
+        return []
+
+    #/// implement the datasource and prompting logic
+
+    all_fields = github_data_from_api(endpoint=endpoint, headers=headers)
+
+    retval = []
+    for json_item in all_fields:
+        retval.append(data_fields(entity=entity, jsondata=json_item,
+                                  fields=fields, defaults=defaults))
+
+    #/// don't do this if we have read from the cached data instead of API above
+    cache_update(endpoint, all_fields)
+
+    return retval
+
+#-------------------------------------------------------------------------------
+def github_data_from_api(endpoint=None, headers=None):
+    """Get data from GitHub REST API.
+
+    endpoint     = HTTP endpoint for GitHub API call
+    headers      = HTTP headers to be included with API call
+
+    Returns the data as a list of dictionaries. Pagination is handled by this
+    function, so the complete data set is returned.
     """
     headers = {} if not headers else headers
 
-    #/// implement _settings.datasource to control caching behavior
-
-    retval = [] # the list to be returned
-    to_cache = [] # the full data set (all fields, all pages) to be cached
-    totpages = 0
-
+    payload = [] # the full data set (all fields, all pages)
     page_endpoint = endpoint # endpoint of each page in the loop below
 
     while True:
-
         response = github_api(endpoint=page_endpoint, auth=auth_user(),
                               headers=headers)
-
         if _settings.verbose:
             click.echo('    Status: ' + str(response), nl=False)
             click.echo(click.style(', ' + str(len(response.text)) +
                                    ' bytes returned', fg='cyan'))
-
         if response.ok:
-            totpages += 1
             thispage = json.loads(response.text)
-            to_cache.extend(thispage)
-            for json_item in thispage:
-                retval.append(data_fields(entity=entity, jsondata=json_item,
-                                          fields=fields, defaults=defaults))
+            payload.extend(thispage)
 
         pagelinks = pagination(response)
         page_endpoint = pagelinks['nextURL']
         if not page_endpoint:
             break # no more results to process
 
-    #/// don't do this if we have read from the cached data instead of API above
-    cache_update(endpoint, to_cache)
+    return payload
 
-    return retval
+#-------------------------------------------------------------------------------
+def github_data_from_cache(endpoint=None):
+    """Get data from local cache file.
+    """
+    #/// TO BE IMPLEMENTED
+    pass
 
 #-------------------------------------------------------------------------------
 def inifile_name():
     """Return full name of INI file where GitHub tokens are stored.
-    Note that this file is stored in a 'private' subfolder under the location of
-    the gitinfo module.
+    Note that this file is stored in a 'private' subfolder under the parent
+    folder of the gitinfo module.
     """
-    return os.path.join(os.path.dirname(os.path.realpath(__file__)),
-                        '../_private/github_users.ini')
+    source_folder = os.path.dirname(os.path.realpath(__file__))
+    return os.path.join(source_folder, '../_private/github_users.ini')
 
 #------------------------------------------------------------------------------
 @cli.command(help='Get member information by org or team ID')
