@@ -58,6 +58,7 @@ import configparser
 import csv
 import json
 import os
+import sys
 import time
 from timeit import default_timer
 
@@ -245,14 +246,12 @@ def cache_update(endpoint, payload):
     """
     filename = cache_filename(endpoint)
 
-    cache_existed = cache_exists(endpoint)
     write_json(source=payload, filename=filename) # write cached data
 
     if _settings.verbose:
-        if cache_existed:
-            click.echo('Cache updated: ' + filename)
-        else:
-            click.echo('Cache created: ' + filename)
+        nameonly = os.path.basename(filename)
+        click.echo('Cache update: ', nl=False)
+        click.echo(click.style(nameonly, fg='cyan'))
 
 #------------------------------------------------------------------------------
 @cli.command(help='<not implemented>')
@@ -374,8 +373,8 @@ def elapsed_time(starttime):
     If _settings.verbose, displays elapsed time in seconds.
     """
     if _settings.verbose:
-        click.echo('Elapsed time: ' +\
-            "{0:.2f}".format(default_timer() - starttime) + ' seconds')
+        click.echo('Elapsed time: ', nl=False)
+        click.echo(click.style("{0:.2f}".format(default_timer() - starttime) + ' seconds', fg='cyan'))
 
 #------------------------------------------------------------------------------
 @cli.command(help='<not implemented>')
@@ -438,11 +437,9 @@ def github_api(*, endpoint=None, auth=None, headers=None):
     response = sess.get('https://api.github.com' + endpoint, headers=headers_dict)
 
     if _settings.verbose:
-        click.echo('  Endpoint: ', nl=False)
-        click.echo(click.style(endpoint, fg='white'), nl=False)
+        click.echo('    Endpoint: ', nl=False)
         click.echo( \
-            click.style(', ' +  str(sess).replace('requests.sessions.', ''),
-                        fg='cyan'))
+            click.style(endpoint, fg='cyan'))
 
     # update rate-limit settings
     try:
@@ -463,11 +460,12 @@ def github_api(*, endpoint=None, auth=None, headers=None):
             username = '(user = ' + auth_user()[0] + ')'
         else:
             username = '(non-authenticated)'
-        click.echo('Rate Limit: ' + str(_settings.last_ratelimit) + ' - ' + \
-              str(_settings.last_ratelimit - _settings.last_remaining) +\
-              ' used', nl=False)
-        click.echo(click.style(', ' + str(_settings.last_remaining) +
-                               ' remaining ' + username, fg='cyan'))
+
+        click.echo('  Rate Limit: ', nl=False)
+        click.echo(click.style(str(_settings.last_remaining) +
+                               ' available, ' + str(_settings.last_ratelimit - _settings.last_remaining) +\
+              ' used, ' + str(_settings.last_ratelimit) + ' total ' + \
+               username, fg='cyan'))
 
     return response
 
@@ -503,10 +501,13 @@ def github_data(*, endpoint=None, entity=None, fields=None, defaults=None,
         if cache_exists(endpoint):
             click.echo('Cached data exists: ' + timestamp(cache_filename(endpoint)))
             read_from = \
-                click.prompt('Read data from API (a) or cache (c)?').lower()
+                click.prompt('Read from API (a), cache (c) or exit (x)?').lower()
         else:
             click.echo('Cached data not available.')
-            read_from = click.prompt('Read data from API (a)?').lower()
+            read_from = click.prompt('Read from API (a) or exit (x)?').lower()
+
+    if read_from == 'x':
+        sys.exit(0)
 
     if read_from == 'a':
         all_fields = github_data_from_api(endpoint=endpoint, headers=headers)
@@ -542,8 +543,8 @@ def github_data_from_api(endpoint=None, headers=None):
         response = github_api(endpoint=page_endpoint, auth=auth_user(),
                               headers=headers)
         if _settings.verbose:
-            click.echo('    Status: ' + str(response), nl=False)
-            click.echo(click.style(', ' + str(len(response.text)) +
+            click.echo('      Status: ', nl=False)
+            click.echo(click.style(str(response) + ', ' + str(len(response.text)) +
                                    ' bytes returned', fg='cyan'))
         if response.ok:
             thispage = json.loads(response.text)
