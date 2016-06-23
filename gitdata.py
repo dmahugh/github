@@ -8,6 +8,7 @@ auth_config() ------------> Configure authentication settings.
 auth_status() ------------> Display status for GitHub username.
 auth_user() --------------> Return credentials for use in GitHub API calls.
 
+cache_exists() -----------> Check whether cached data exists for an endpoint.
 cache_filename() ---------> Get cache filename for specified user/endpoint.
 cache_update() -----------> Updated cached data for specified endpoint.
 
@@ -35,6 +36,8 @@ membersget() -------------> Get member info for a specified organization.
 
 pagination() -------------> Parse pagination URLs from 'link' HTTP header.
 
+read_json() --------------> Read serialized object from JSON file.
+
 repos() ------------------> Main handler for "repos" subcommand.
 repos_listfields() -------> List valid field names for repos().
 reposdata() --------------> Get repo information for organizations or users.
@@ -43,7 +46,7 @@ reposget() ---------------> Get repo information for a specified org or user.
 teams() ------------------> Main handler for "teams" subcommand.
 teams_listfields() -------> List valid field names for teams().
 
-timestamp() --------------> Get current timestamp 'YYYY-MM-DD HH:MM:SS''
+timestamp() --------------> Get current timestamp or a file timestamp.
 token_abbr() -------------> Get abbreviated access token (for display purposes).
 unknown_fields() ---------> List unknown field names encountered this session.
 
@@ -53,7 +56,6 @@ write_json() -------------> Write list of dictionaries to a JSON file.
 import collections
 import configparser
 import csv
-import datetime
 import json
 import os
 import time
@@ -205,6 +207,17 @@ def auth_user():
     return None
 
 #------------------------------------------------------------------------------
+def cache_exists(endpoint, auth=None):
+    """Check whether cached data exists for an endpoint.
+
+    endpoint = GitHub REST API endpoint
+    auth = GitHub authentication username
+
+    Returns True if local cached data exists, False if not.
+    """
+    return os.path.isfile(cache_filename(endpoint, auth))
+
+#------------------------------------------------------------------------------
 def cache_filename(endpoint, auth=None):
     """Get cache filename for specified user/endpoint.
 
@@ -232,14 +245,11 @@ def cache_update(endpoint, payload):
     """
     filename = cache_filename(endpoint)
 
-    # determine whether a cache file already exists for this endpoint
-    cache_exists = os.path.isfile(filename)
-
-    # write the cached data
-    write_json(source=payload, filename=filename)
+    cache_existed = cache_exists(endpoint)
+    write_json(source=payload, filename=filename) # write cached data
 
     if _settings.verbose:
-        if cache_exists:
+        if cache_existed:
             click.echo('Cache updated: ' + filename)
         else:
             click.echo('Cache created: ' + filename)
@@ -475,28 +485,42 @@ def github_data(*, endpoint=None, entity=None, fields=None, defaults=None,
     Returns a complete data set - if this endpoint does pagination, all pages
     are retrieved and aggregated.
     """
-
     # _settings.datasource contains one of these three values:
     # 'a' = call the GitHub REST API to get the data
     # 'c' = get data from the locally cached data for this endpoint/username
     # 'p' (or None) = prompt the user for which data to use
-    if _settings.datasource == 'c' and \
-        not os.path.isfile(cache_filename(endpoint)):
+
+    if _settings.datasource == 'c' and not cache_exists(endpoint):
         click.echo('ERROR: cached data requested, but none found.')
         return []
 
-    #/// implement the datasource and prompting logic
+    if _settings.datasource == 'a':
+        read_from = 'a'
+    elif _settings.datasource == 'c':
+        read_from = 'c'
+    else:
+        # prompt user for which data source to use
+        if cache_exists(endpoint):
+            click.echo('Cached data exists: ' + timestamp(cache_filename(endpoint)))
+            read_from = \
+                click.prompt('Read data from API (a) or cache (c)?').lower()
+        else:
+            click.echo('Cached data not available.')
+            read_from = click.prompt('Read data from API (a)?').lower()
 
-    all_fields = github_data_from_api(endpoint=endpoint, headers=headers)
+    if read_from == 'a':
+        all_fields = github_data_from_api(endpoint=endpoint, headers=headers)
+        cache_update(endpoint, all_fields)
+    elif read_from == 'c':
+        all_fields = github_data_from_cache(endpoint=endpoint)
+    else:
+        all_fields = []
 
+    # extract the requested fields and return them
     retval = []
     for json_item in all_fields:
         retval.append(data_fields(entity=entity, jsondata=json_item,
                                   fields=fields, defaults=defaults))
-
-    #/// don't do this if we have read from the cached data instead of API above
-    cache_update(endpoint, all_fields)
-
     return retval
 
 #-------------------------------------------------------------------------------
@@ -535,9 +559,11 @@ def github_data_from_api(endpoint=None, headers=None):
 #-------------------------------------------------------------------------------
 def github_data_from_cache(endpoint=None):
     """Get data from local cache file.
+
+    endpoint = GitHub API endpoint
     """
-    #/// TO BE IMPLEMENTED
-    pass
+    filename = cache_filename(endpoint)
+    return read_json(filename)
 
 #-------------------------------------------------------------------------------
 def inifile_name():
@@ -720,6 +746,18 @@ def pagination(link_header):
         retval[linktype + 'page'] = pageno
         retval[linktype + 'URL'] = url
 
+    return retval
+
+#-------------------------------------------------------------------------------
+def read_json(filename=None):
+    """Read .json file into a Python object.
+
+    filename = the filename
+    Returns the object that has been serialized to the .json file (list, etc).
+    <internal>
+    """
+    with open(filename, 'r') as datafile:
+        retval = json.loads(datafile.read())
     return retval
 
 #------------------------------------------------------------------------------
@@ -1005,11 +1043,19 @@ def teams_listfields():
     click.echo(click.style('url', fg='cyan'))
 
 #-------------------------------------------------------------------------------
-def timestamp():
-    """Return current timestamp as a string - YYYY-MM-DD HH:MM:SS
+def timestamp(filename=None):
+    """Return timestamp as a string.
+
+    filename = optional file, if passed then timestamp is returned for the file
+
+    Otherwise, returns current timestamp.
     <internal>
     """
-    return '{:%Y-%m-%d %H:%M:%S}'.format(datetime.datetime.now())
+    if filename:
+        unixtime = os.path.getmtime(filename)
+        return time.strftime('%m/%d/%Y %H:%M:%S', time.localtime(unixtime))
+    else:
+        return time.strftime('%m/%d/%Y %H:%M:%S', time.localtime(time.time()))
 
 #-------------------------------------------------------------------------------
 def token_abbr(accesstoken):
