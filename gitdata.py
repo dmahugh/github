@@ -236,16 +236,28 @@ def cache_filename(endpoint, auth=None):
     return os.path.join(source_folder, 'gh_cache/' + filename)
 
 #------------------------------------------------------------------------------
-def cache_update(endpoint, payload):
+def cache_update(endpoint, payload, constants):
     """Update cached data.
 
-    endpoint = the API endpoint (e.g., '/repos/org')
-    payload = the list of JSON to be cached
+    endpoint  = the API endpoint (e.g., '/repos/org')
+    payload   = the list of dictionaries returned from API endpoint
+    constants = dictionary of fieldnames/values to be included in the
+                cached data (e.g., criteria used in the API call)
 
     Writes the cache file for this endpoint. Overwrites existing cached data.
     """
-    filename = cache_filename(endpoint)
 
+    if constants:
+        # add the constants to the API payload
+        cached_data = []
+        for data_item in payload:
+            for fldname in constants:
+                data_item[fldname] = constants[fldname]
+            cached_data.append(data_item)
+    else:
+        cached_data = payload # no constants to be added
+
+    filename = cache_filename(endpoint)
     write_json(source=payload, filename=filename) # write cached data
 
     if _settings.verbose:
@@ -261,7 +273,7 @@ def collabs():
     click.echo('NOT IMPLEMENTED: collabs()')
 
 #-------------------------------------------------------------------------------
-def data_fields(*, entity=None, jsondata=None, fields=None, defaults=None):
+def data_fields(*, entity=None, jsondata=None, fields=None, constants=None):
     """Get dictionary of desired values from GitHub API JSON payload.
 
     entity   = entity type ('repo', 'member')
@@ -271,10 +283,13 @@ def data_fields(*, entity=None, jsondata=None, fields=None, defaults=None):
                '*' -------> return all fields returned by GitHub API
                'nourls' --> return all non-URL fields (not *_url or url)
                'urls' ----> return all URL fields (*_url and url)
-    defaults = dictionary of fieldnames/values to include in dictionary
+    constants = dictionary of fieldnames/values that can be included in the
+                specified fields but aren't returned by GitHub API (these are
+                typically criteria used in the API call)
 
     Returns a dictionary of fieldnames/values.
     """
+
     if not fields:
         # if no fields specified, use default field list
         if entity == 'member':
@@ -288,9 +303,9 @@ def data_fields(*, entity=None, jsondata=None, fields=None, defaults=None):
 
     values = collections.OrderedDict()
 
-    if defaults:
-        for fldname in defaults:
-            values[fldname] = defaults[fldname]
+    if constants:
+        for fldname in constants:
+            values[fldname] = constants[fldname]
 
     if fields[0] in ['*', 'urls', 'nourls']:
         # special cases to return all fields or all url/non-url fields
@@ -472,13 +487,15 @@ def github_api(*, endpoint=None, auth=None, headers=None):
     return response
 
 #-------------------------------------------------------------------------------
-def github_data(*, endpoint=None, entity=None, fields=None, defaults=None,
+def github_data(*, endpoint=None, entity=None, fields=None, constants=None,
                 headers=None):
     """Get data for specified GitHub API endpoint.
     endpoint     = HTTP endpoint for GitHub API call
     entity       = entity type ('repo', 'member')
     fields       = list of fields to be returned
-    defaults     = dictionary of fieldnames/values to include in dictionaries
+    constants    = dictionary of fieldnames/values that can be included in the
+                   specified fields but aren't returned by GitHub API (these are
+                   typically criteria used in the API call)
     headers      = HTTP headers to be included with API call
 
     Returns a list of dictionaries containing the specified fields.
@@ -513,7 +530,7 @@ def github_data(*, endpoint=None, entity=None, fields=None, defaults=None,
 
     if read_from == 'a':
         all_fields = github_data_from_api(endpoint=endpoint, headers=headers)
-        cache_update(endpoint, all_fields)
+        cache_update(endpoint, all_fields, constants)
     elif read_from == 'c':
         all_fields = github_data_from_cache(endpoint=endpoint)
         if _settings.verbose:
@@ -527,7 +544,7 @@ def github_data(*, endpoint=None, entity=None, fields=None, defaults=None,
     retval = []
     for json_item in all_fields:
         retval.append(data_fields(entity=entity, jsondata=json_item,
-                                  fields=fields, defaults=defaults))
+                                  fields=fields, constants=constants))
     return retval
 
 #-------------------------------------------------------------------------------
@@ -715,7 +732,7 @@ def membersget(*, org=None, team=None, fields=None, audit2fa=False):
             ('?filter=2fa_disabled' if audit2fa else '')
 
     return github_data(endpoint=endpoint, entity='member', fields=fields,
-                       defaults={"org": org}, headers={})
+                       constants={"org": org}, headers={})
 
 #------------------------------------------------------------------------------
 def pagination(link_header):
@@ -1016,7 +1033,7 @@ def teams(org, authuser, display, verbose, source, filename, fields, fieldlist):
     fldnames = fields.split('/') if fields else None
     teamlist = github_data(
         endpoint='/orgs/' + org + '/teams', entity='team',
-        fields=fldnames, defaults={"org": org}, headers={})
+        fields=fldnames, constants={"org": org}, headers={})
     data_display(teamlist)
     data_write(filename, teamlist)
     unknown_fields() # list unknown field names (if any)
