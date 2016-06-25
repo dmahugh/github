@@ -30,11 +30,12 @@ github_data_from_cache() -> Get data from local cache file.
 inifile_name() -----------> Return name of INI file.
 
 members() ----------------> Main handler for "members" subcommand.
-members_listfields() -> List valid field names for members().
+members_listfields() -----> List valid field names for members().
 membersdata() ------------> Get member information for orgs or teams.
 membersget() -------------> Get member info for a specified organization.
 
 orgs() -------------------> Main handler for "orgs" subcommand.
+orgs_listfields() --------> List valid field names for orgs().
 
 pagination() -------------> Parse pagination URLs from 'link' HTTP header.
 
@@ -51,6 +52,8 @@ teams_listfields() -------> List valid field names for teams().
 timestamp() --------------> Get current timestamp or a file timestamp.
 token_abbr() -------------> Get abbreviated access token (for display purposes).
 unknown_fields() ---------> List unknown field names encountered this session.
+
+wildcard_fields() --------> Display wildcard field options.
 
 write_csv() --------------> Write list of dictionaries to a CSV file.
 write_json() -------------> Write list of dictionaries to a JSON file.
@@ -302,6 +305,8 @@ def data_fields(*, entity=None, jsondata=None, fields=None, constants=None):
             fields = ['owner.login', 'name']
         elif entity == 'team':
             fields = ['name', 'id', 'privacy', 'permission']
+        elif entity == 'org':
+            fields = ['user', 'login']
         else:
             fields = ['name']
 
@@ -658,19 +663,7 @@ def members(org, team, audit2fa, authuser, display, verbose, source, filename, f
 def members_listfields():
     """List valid field names for members().
     """
-    click.echo(click.style('\n     specified fields -->  --fields=',
-                           fg='white'), nl=False)
-    click.echo(click.style('fld1/fld2/etc', fg='cyan'))
-    click.echo(click.style('           ALL fields -->  --fields=',
-                           fg='white'), nl=False)
-    click.echo(click.style('*', fg='cyan'))
-    click.echo(click.style('              No URLs -->  --fields=',
-                           fg='white'), nl=False)
-    click.echo(click.style('nourls', fg='cyan'))
-    click.echo(click.style('            Only URLs -->  --fields=',
-                           fg='white'), nl=False)
-    click.echo(click.style('urls', fg='cyan'))
-    click.echo(click.style(60*'-', fg='blue'))
+    wildcard_fields()
     click.echo(click.style('id                  avatar_url          ' +
                            'html_url', fg='cyan'))
     click.echo(click.style('login               events_url          ' +
@@ -755,8 +748,7 @@ def orgs(authuser, display, verbose, source, filename, fields, fieldlist):
     """Get organization information.
     """
     if fieldlist:
-        #/// orgs_listfields()
-        #/// note need to include 'user' constant
+        orgs_listfields()
         return
 
     if not authuser:
@@ -766,16 +758,40 @@ def orgs(authuser, display, verbose, source, filename, fields, fieldlist):
     if not filename_valid(filename):
         return
 
+    _settings.display_data = display
+    _settings.verbose = verbose
+    # for source option, store the 1st character, lower-case
+    source = source if source else 'p'
+    _settings.datasource = source.lower()[0]
+
     start_time = default_timer()
     auth_config({'username': authuser})
     fldnames = fields.split('/') if fields else None
     orglist = github_data(
-        endpoint='/user/orgs/', entity='org', fields=fldnames,
+        endpoint='/user/orgs', entity='org', fields=fldnames,
         constants={"user": authuser}, headers={})
     data_display(orglist)
     data_write(filename, orglist)
     unknown_fields() # list unknown field names (if any)
     elapsed_time(start_time)
+
+#-------------------------------------------------------------------------------
+def orgs_listfields():
+    """List valid field names for orgs().
+    """
+    wildcard_fields()
+    click.echo(click.style('avatar_url', fg='cyan'))
+    click.echo(click.style('description', fg='cyan'))
+    click.echo(click.style('events_url', fg='cyan'))
+    click.echo(click.style('hooks_url', fg='cyan'))
+    click.echo(click.style('id', fg='cyan'))
+    click.echo(click.style('issues_url', fg='cyan'))
+    click.echo(click.style('login', fg='cyan'))
+    click.echo(click.style('members_url', fg='cyan'))
+    click.echo(click.style('public_members_url', fg='cyan'))
+    click.echo(click.style('repos_url', fg='cyan'))
+    click.echo(click.style('url', fg='cyan'))
+    click.echo(click.style('user', fg='cyan'))
 
 #------------------------------------------------------------------------------
 def pagination(link_header):
@@ -950,19 +966,7 @@ def reposget(*, org=None, user=None, fields=None):
 def repos_listfields():
     """List valid field names for repos().
     """
-    click.echo(click.style('\n     specified fields -->  --fields=',
-                           fg='white'), nl=False)
-    click.echo(click.style('fld1/fld2/etc', fg='cyan'))
-    click.echo(click.style('           ALL fields -->  --fields=',
-                           fg='white'), nl=False)
-    click.echo(click.style('*', fg='cyan'))
-    click.echo(click.style('              No URLs -->  --fields=',
-                           fg='white'), nl=False)
-    click.echo(click.style('nourls', fg='cyan'))
-    click.echo(click.style('            Only URLs -->  --fields=',
-                           fg='white'), nl=False)
-    click.echo(click.style('urls', fg='cyan'))
-    click.echo(click.style(60*'-', fg='blue'))
+    wildcard_fields()
     click.echo(click.style('archive_url         git_tags_url         ' +
                            'open_issues', fg='cyan'))
     click.echo(click.style('assignees_url       git_url              ' +
@@ -1086,19 +1090,7 @@ def teams(org, authuser, display, verbose, source, filename, fields, fieldlist):
 def teams_listfields():
     """List valid field names for teams().
     """
-    click.echo(click.style('\n     specified fields -->  --fields=',
-                           fg='white'), nl=False)
-    click.echo(click.style('fld1/fld2/etc', fg='cyan'))
-    click.echo(click.style('           ALL fields -->  --fields=',
-                           fg='white'), nl=False)
-    click.echo(click.style('*', fg='cyan'))
-    click.echo(click.style('              No URLs -->  --fields=',
-                           fg='white'), nl=False)
-    click.echo(click.style('nourls', fg='cyan'))
-    click.echo(click.style('            Only URLs -->  --fields=',
-                           fg='white'), nl=False)
-    click.echo(click.style('urls', fg='cyan'))
-    click.echo(click.style(60*'-', fg='blue'))
+    wildcard_fields()
     click.echo(click.style('description', fg='cyan'))
     click.echo(click.style('id', fg='cyan'))
     click.echo(click.style('members_url', fg='cyan'))
@@ -1147,6 +1139,24 @@ def unknown_fields():
     except AttributeError:
         # no unknown fields have been logged
         pass
+
+#-------------------------------------------------------------------------------
+def wildcard_fields():
+    """Display wildcard field options.
+    """
+    click.echo(click.style('\n     specified fields -->  --fields=',
+                           fg='white'), nl=False)
+    click.echo(click.style('fld1/fld2/etc', fg='cyan'))
+    click.echo(click.style('           ALL fields -->  --fields=',
+                           fg='white'), nl=False)
+    click.echo(click.style('*', fg='cyan'))
+    click.echo(click.style('              No URLs -->  --fields=',
+                           fg='white'), nl=False)
+    click.echo(click.style('nourls', fg='cyan'))
+    click.echo(click.style('            Only URLs -->  --fields=',
+                           fg='white'), nl=False)
+    click.echo(click.style('urls', fg='cyan'))
+    click.echo(click.style(60*'-', fg='blue'))
 
 #-------------------------------------------------------------------------------
 def write_csv(listobj, filename):
