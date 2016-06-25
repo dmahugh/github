@@ -325,7 +325,7 @@ def data_fields(*, entity=None, jsondata=None, fields=None, constants=None):
         # fields == an actual list of fieldnames, not a special case
         for fldname in fields:
 
-            if fldname in constants:
+            if constants and fldname in constants:
                 values[fldname] = constants[fldname]
             elif '.' in fldname:
                 # special case - embedded field within a JSON object
@@ -601,9 +601,9 @@ def inifile_name():
 #------------------------------------------------------------------------------
 @cli.command(help='Get member information by org or team ID')
 @click.option('-o', '--org', default='',
-              help='organizations', metavar='org1/org2/etc')
+              help='organization name', metavar='')
 @click.option('-t', '--team', default='',
-              help='teams', metavar='teamID1/teamID2/etc')
+              help='team ID', metavar='')
 @click.option('--audit2fa', is_flag=True,
               help='include only 2FA-not-enabled members')
 @click.option('-a', '--authuser', default='',
@@ -684,8 +684,8 @@ def members_listfields():
 def membersdata(*, org=None, team=None, fields=None, audit2fa=False):
     """Get members for one or more teams or organizations.
 
-    org = a /-delimited list of organizations
-    team = a /-delimited list of teams; if provided, org is ignored
+    org = organization name
+    team = team ID; if provided, org is ignored
     fields = list of field names to be returned; names must be the same as
              returned by the GitHub API (see members_listfields() for the list).
     audit2fa = whether to only return members with 2FA disabled. You must be
@@ -698,13 +698,10 @@ def membersdata(*, org=None, team=None, fields=None, audit2fa=False):
 
     if team:
         # get members by team
-        for teamid in team.split('/'):
-            memberlist.extend(membersget(team=teamid, fields=fields))
+        memberlist.extend(membersget(team=team, fields=fields))
     else:
         # get members by organization
-        for orgid in org.split('/'):
-            memberlist.extend( \
-                membersget(org=orgid, fields=fields, audit2fa=audit2fa))
+        memberlist.extend(membersget(org=org, fields=fields, audit2fa=audit2fa))
 
     return memberlist
 
