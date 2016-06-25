@@ -102,6 +102,8 @@ class _settings:
     username = '' # default = no GitHub authentication
     accesstoken = '' # auth_config() may set this from '../_private' folder
 
+    datasource = 'p' # a=API, c=cache, p=prompt user to select
+
     # current session object from requests library
     requests_session = None
 
@@ -754,6 +756,7 @@ def orgs(authuser, display, verbose, source, filename, fields, fieldlist):
     """
     if fieldlist:
         #/// orgs_listfields()
+        #/// note need to include 'user' constant
         return
 
     if not authuser:
@@ -763,18 +766,14 @@ def orgs(authuser, display, verbose, source, filename, fields, fieldlist):
     if not filename_valid(filename):
         return
 
-    _settings.display_data = display
-    _settings.verbose = verbose
-    # for source option, store the 1st character, lower-case
-    source = source if source else 'p'
-    _settings.datasource = source.lower()[0]
-
     start_time = default_timer()
     auth_config({'username': authuser})
     fldnames = fields.split('/') if fields else None
-    #/// orglist = orgsdata(fields=fldnames)
-    #/// data_display(orglist)
-    #/// data_write(filename, orglist)
+    orglist = github_data(
+        endpoint='/user/orgs/', entity='org', fields=fldnames,
+        constants={"user": authuser}, headers={})
+    data_display(orglist)
+    data_write(filename, orglist)
     unknown_fields() # list unknown field names (if any)
     elapsed_time(start_time)
 
