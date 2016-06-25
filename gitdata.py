@@ -74,13 +74,13 @@ import requests
 CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'])
 @click.group(context_settings=CONTEXT_SETTINGS, options_metavar='[options]',
              invoke_without_command=True)
-@click.version_option(version='1.0', prog_name='Gitdata')
 @click.option('-a', '--auth', default='',
-              help='check auth status for specified username', metavar='')
+              help='check auth status for specified username', metavar='<str>')
 @click.option('-t', '--token', default='',
-              help='store access token for specified username', metavar='')
+              help='store access token for specified username', metavar='<str>')
 @click.option('-d', '--delete', default=False,
-              help='delete specified username', is_flag=True, metavar='')
+              help='delete specified username', is_flag=True, metavar='<str>')
+@click.version_option(version='1.0', prog_name='Gitdata')
 @click.pass_context
 def cli(ctx, auth, token, delete):
     """\b
@@ -846,24 +846,24 @@ def read_json(filename=None):
 #------------------------------------------------------------------------------
 @cli.command(help='Get repo information by org or user/owner')
 @click.option('-o', '--org', default='',
-              help='GitHub organization', metavar='')
+              help='GitHub organization', metavar='<str>')
 @click.option('-u', '--user', default='',
-              help='GitHub user', metavar='')
-@click.option('-a', '--authuser', default='',
-              help='authentication username', metavar='')
-@click.option('-d', '--display', is_flag=True, default=True,
-              help="Display retrieved data.")
-@click.option('-v', '--verbose', is_flag=True, default=False,
-              help="Verbose status information.")
+              help='GitHub user', metavar='<str>')
+@click.option('-a', '--authuser', default='<str>',
+              help='authentication username', metavar='<str>')
 @click.option('-s', '--source', default='p',
-              help='data source - a/API, c/cache, or p/prompt', metavar='')
+              help='data source - a/API, c/cache, or p/prompt', metavar='<str>')
 @click.option('-n', '--filename', default='',
-              help='output filename (.CSV or .JSON)', metavar='')
+              help='output filename (.CSV or .JSON)', metavar='<str>')
 @click.option('-f', '--fields', default='',
-              help='fields to include', metavar='<fld1/fld2/etc>')
+              help='fields to include', metavar='<str>')
+@click.option('-d', '--display', is_flag=True, default=True,
+              help="Don't display retrieved data")
+@click.option('-v', '--verbose', is_flag=True, default=False,
+              help="Display verbose status info")
 @click.option('-l', '--fieldlist', is_flag=True,
-              help='list available GitHub fields')
-def repos(org, user, authuser, display, verbose, source, filename, fields, fieldlist):
+              help='list available fields and exit.')
+def repos(org, user, authuser, source, filename, fields, display, verbose, fieldlist):
     """Get repository information.
     """
     if fieldlist:
@@ -1040,22 +1040,22 @@ def repos_listfields():
 #------------------------------------------------------------------------------
 @cli.command(help='Get team information for an organization')
 @click.option('-o', '--org', default='',
-              help='GitHub organization', metavar='')
+              help='GitHub organization', metavar='<str>')
 @click.option('-a', '--authuser', default='',
-              help='authentication username', metavar='')
-@click.option('-d', '--display', is_flag=True, default=True,
-              help="Display retrieved data")
-@click.option('-v', '--verbose', is_flag=True, default=False,
-              help="Verbose status information")
+              help='authentication username', metavar='<str>')
 @click.option('-s', '--source', default='p',
-              help='data source - a/API, c/cache, or p/prompt', metavar='')
+              help='data source - a/API, c/cache, or p/prompt', metavar='<str>')
 @click.option('-n', '--filename', default='',
-              help='output filename (.CSV or .JSON)', metavar='')
+              help='output filename (.CSV or .JSON)', metavar='<str>')
 @click.option('-f', '--fields', default='',
-              help='fields to include', metavar='<fld1/fld2/etc>')
+              help='fields to include', metavar='<str>')
+@click.option('-d', '--display', is_flag=True, default=True,
+              help="Don't display retrieved data")
+@click.option('-v', '--verbose', is_flag=True, default=False,
+              help="Display verbose status info")
 @click.option('-l', '--fieldlist', is_flag=True,
               help='list available GitHub fields')
-def teams(org, authuser, display, verbose, source, filename, fields, fieldlist):
+def teams(org, authuser, source, filename, fields, display, verbose, fieldlist):
     """get team information for an organization.
     """
     if fieldlist:
