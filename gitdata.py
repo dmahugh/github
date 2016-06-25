@@ -34,6 +34,8 @@ members_listfields() -> List valid field names for members().
 membersdata() ------------> Get member information for orgs or teams.
 membersget() -------------> Get member info for a specified organization.
 
+orgs() -------------------> Main handler for "orgs" subcommand.
+
 pagination() -------------> Parse pagination URLs from 'link' HTTP header.
 
 read_json() --------------> Read serialized object from JSON file.
@@ -730,6 +732,51 @@ def membersget(*, org=None, team=None, fields=None, audit2fa=False):
 
     return github_data(endpoint=endpoint, entity='member', fields=fields,
                        constants={"org": org}, headers={})
+
+#------------------------------------------------------------------------------
+@cli.command(help='Get org memberships for a user')
+@click.option('-a', '--authuser', default='',
+              help='authentication username', metavar='')
+@click.option('-d', '--display', is_flag=True, default=True,
+              help="Display retrieved data.")
+@click.option('-v', '--verbose', is_flag=True, default=False,
+              help="Verbose status information.")
+@click.option('-s', '--source', default='p',
+              help='data source - a/API, c/cache, or p/prompt', metavar='')
+@click.option('-n', '--filename', default='',
+              help='output filename (.CSV or .JSON)', metavar='')
+@click.option('-f', '--fields', default='',
+              help='fields to include', metavar='<fld1/fld2/etc>')
+@click.option('-l', '--fieldlist', is_flag=True,
+              help='list available GitHub fields')
+def orgs(authuser, display, verbose, source, filename, fields, fieldlist):
+    """Get organization information.
+    """
+    if fieldlist:
+        #/// orgs_listfields()
+        return
+
+    if not authuser:
+        click.echo('ERROR: authentication username is required')
+        return
+
+    if not filename_valid(filename):
+        return
+
+    _settings.display_data = display
+    _settings.verbose = verbose
+    # for source option, store the 1st character, lower-case
+    source = source if source else 'p'
+    _settings.datasource = source.lower()[0]
+
+    start_time = default_timer()
+    auth_config({'username': authuser})
+    fldnames = fields.split('/') if fields else None
+    #/// orglist = orgsdata(fields=fldnames)
+    #/// data_display(orglist)
+    #/// data_write(filename, orglist)
+    unknown_fields() # list unknown field names (if any)
+    elapsed_time(start_time)
 
 #------------------------------------------------------------------------------
 def pagination(link_header):
