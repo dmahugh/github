@@ -731,20 +731,20 @@ def membersget(*, org=None, team=None, fields=None, audit2fa=False):
 #------------------------------------------------------------------------------
 @cli.command(help='Get org memberships for a user')
 @click.option('-a', '--authuser', default='',
-              help='authentication username', metavar='')
-@click.option('-d', '--display', is_flag=True, default=True,
-              help="Display retrieved data.")
-@click.option('-v', '--verbose', is_flag=True, default=False,
-              help="Verbose status information.")
+              help='authentication username', metavar='<str>')
 @click.option('-s', '--source', default='p',
-              help='data source - a/API, c/cache, or p/prompt', metavar='')
+              help='data source - a/API, c/cache, or p/prompt', metavar='<str>')
 @click.option('-n', '--filename', default='',
-              help='output filename (.CSV or .JSON)', metavar='')
+              help='output filename (.CSV or .JSON)', metavar='<str>')
 @click.option('-f', '--fields', default='',
-              help='fields to include', metavar='<fld1/fld2/etc>')
+              help='fields to include', metavar='<str>')
+@click.option('-d', '--display', is_flag=True, default=True,
+              help="Don't display retrieved data")
+@click.option('-v', '--verbose', is_flag=True, default=False,
+              help="Display verbose status info")
 @click.option('-l', '--fieldlist', is_flag=True,
-              help='list available GitHub fields')
-def orgs(authuser, display, verbose, source, filename, fields, fieldlist):
+              help='list available fields and exit.')
+def orgs(authuser, source, filename, fields, display, verbose, fieldlist):
     """Get organization information.
     """
     if fieldlist:
