@@ -69,7 +69,7 @@ import requests
 CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'])
 @click.group(context_settings=CONTEXT_SETTINGS, options_metavar='[options]',
              invoke_without_command=True)
-@click.version_option(version='1.0', prog_name='Photerino')
+@click.version_option(version='1.0', prog_name='Gitdata')
 @click.option('-a', '--auth', default='',
               help='check auth status for specified username', metavar='')
 @click.option('-t', '--token', default='',
@@ -303,10 +303,6 @@ def data_fields(*, entity=None, jsondata=None, fields=None, constants=None):
 
     values = collections.OrderedDict()
 
-    if constants:
-        for fldname in constants:
-            values[fldname] = constants[fldname]
-
     if fields[0] in ['*', 'urls', 'nourls']:
         # special cases to return all fields or all url/non-url fields
         for fldname in jsondata:
@@ -326,13 +322,15 @@ def data_fields(*, entity=None, jsondata=None, fields=None, constants=None):
     else:
         # fields == an actual list of fieldnames, not a special case
         for fldname in fields:
-            if '.' in fldname:
+
+            if fldname in constants:
+                values[fldname] = constants[fldname]
+            elif '.' in fldname:
                 # special case - embedded field within a JSON object
                 try:
                     values[fldname.replace('.', '_')] = \
                         jsondata[fldname.split('.')[0]][fldname.split('.')[1]]
                 except (TypeError, KeyError):
-                    # change '.' to '_' because can't have '.' in an identifier
                     values[fldname.replace('.', '_')] = None
             else:
                 # simple case: copy a field/value pair
@@ -671,13 +669,13 @@ def members_listfields():
                            'html_url', fg='cyan'))
     click.echo(click.style('login               events_url          ' +
                            'organizations_url', fg='cyan'))
-    click.echo(click.style('site_admin          followers_url       ' +
+    click.echo(click.style('org                 followers_url       ' +
                            'received_events_url', fg='cyan'))
-    click.echo(click.style('type                following_url       ' +
+    click.echo(click.style('site_admin          following_url       ' +
                            'repos_url', fg='cyan'))
-    click.echo(click.style('url                 gists_url           ' +
+    click.echo(click.style('type                gists_url           ' +
                            'starred_url', fg='cyan'))
-    click.echo(click.style('                    gravatar_id         ' +
+    click.echo(click.style('url                 gravatar_id         ' +
                            'subscriptions_url', fg='cyan'))
 
 #-------------------------------------------------------------------------------
@@ -1060,6 +1058,7 @@ def teams_listfields():
     click.echo(click.style('id', fg='cyan'))
     click.echo(click.style('members_url', fg='cyan'))
     click.echo(click.style('name', fg='cyan'))
+    click.echo(click.style('org', fg='cyan'))
     click.echo(click.style('permission', fg='cyan'))
     click.echo(click.style('privacy', fg='cyan'))
     click.echo(click.style('repositories_url', fg='cyan'))
