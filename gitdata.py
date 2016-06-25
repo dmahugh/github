@@ -612,24 +612,24 @@ def inifile_name():
 @click.option('-o', '--org', default='',
               help='organization name', metavar='')
 @click.option('-t', '--team', default='',
-              help='team ID', metavar='')
+              help='team ID', metavar='<str>')
+@click.option('-a', '--authuser', default='',
+              help='authentication username', metavar='<str>')
+@click.option('-s', '--source', default='p',
+              help='data source - a/API, c/cache, or p/prompt', metavar='<str>')
+@click.option('-n', '--filename', default='',
+              help='output filename (.CSV or .JSON)', metavar='<str>')
+@click.option('-f', '--fields', default='',
+              help='fields to include', metavar='<str>')
 @click.option('--audit2fa', is_flag=True,
               help='include only 2FA-not-enabled members')
-@click.option('-a', '--authuser', default='',
-              help='authentication username', metavar='')
 @click.option('-d', '--display', is_flag=True, default=True,
-              help="Display retrieved data.")
+              help="Don't display retrieved data")
 @click.option('-v', '--verbose', is_flag=True, default=False,
-              help="Verbose status information.")
-@click.option('-s', '--source', default='p',
-              help='data source - a/API, c/cache, or p/prompt', metavar='')
-@click.option('-n', '--filename', default='',
-              help='output filename (.CSV or .JSON)', metavar='')
-@click.option('-f', '--fields', default='',
-              help='fields to include', metavar='<fld1/fld2/etc>')
+              help="Display verbose status info")
 @click.option('-l', '--fieldlist', is_flag=True,
-              help='list available GitHub fields')
-def members(org, team, audit2fa, authuser, display, verbose, source, filename, fields, fieldlist):
+              help='list available fields and exit.')
+def members(org, team, authuser, source, filename, fields, audit2fa, display, verbose, fieldlist):
     """Get member info for an organization or team.
     """
     if fieldlist:
@@ -1054,7 +1054,7 @@ def repos_listfields():
 @click.option('-v', '--verbose', is_flag=True, default=False,
               help="Display verbose status info")
 @click.option('-l', '--fieldlist', is_flag=True,
-              help='list available GitHub fields')
+              help='list available fields and exit.')
 def teams(org, authuser, source, filename, fields, display, verbose, fieldlist):
     """get team information for an organization.
     """
