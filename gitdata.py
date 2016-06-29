@@ -75,11 +75,11 @@ CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'])
 @click.group(context_settings=CONTEXT_SETTINGS, options_metavar='[options]',
              invoke_without_command=True)
 @click.option('-a', '--auth', default='',
-              help='check auth status for specified username', metavar='<str>')
+              help='GitHub username (for configuring access)', metavar='<str>')
 @click.option('-t', '--token', default='',
               help='store access token for specified username', metavar='<str>')
 @click.option('-d', '--delete', default=False,
-              help='delete specified username', is_flag=True, metavar='<str>')
+              help='delete specified username', is_flag=True, metavar='')
 @click.version_option(version='1.0', prog_name='Gitdata')
 @click.pass_context
 def cli(ctx, auth, token, delete):
@@ -527,7 +527,8 @@ def github_data(*, endpoint=None, entity=None, fields=None, constants=None,
     else:
         # prompt user for which data source to use
         if cache_exists(endpoint):
-            click.echo('Cached data exists: ' + timestamp(cache_filename(endpoint)))
+            filetime = timestamp(cache_filename(endpoint))
+            click.echo('Cached data found -->> ' + filetime)
             read_from = \
                 click.prompt('Read from API (a), cache (c) or exit (x)?').lower()
         else:
