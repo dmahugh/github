@@ -12,15 +12,14 @@ cache_exists() -----------> Check whether cached data exists for an endpoint.
 cache_filename() ---------> Get cache filename for specified user/endpoint.
 cache_update() -----------> Updated cached data for specified endpoint.
 
-collabs() ----------------> not implemented
+collabs() ----------------> Main handler for "collabs" subcommand.
+collabs_listfields() -----> List valid field names for collabs().
 
 data_display() -----------> Display data on console.
 data_fields() ------------> Get dictionary of values from GitHub API JSON payload.
 data_write() -------------> Write output file.
 elapsed_time() -----------> Display elapsed time.
 filename_valid() ---------> Check passed filename for valid file type.
-
-files() ------------------> not implemented
 
 github_api() -------------> Call the GitHub API (wrapper for requests library).
 github_data() ------------> Get data for specified GitHub API endpoint.
@@ -273,11 +272,70 @@ def cache_update(endpoint, payload, constants):
         click.echo(click.style(nameonly, fg='cyan'))
 
 #------------------------------------------------------------------------------
-@cli.command(help='<not implemented>')
-def collabs():
-    """NOT IMPLEMENTED
+@cli.command(help='Get collaborator information for a repo')
+@click.option('-o', '--owner', default='',
+              help='owner (org or user)', metavar='<str>')
+@click.option('-r', '--repo', default='',
+              help='repo name', metavar='<str>')
+@click.option('-a', '--authuser', default='',
+              help='authentication username', metavar='<str>')
+@click.option('-s', '--source', default='p',
+              help='data source - a/API, c/cache, or p/prompt', metavar='<str>')
+@click.option('-n', '--filename', default='',
+              help='output filename (.CSV or .JSON)', metavar='<str>')
+@click.option('-f', '--fields', default='',
+              help='fields to include', metavar='<str>')
+@click.option('-d', '--display', is_flag=True, default=True,
+              help="Don't display retrieved data")
+@click.option('-v', '--verbose', is_flag=True, default=False,
+              help="Display verbose status info")
+@click.option('-l', '--fieldlist', is_flag=True,
+              help='list available fields and exit.')
+def collabs(owner, repo, authuser, source, filename, fields, display, verbose, fieldlist):
+    """Get collaborator information for a repo.
     """
-    click.echo('NOT IMPLEMENTED: collabs()')
+    if fieldlist:
+        teams_listfields()
+        return
+
+    if not owner or not repo:
+        click.echo('ERROR: must owner and repo')
+        return
+
+    if not filename_valid(filename):
+        return
+
+    _settings.display_data = display
+    _settings.verbose = verbose
+    # for source option, store the 1st character, lower-case
+    source = source if source else 'p'
+    _settings.datasource = source.lower()[0]
+
+    start_time = default_timer()
+    auth_config({'username': authuser})
+    fldnames = fields.split('/') if fields else None
+    collablist = github_data(
+        endpoint='/repos/' + owner + '/' + repo + '/collaborators', entity='collab',
+        fields=fldnames, constants={"owner": owner, "repo": repo}, headers={})
+    data_display(collablist)
+    data_write(filename, collablist)
+    unknown_fields() # list unknown field names (if any)
+    elapsed_time(start_time)
+
+#-------------------------------------------------------------------------------
+def collabs_listfields():
+    """List valid field names for collabs().
+    """
+    wildcard_fields()
+    click.echo(click.style('avatar_url'.ljust(27) + 'organizations_url', fg='cyan'))
+    click.echo(click.style('events_url'.ljust(27) + 'received_events_url', fg='cyan'))
+    click.echo(click.style('followers_url'.ljust(27) + 'repos_url', fg='cyan'))
+    click.echo(click.style('following_url'.ljust(27) + 'site_admin', fg='cyan'))
+    click.echo(click.style('gists_url'.ljust(27) + 'starred_url', fg='cyan'))
+    click.echo(click.style('gravatar_id'.ljust(27) + 'subscriptions_url', fg='cyan'))
+    click.echo(click.style('html_url'.ljust(27) + 'type', fg='cyan'))
+    click.echo(click.style('id'.ljust(27) + 'url', fg='cyan'))
+    click.echo(click.style('login', fg='cyan'))
 
 #-------------------------------------------------------------------------------
 def data_fields(*, entity=None, jsondata=None, fields=None, constants=None):
@@ -307,6 +365,8 @@ def data_fields(*, entity=None, jsondata=None, fields=None, constants=None):
             fields = ['name', 'id', 'privacy', 'permission']
         elif entity == 'org':
             fields = ['user', 'login']
+        elif entity == 'collab':
+            fields = ['owner', 'repo', 'login', 'id']
         else:
             fields = ['name']
 
@@ -399,13 +459,6 @@ def elapsed_time(starttime):
     if _settings.verbose:
         click.echo('Elapsed time: ', nl=False)
         click.echo(click.style("{0:.2f}".format(default_timer() - starttime) + ' seconds', fg='cyan'))
-
-#------------------------------------------------------------------------------
-@cli.command(help='<not implemented>')
-def files():
-    """NOT IMPLEMENTED
-    """
-    click.echo('NOT IMPLEMENTED: files()')
 
 #-------------------------------------------------------------------------------
 def filename_valid(filename=None):
