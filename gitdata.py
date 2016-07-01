@@ -298,7 +298,7 @@ def collabs(owner, repo, authuser, source, filename, fields, display, verbose, f
     """Get collaborator information for a repo.
     """
     if fieldlist:
-        teams_listfields()
+        collabs_listfields()
         return
 
     if not owner or not repo:
