@@ -447,10 +447,10 @@ def data_sort(datadict):
         # otherwise use name field if it exists
         return datadict['name'].lower()
     else:
-        # otherwise sort by first column
-        dict_keys = list(datadict.keys())
-        click.echo(dict_keys[0])
-        return dict_keys[0]
+        # otherwise sort by value in first column
+        sortkey = list(datadict.keys())[0]
+        sortvalue = str(datadict[sortkey]).lower()
+        return sortvalue
 
 #------------------------------------------------------------------------------
 def data_write(filename=None, datasource=None):
