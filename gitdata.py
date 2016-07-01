@@ -292,12 +292,12 @@ def cache_update(endpoint, payload, constants):
               help="Don't display retrieved data")
 @click.option('-v', '--verbose', is_flag=True, default=False,
               help="Display verbose status info")
-@click.option('-l', '--fieldlist', is_flag=True,
+@click.option('-l', '--listfields', is_flag=True,
               help='list available fields and exit.')
-def collabs(owner, repo, authuser, source, filename, fields, display, verbose, fieldlist):
+def collabs(owner, repo, authuser, source, filename, fields, display, verbose, listfields):
     """Get collaborator information for a repo.
     """
-    if fieldlist:
+    if listfields:
         collabs_listfields()
         return
 
@@ -704,12 +704,12 @@ def inifile_name():
               help="Don't display retrieved data")
 @click.option('-v', '--verbose', is_flag=True, default=False,
               help="Display verbose status info")
-@click.option('-l', '--fieldlist', is_flag=True,
+@click.option('-l', '--listfields', is_flag=True,
               help='list available fields and exit.')
-def members(org, team, authuser, source, filename, fields, audit2fa, display, verbose, fieldlist):
+def members(org, team, authuser, source, filename, fields, audit2fa, display, verbose, listfields):
     """Get member info for an organization or team.
     """
-    if fieldlist:
+    if listfields:
         members_listfields()
         return
 
@@ -819,12 +819,12 @@ def membersget(*, org=None, team=None, fields=None, audit2fa=False):
               help="Don't display retrieved data")
 @click.option('-v', '--verbose', is_flag=True, default=False,
               help="Display verbose status info")
-@click.option('-l', '--fieldlist', is_flag=True,
+@click.option('-l', '--listfields', is_flag=True,
               help='list available fields and exit.')
-def orgs(authuser, source, filename, fields, display, verbose, fieldlist):
+def orgs(authuser, source, filename, fields, display, verbose, listfields):
     """Get organization information.
     """
-    if fieldlist:
+    if listfields:
         orgs_listfields()
         return
 
@@ -938,12 +938,12 @@ def read_json(filename=None):
               help="Don't display retrieved data")
 @click.option('-v', '--verbose', is_flag=True, default=False,
               help="Display verbose status info")
-@click.option('-l', '--fieldlist', is_flag=True,
+@click.option('-l', '--listfields', is_flag=True,
               help='list available fields and exit.')
-def repos(org, user, authuser, source, filename, fields, display, verbose, fieldlist):
+def repos(org, user, authuser, source, filename, fields, display, verbose, listfields):
     """Get repository information.
     """
-    if fieldlist:
+    if listfields:
         repos_listfields()
         return
 
@@ -1130,12 +1130,12 @@ def repos_listfields():
               help="Don't display retrieved data")
 @click.option('-v', '--verbose', is_flag=True, default=False,
               help="Display verbose status info")
-@click.option('-l', '--fieldlist', is_flag=True,
+@click.option('-l', '--listfields', is_flag=True,
               help='list available fields and exit.')
-def teams(org, authuser, source, filename, fields, display, verbose, fieldlist):
+def teams(org, authuser, source, filename, fields, display, verbose, listfields):
     """get team information for an organization.
     """
-    if fieldlist:
+    if listfields:
         teams_listfields()
         return
 
