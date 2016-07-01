@@ -17,7 +17,10 @@ collabs_listfields() -----> List valid field names for collabs().
 
 data_display() -----------> Display data on console.
 data_fields() ------------> Get dictionary of values from GitHub API JSON payload.
+data_sort() --------------> Sort function for data_display().
+
 data_write() -------------> Write output file.
+
 elapsed_time() -----------> Display elapsed time.
 filename_valid() ---------> Check passed filename for valid file type.
 
@@ -425,9 +428,29 @@ def data_display(datasource=None):
     if not _settings.display_data:
         return
 
-    for data_item in datasource:
+    sorted_data = sorted(datasource, key=data_sort) # sort the data
+
+    for data_item in sorted_data:
         values = [str(value) for _, value in data_item.items()]
         click.echo(click.style(','.join(values), fg='cyan'))
+
+#------------------------------------------------------------------------------
+def data_sort(datadict):
+    """Sort function for data_display().
+
+    takes an OrderedDict object as input, returns sort key.
+    """
+    if 'login' in datadict:
+        # use login field if it exists
+        return datadict['login'].lower()
+    elif 'name' in datadict:
+        # otherwise use name field if it exists
+        return datadict['name'].lower()
+    else:
+        # otherwise sort by first column
+        dict_keys = list(datadict.keys())
+        click.echo(dict_keys[0])
+        return dict_keys[0]
 
 #------------------------------------------------------------------------------
 def data_write(filename=None, datasource=None):
