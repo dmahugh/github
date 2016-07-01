@@ -481,7 +481,8 @@ def elapsed_time(starttime):
     """
     if _settings.verbose:
         click.echo('Elapsed time: ', nl=False)
-        click.echo(click.style("{0:.2f}".format(default_timer() - starttime) + ' seconds', fg='cyan'))
+        elapsed = default_timer() - starttime
+        click.echo(click.style("{0:.2f}".format(elapsed) + ' seconds', fg='cyan'))
 
 #-------------------------------------------------------------------------------
 def filename_valid(filename=None):
@@ -535,7 +536,8 @@ def github_api(*, endpoint=None, auth=None, headers=None):
         _settings.requests_session = sess
 
     sess.auth = auth
-    full_endpoint = 'https://api.github.com' + endpoint if endpoint[0] == '/' else endpoint
+    full_endpoint = 'https://api.github.com' + endpoint if endpoint[0] == '/' \
+        else endpoint
     response = sess.get(full_endpoint, headers=headers_dict)
 
     if _settings.verbose:
@@ -564,10 +566,12 @@ def github_api(*, endpoint=None, auth=None, headers=None):
             username = '(non-authenticated)'
 
         click.echo('  Rate Limit: ', nl=False)
-        click.echo(click.style(str(_settings.last_remaining) +
-                               ' available, ' + str(_settings.last_ratelimit - _settings.last_remaining) +\
-              ' used, ' + str(_settings.last_ratelimit) + ' total ' + \
-               username, fg='cyan'))
+        used = _settings.last_ratelimit - _settings.last_remaining
+        click.echo(
+            click.style(str(_settings.last_remaining) +
+                        ' available, ' + str(used) +
+                        ' used, ' + str(_settings.last_ratelimit) + ' total ' +
+                        username, fg='cyan'))
 
     return response
 
