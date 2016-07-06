@@ -930,7 +930,7 @@ def read_json(filename=None):
               help='GitHub organization', metavar='<str>')
 @click.option('-u', '--user', default='',
               help='GitHub user', metavar='<str>')
-@click.option('-a', '--authuser', default='<str>',
+@click.option('-a', '--authuser', default='',
               help='authentication username', metavar='<str>')
 @click.option('-s', '--source', default='p',
               help='data source - a/API, c/cache, or p/prompt', metavar='<str>')
