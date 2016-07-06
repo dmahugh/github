@@ -655,7 +655,7 @@ def github_data_from_api(endpoint=None, headers=None):
     while True:
         response = github_api(endpoint=page_endpoint, auth=auth_user(),
                               headers=headers)
-        if _settings.verbose:
+        if _settings.verbose or response.status_code != 200:
             click.echo('      Status: ', nl=False)
             click.echo(click.style(str(response) + ', ' + str(len(response.text)) +
                                    ' bytes returned', fg='cyan'))
