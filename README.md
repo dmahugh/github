@@ -4,6 +4,7 @@ A command-line tool for querying GitHub APIs to retrieve information about repos
 
 ![language:Python](https://img.shields.io/badge/Language-Python-blue.svg?style=flat-square) ![license:MIT](https://img.shields.io/badge/License-MIT-green.svg?style=flat-square) ![release:2.0](https://img.shields.io/badge/Release-2.0-lightgrey.svg?style=flat-square)
 
+A simple usage example &mdash; list repos for the *octocat* user:
 ```
 c:\> gitdata repos --user=octocat --source=API
 octocat,git-consortium
@@ -14,6 +15,18 @@ octocat,Spoon-Knife
 octocat,test-repo1
 c:\>
 ```
+All JSON data returned by the GitHub API is cached locally, enabling fast offline queries. Here's a query that returns the license name for the same repos listed above, from the local cached data, using optional abbreviated syntax, and writes it to a license.csv file:
+```
+c:\> gitdata repos -uoctocat -scache -fname/license.name -nlicense.csv
+git-consortium,MIT License
+hello-worId,None
+Hello-World,None
+octocat.github.io,None
+Spoon-Knife,None
+test-repo1,None
+Output file written: license.csv
+```
+
 
 /////////////
 
