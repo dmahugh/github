@@ -1,6 +1,8 @@
 <properties LandingPageTags="Python,GitHub,REST,OSPO" />
-![gitinfo](images/gitinfo.png)
-# GitHub API helper functions
+# gitdata
+### GitHub query command-line tool
+
+/////////////
 
 Gitinfo is a set of wrapper functions for GitHub API calls that return information about organizations, repos, users, and the relationships between these entities. API pagination is handled automatically &mdash; Gitinfo functions return complete data sets. All functions return native Python data structures (*lists* of *namedtuple* objects).
 
