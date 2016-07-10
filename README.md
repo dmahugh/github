@@ -42,6 +42,8 @@ Gitdata uses these packages:
 PyTest is currently only used for the *gitinfo* tests, and is not required to use gitdata.
 
 # Usage
+For detailed usage instructions, see the gitdata project page: [http://dmahugh.github.io/gitdata/](http://dmahugh.github.io/gitdata/)
+
 To quickly install gitdata and begin using it:
 * Clone this repo or download as a ZIP file
 * In the folder containing the repo: ```pip install .```
@@ -50,8 +52,6 @@ To quickly install gitdata and begin using it:
 Once you've done that, gitdata will be available at the command line. Use the -h or --help option to get syntax help.
 
 ![gitdata help](images/gitdata-help.png)
-
-For more detailed usage instructions, see the gitdata project page: [http://dmahugh.github.io/gitdata/](http://dmahugh.github.io/gitdata/)
 
 # Contributing
 Gitinfo is a work in progress &mdash; pull requests, feature requests and issues welcome.
