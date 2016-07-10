@@ -27,8 +27,26 @@ test-repo1,None
 Output file written: license.csv
 ```
 
+# Table of Contents
+* [Requirements](#requirements)
+* [Usage](#usage)
+* [Contributing](#contributing)
+* [License](#license)
 
-/////////////
+# Requirements
+/// dependencies
+
+# Usage
+/// installation, then link to the github.io page for full documentation
+
+# Contributing
+/// see http://dmahugh.github.io/gitdata/
+/// note logging issues for functionality requests
+
+# License
+/// see example in http://dmahugh.github.io/gitdata/
+
+///////////// old readme to be updated/migrated: ////////////////////////
 
 Gitinfo is a set of wrapper functions for GitHub API calls that return information about organizations, repos, users, and the relationships between these entities. API pagination is handled automatically &mdash; Gitinfo functions return complete data sets. All functions return native Python data structures (*lists* of *namedtuple* objects).
 
