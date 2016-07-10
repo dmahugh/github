@@ -1,9 +1,16 @@
 # gitinfo - overview
 
+Gitinfo is a set of wrapper functions for GitHub API calls that return information about organizations, repos, users, and the relationships between these entities. API pagination is handled automatically &mdash; Gitinfo functions return complete data sets. All functions return native Python data structures (*lists* of *namedtuple* objects).
+
 This page provides a summary of how to use gitinfo. There is also detailed information in the docstrings in the [source code](https://github.com/dmahugh/gitinfo/blob/master/gitinfo.py) and in the auto-generated [documentation](gitinfo.md).
+
+For API syntax, see the [gitinfo documentation](documentation/gitinfo.md).
+
+Gitinfo wraps portions of the [GitHub V3 API](https://developer.github.com/v3/).
 
 ## Table of Contents
 
+* [installation](#installation)
 * [basic concepts](#basic-concepts)
 * [examples](#examples)
 * [authentication](#authentication)
@@ -12,6 +19,15 @@ This page provides a summary of how to use gitinfo. There is also detailed infor
 * [logging output](#logging-output)
 * [minimizing GitHub API responses](#minimizing-github-api-responses)
 * [saving data](#saving-data)
+* [tests](#tests)
+
+## installation
+
+Gitinfo has one external dependency - the [requests](https://pypi.python.org/pypi/requests) library. Follow these steps to get up and running:
+
+* Install Python 3.5 from [Python.org](https://www.python.org/).
+* Install requests: ```pip install requests```
+* Clone the [Gitinfo repo](https://github.com/dmahugh/gitinfo).
 
 ## basic concepts
 
@@ -214,3 +230,15 @@ gi.write_csv(ms_members, 'MicrosoftMembers.csv')
 There are also ```json_write()``` and ```json_read()``` functions that can be used to save GitHub API payloads to disk and read them back:
 
 ![json_readwrite](../images/json_readwrite.png)
+
+## tests
+
+The file [gitinfo_test.py](https://github.com/dmahugh/gitinfo/blob/master/gitinfo_test.py) contains
+[pytest](http://pytest.org/latest/) tests for gitinfo functions. Note that some of these tests require
+admin access to organizations or repos, so if you're not configured with credentials for the *msftgits* user those
+tests won't pass.
+
+Here's an example of a successful test run:
+
+![gitinfo_test](../images/gitinfo_test.png)
+
