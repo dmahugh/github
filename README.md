@@ -4,7 +4,7 @@ A command-line tool for querying GitHub APIs to retrieve information about repos
 
 ![language:Python](https://img.shields.io/badge/Language-Python-blue.svg?style=flat-square) ![license:MIT](https://img.shields.io/badge/License-MIT-green.svg?style=flat-square) ![release:2.0](https://img.shields.io/badge/Release-2.0-lightgrey.svg?style=flat-square)
 
-A simple usage example &mdash; list repos for the *octocat* user:
+Simple usage example &mdash; list repos for the *octocat* user:
 ```
 c:\> gitdata repos --user=octocat --source=API
 octocat,git-consortium
@@ -34,23 +34,39 @@ Output file written: license.csv
 * [License](#license)
 
 # Requirements
-/// dependencies
+Gitdata uses these packages:
+* [Click](http://docs.python-requests.org/en/master/) version 6.6 or above
+* [Requests](http://docs.python-requests.org/en/master/) version 2.9.1 or above
+* [PyTest](http://pytest.org/latest/) version 2.9.1 or above
+
+PyTest is currently only used for the *gitinfo* tests, and is not required to use gitdata.
 
 # Usage
-/// installation, then link to the github.io page for full documentation
+To quickly install gitdata and begin using it:
+* Clone this repo or download as a ZIP file
+* In the folder containing the repo: ```pip install .```
+* If you'd like to make changes to the code and immediately see them in the command-line behavior, install with ```pip install --editable .``` instead
+
+Once you've done that, gitdata will be available at the command line. Use the -h or --help option to get syntax help.
+
+![gitdata help](images/gitdata-help.png)
+
+For more detailed usage instructions, see the gitdata project page: [http://dmahugh.github.io/gitdata/](http://dmahugh.github.io/gitdata/)
 
 # Contributing
-/// see http://dmahugh.github.io/gitdata/
-/// note logging issues for functionality requests
+Gitinfo is a work in progress &mdash; pull requests, feature requests and issues welcome.
+
+I've implemented functionality as I need it for various projects, but I'm interested in knowing what other types of functionality
+may be useful to others. Please log an [issue](https://github.com/dmahugh/gitdata/issues) if you have a suggestion. Thanks!
 
 # License
-/// see example in http://dmahugh.github.io/gitdata/
+Gitdata is licensed under the [MIT License](https://github.com/dmahugh/gitdata/blob/master/LICENSE).
+
+Copyright &copy; 2016 by Doug Mahugh
 
 ///////////// old readme to be updated/migrated: ////////////////////////
 
 Gitinfo is a set of wrapper functions for GitHub API calls that return information about organizations, repos, users, and the relationships between these entities. API pagination is handled automatically &mdash; Gitinfo functions return complete data sets. All functions return native Python data structures (*lists* of *namedtuple* objects).
-
-Gitinfo is a work in progress &mdash; pull requests, feature requests and issues welcome!
 
 ## sample usage
 
