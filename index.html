@@ -32,49 +32,17 @@
     <div id="main_content_wrap" class="outer">
       <section id="main_content" class="inner">
 
-<p>This page covers how to use the gitdata CLI (command-line interface). For installation instructions, source code, and other additional information, see the <a href="http://github.com/dmahugh/gitdata">gitdata GitHub repo</a></p>
+        <p>This page covers how to use the gitdata CLI (command-line interface). For installation instructions, source code, and other additional information, see the <a href="http://github.com/dmahugh/gitdata">gitdata GitHub repo</a>.</p>
 
-<h1>Features</h1>
-<ul>
-  <li>retrieve information about organizations, repos, teams, or collaborators</li>
-  <li>output to the console and/or CSV/JSON files</li>
-  <li>all data cached locally, can query live API or cache</li>
-  <li>select fields, sorting order</li>
-  <li>simple, consistent command-line syntax</li>
-</ul>
+        <h1>Features</h1>
+        <ul>
+          <li>retrieve information about organizations, repos, teams, or collaborators</li>
+          <li>output to the console and/or CSV/JSON files</li>
+          <li>all data cached locally, can query live API or cache</li>
+          <li>select fields, sorting order</li>
+          <li>simple, consistent command-line syntax</li>
+        </ul>
 
-<a id="sample-usage" class="anchor" href="#sample-usage" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>sample usage</h2>
-
-<p>Here's a simple example of how to use gitinfo to write a CSV file containing a list of repos:</p>
-
-<div class="highlight highlight-source-python"><pre><span class="pl-k">import</span> gitinfo <span class="pl-k">as</span> gi
-ms_repos <span class="pl-k">=</span> gi.repos(<span class="pl-v">org</span><span class="pl-k">=</span><span class="pl-s"><span class="pl-pds">'</span>microsoft<span class="pl-pds">'</span></span>)
-gi.write_csv(ms_repos, <span class="pl-s"><span class="pl-pds">'</span>MicrosoftPublicRepos.csv<span class="pl-pds">'</span></span>)</pre></div>
-
-<p>The generated CSV file contains one row per public repo in the Microsoft organization on GitHub:</p>
-
-<p><img src="https://raw.githubusercontent.com/dmahugh/gitinfo/master/images/MicrosoftPublicRepos.png" alt="MicrosoftPublicRepos"></p>
-
-<h2>
-<a id="installation" class="anchor" href="#installation" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>installation</h2>
-
-<p>Gitinfo has one external dependency - the <a href="https://pypi.python.org/pypi/requests">requests</a> library. Follow these steps to get up and running:</p>
-
-<ul>
-<li>Install Python 3.5 from <a href="https://www.python.org/">Python.org</a>.</li>
-<li>Clone the <a href="https://github.com/dmahugh/gitinfo">Gitinfo repo</a>.</li>
-<li>Install requests: <code>pip install requests</code>
-</li>
-</ul>
-
-<h2>
-<a id="where-to-learn-more" class="anchor" href="#where-to-learn-more" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>where to learn more</h2>
-
-<p>For more examples of how to use gitinfo, see the <a href="https://github.com/dmahugh/gitinfo/blob/master/documentation/overview.md">overview</a>.</p>
-
-<p>For usage details, see the <a href="https://github.com/dmahugh/gitinfo/blob/master/documentation/gitinfo.md">documentation</a>.</p>
-
-<p>For GitHub API details, see the <a href="https://developer.github.com/v3/">GitHub V3 API documentation</a>.</p>
       </section>
     </div>
 
