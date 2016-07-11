@@ -49,8 +49,7 @@
         <img src="https://raw.githubusercontent.com/dmahugh/gitdata/master/images/gitdata-help.png" align="center"/>
         <h3>Configuring Authentication</h3>
         <p>Gitdata uses personal access tokens (PATs) for authentication in GitHub API calls. You <i>can</i> use gitdata without authentication for simple requests, but some information (such as organization membership) is only available to authenticated users. And the GitHub API has a much lower rate limit for unauthenticated users &mdash; 60 calls per minute, instead of the 5000 calls per minute allowed for authenticated users.</p>
-        <p>PATs are stored in a <code>_private</code> subfolder under the parent folder of the location where gitdata is installed. The full path to the INI file where PATs are stored is <code>../_private/github_users.ini</code>.</p>
-        <p>To save a PAT for GitHub authentication in gitdata calls, use this command:</p>
+        <p>PATs are stored in a <code>github_users.ini</code> file in the <code>_private</code> subfolder under the parent folder of the location where gitdata is installed. To save a PAT for GitHub authentication in gitdata calls, use this command:</p>
         <p><pre>gitdata --auth=<i>username</i> --token=<i>PAT</i></pre></p>
         <p>After you've saved a PAT in this manner, you can specify the username in gitdata calls (via the <code>-a/--auth=</code> option) and gitdata will look up the PAT. To view a saved username/PAT, use this command:</p>
         <p><pre>gitdata --auth=<i>username</i></pre></p>
