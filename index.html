@@ -59,10 +59,19 @@
         <p><pre>gitdata --auth=<i>username</i> --delete</pre></p>
 
         <h3>Quick Start</h3>
-        <p>/// using the help screens, listing fields, etc.</p>
+        <p>The fastest way to learn gitdata is to review the help screens and try some things. <b>Gitdata is read-only</b>, so you can experiment freely
+        and the worst thing that could happen is to temporarily exhaust your GitHub API rate limit.</p>
+        <p>Note that you can get help for specific subcommands. For example, to get help on how to retrieve repo information, use the command
+        <code>gitdata repos -h</code>.</p>
         <p>In this simple example, we're retrieving the list of organizations for which GitHub user <b>dmahugh</b> is a member:</p>
         <img src="https://raw.githubusercontent.com/dmahugh/gitdata/master/images/quickstart01.png"/>
-        <p>/// notes: PAT setup, API data, verbose mode</p>
+        <p>This example requires that a PAT for the dmahugh user has been configured, as covered in the <i>Configuring Authentication</i> section
+        above. Here's what is being displayed in the output shown above:</p>
+        <ul>
+          <li><code>gitdata orgs -admahugh -v</code> &mdash; the <i>orgs</i> subcommand has been invoked, with <i>dmahugh</i> for the authentication username and with verbose mode on (<i>-v</i>)</li>
+          <li><code>Cached data found ...</code> &mdash; there is locally cached data available, so by default the user is prompted for which data source to use; we asked for API data (<i>a</i>) in this example</li>
+          <li>/// etc</li>
+        </ul>
         <p>Here's another example, showing the explicit use of the cached data source (<b>-sc</b>):</p>
         <img src="https://raw.githubusercontent.com/dmahugh/gitdata/master/images/quickstart02.png"/>
         <p>As you can see, use of the cached data provides very fast performance.</p>
