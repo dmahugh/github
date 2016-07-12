@@ -94,7 +94,18 @@
         <p>/// this is hidden; we always return complete result sets</p>
 
         <h3>Verbose mode</h3>
-        <p>/// HTTP status codes, etc</p>
+        <p>The <b>-v/--verbose</b> flag enables <i>verbose mode</i>, causing a variety of information to be displayed on the console, including:</p>
+        <ul>
+          <li>API endpoints accessed</li>
+          <li>HTTP status codes returned, and number of bytes returned</li>
+          <li>API rate-limit status after each API call</li>
+          <li>cache files read or written</li>
+        </ul>
+        <p>For diagnosing problems, it can be useful to suppress the default console output and only view the verbose-mode information
+        returned. To do this, use the <b>-d</b> option to suppress the displayed output, in combination with the <b>-v</b> option to
+        enable verbose mode. Here's an example of retrieving all Microsoft repos with this approach; note the first endpoint is the API
+        endpoint for repo information, then gitdata is stepping through the pagination endpoints for this set of data:</p>
+        <img src="https://raw.githubusercontent.com/dmahugh/gitdata/master/images/verbosemode.png"/>
 
         <h1>Entity Types</h1>
         <p>/// note which options apply to all entity types, which are type-specific</p>
