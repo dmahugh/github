@@ -68,11 +68,23 @@
         <p>/// options for display, CSV, JSON</p>
 
         <h3>Cached Data</h3>
-        <p>///</p>
+        <p>By default, gitdata caches all data retrieved from the GitHub API. (This behavior can be changed.)</p>
+        <p><i>All</i> data
+        is cached, not just the requested fields. For example, you can request repo names and descriptions for a large organization's
+        repos, and then if you want to add license type to the results you can query the cached data to get the license type field.</p>
+        <p>Here's an example of retrieving the repos for user octocat, without authentication:</p>
         <img src="https://raw.githubusercontent.com/dmahugh/gitdata/master/images/cache01.png"/>
-        <p>///</p>
+        <p>A cache file was created automatically by the above command. If you query the same data type under the same authentication
+        username and same selection criteria, gitdata gives you the option of using the cached data:</p>
         <img src="https://raw.githubusercontent.com/dmahugh/gitdata/master/images/cache02.png"/>
-        <p>///</p>
+        <p>Note: if you had chosen to read from the API instead, the cache would have been automatically updated with the more recent data.</p>
+        <p>Each combination of authentication username, selection criteria, and data type is stored in a unique filename in the
+        gh_cache folder. The filename describes the data:</p>
+        <ul>
+          <li>Authentication username (_anon = anonymous)</li>
+          <li>Selection criteria (e.g., users-octocat)</li>
+          <li>Type of information (e.g., repos)</li>
+        </ul>
         <img src="https://raw.githubusercontent.com/dmahugh/gitdata/master/images/cache03.png"/>
 
         <h3>GitHub API Pagination</h3>
