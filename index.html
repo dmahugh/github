@@ -68,11 +68,11 @@
         <p>This example requires that a PAT for the dmahugh user has been configured, as covered in the <i>Configuring Authentication</i> section
         above. Here's what is being displayed in the output shown above:</p>
         <ul>
-          <li><code>gitdata orgs -admahugh -v</code> &mdash; the <i>orgs</i> subcommand has been invoked, with <i>dmahugh</i> for the authentication username and with verbose mode on (<i>-v</i>)</li>
+          <li><code>gitdata orgs -admahugh -v</code> &mdash;<br/>the <i>orgs</i> subcommand has been invoked, with <i>dmahugh</i> for the authentication username and with verbose mode on (<i>-v</i>)</li>
           <li><code>Cached data found ...</code> &mdash; there is locally cached data available, so by default the user is prompted for which data source to use; we asked for API data (<i>a</i>) in this example</li>
           <li><code>Endpoint / Rate Limit / Status</code> &mdash; this information is being displayed because we asked for <i>verbose mode</i></li>
           <li><code>Cache update ...</code> &mdash; this shows that the local cached data file for this username/endpoint has been updated to include the latest data returned by the GitHub API</li>
-          <li><code>dmahugh,dotnot ...</code> &mdash; these four lines show a summary of the returned data; you can turn off this console display with the <i>-d/--display</i> option, and/or you can customize the fields displayed with the <i>-f/--fields</i> option</li>
+          <li><code>dmahugh,dotnet ...</code> &mdash; these four lines show a summary of the returned data; you can turn off this console display with the <i>-d/--display</i> option, and/or you can customize the fields displayed with the <i>-f/--fields</i> option</li>
           <li><code>Elapsed time ...</code> &mdash; this information is displayed because we're in <i>verbose mode</i></li>
         </ul>
         <p>Here's another example, showing the explicit use of the cached data source (<b>-sc</b>):</p>
