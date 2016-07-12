@@ -70,7 +70,7 @@
         <ul>
           <li><code>gitdata orgs -admahugh -v</code><br/>the <i>orgs</i> subcommand has been invoked, with <i>dmahugh</i> for the authentication username and with verbose mode on (<i>-v</i>)</li>
           <li><code>Cached data found ...</code><br/>there is locally cached data available, so by default the user is prompted for which data source to use; we asked for API data (<i>a</i>) in this example</li>
-          <li><code>Endpoint / Rate Limit / Status</code><br/>this information is being displayed because we asked for <i>verbose mode</i></li>
+          <li><code>Endpoint ... / Rate Limit ... / Status ...</code><br/>this information is being displayed because we asked for <i>verbose mode</i></li>
           <li><code>Cache update ...</code><br/>this shows that the local cached data file for this username/endpoint has been updated to include the latest data returned by the GitHub API</li>
           <li><code>dmahugh,dotnet ...</code><br/>these four lines show a summary of the returned data; you can turn off this console display with the <i>-d/--display</i> option, and/or you can customize the fields displayed with the <i>-f/--fields</i> option</li>
           <li><code>Elapsed time ...</code><br/>this information is displayed because we're in <i>verbose mode</i></li>
@@ -80,7 +80,7 @@
         <p>As you can see, use of the cached data provides very fast performance.</p>
 
         <h3>Fields and Sorting</h3>
-        <p>/// defaults fields by entity type, sort order</p>
+        <p>/// defaults fields by entity type, sort order; note cached data, all fields available</p>
 
         <h3>Saving Output</h3>
         <p>/// build on above example - why were those fields listed? (add defaults to listfields screens???); /// options for display, CSV, JSON</p>
