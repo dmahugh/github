@@ -91,7 +91,9 @@
         cached data you can either select either data source: the cache (for fastest results), or the API (for most current results).</p>
 
         <h3>GitHub API Pagination</h3>
-        <p>/// this is hidden; we always return complete result sets</p>
+        <p>Many of the GitHub API endpoints return <i>pages</i> of results rather than complete data sets, with links to previous/next
+        page provided in the response header. Gitdata hides this structure, and always returns complete data sets. If you're curious about
+        how this is implemented, see the <code>github_data_from_api()</code> and <code>pagination()</code> functions.</p>
 
         <h3>Verbose mode</h3>
         <p>The <b>-v/--verbose</b> flag enables <i>verbose mode</i>, causing a variety of information to be displayed on the console, including:</p>
