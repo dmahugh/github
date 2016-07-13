@@ -4,6 +4,21 @@ A command-line tool for querying GitHub APIs to retrieve information about repos
 
 ![language:Python](https://img.shields.io/badge/Language-Python-blue.svg?style=flat-square) ![license:MIT](https://img.shields.io/badge/License-MIT-green.svg?style=flat-square) ![release:2.0](https://img.shields.io/badge/Release-2.0-lightgrey.svg?style=flat-square)
 
+# Table of Contents
+* [Requirements](#requirements)
+* [Usage](#usage)
+* [Contributing](#contributing)
+* [License](#license)
+
+# Requirements
+Gitdata uses these packages:
+* [Click](http://docs.python-requests.org/en/master/) version 6.6 or above
+* [Requests](http://docs.python-requests.org/en/master/) version 2.9.1 or above
+* [PyTest](http://pytest.org/latest/) version 2.9.1 or above
+
+PyTest is currently only used for the *gitinfo* tests, and is not required to use gitdata.
+
+# Usage
 Simple usage example &mdash; list repos for the *octocat* user:
 ```
 c:\> gitdata repos --user=octocat --source=API
@@ -27,21 +42,6 @@ test-repo1,None
 Output file written: license.csv
 ```
 
-# Table of Contents
-* [Requirements](#requirements)
-* [Usage](#usage)
-* [Contributing](#contributing)
-* [License](#license)
-
-# Requirements
-Gitdata uses these packages:
-* [Click](http://docs.python-requests.org/en/master/) version 6.6 or above
-* [Requests](http://docs.python-requests.org/en/master/) version 2.9.1 or above
-* [PyTest](http://pytest.org/latest/) version 2.9.1 or above
-
-PyTest is currently only used for the *gitinfo* tests, and is not required to use gitdata.
-
-# Usage
 For detailed usage instructions, see the gitdata project page: [http://dmahugh.github.io/gitdata/](http://dmahugh.github.io/gitdata/)
 
 To quickly install gitdata and begin using it:
