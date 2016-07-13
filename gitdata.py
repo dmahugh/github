@@ -363,13 +363,13 @@ def data_fields(*, entity=None, jsondata=None, fields=None, constants=None):
         if entity == 'member':
             fields = ['login', 'id', 'type', 'site_admin']
         elif entity == 'repo':
-            fields = ['owner.login', 'name']
+            fields = ['name', 'owner.login']
         elif entity == 'team':
             fields = ['name', 'id', 'privacy', 'permission']
         elif entity == 'org':
-            fields = ['user', 'login']
+            fields = ['login', 'user']
         elif entity == 'collab':
-            fields = ['owner', 'repo', 'login', 'id']
+            fields = ['login', 'owner', 'repo', 'id']
         else:
             fields = ['name']
 
@@ -438,19 +438,12 @@ def data_display(datasource=None):
 def data_sort(datadict):
     """Sort function for data_display().
 
-    takes an OrderedDict object as input, returns sort key.
+    takes an OrderedDict object as input, returns lower-case version of the
+    first value in the OrderedDict, for use as a sort key.
     """
-    if 'login' in datadict:
-        # use login field if it exists
-        return datadict['login'].lower()
-    elif 'name' in datadict:
-        # otherwise use name field if it exists
-        return datadict['name'].lower()
-    else:
-        # otherwise sort by value in first column
-        sortkey = list(datadict.keys())[0]
-        sortvalue = str(datadict[sortkey]).lower()
-        return sortvalue
+    sortkey = list(datadict.keys())[0]
+    sortvalue = str(datadict[sortkey]).lower()
+    return sortvalue
 
 #------------------------------------------------------------------------------
 def data_write(filename=None, datasource=None):
