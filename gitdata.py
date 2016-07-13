@@ -320,8 +320,9 @@ def collabs(owner, repo, authuser, source, filename, fields, display, verbose, l
     collablist = github_data(
         endpoint='/repos/' + owner + '/' + repo + '/collaborators', entity='collab',
         fields=fldnames, constants={"owner": owner, "repo": repo}, headers={})
-    data_display(collablist)
-    data_write(filename, collablist)
+    sorted_data = sorted(collablist, key=data_sort) # sort the data
+    data_display(sorted_data)
+    data_write(filename, sorted_data)
     unknown_fields() # list unknown field names (if any)
     elapsed_time(start_time)
 
@@ -428,15 +429,13 @@ def data_display(datasource=None):
     if not _settings.display_data:
         return
 
-    sorted_data = sorted(datasource, key=data_sort) # sort the data
-
-    for data_item in sorted_data:
+    for data_item in datasource:
         values = [str(value) for _, value in data_item.items()]
         click.echo(click.style(','.join(values), fg='cyan'))
 
 #------------------------------------------------------------------------------
 def data_sort(datadict):
-    """Sort function for data_display().
+    """Sort function for output lists.
 
     takes an OrderedDict object as input, returns lower-case version of the
     first value in the OrderedDict, for use as a sort key.
@@ -729,8 +728,9 @@ def members(org, team, authuser, source, filename, fields, audit2fa, display, ve
     fldnames = fields.split('/') if fields else None
     memberlist = membersdata(org=org, team=team, audit2fa=audit2fa,
                              fields=fldnames)
-    data_display(memberlist)
-    data_write(filename, memberlist)
+    sorted_data = sorted(memberlist, key=data_sort) # sort the data
+    data_display(sorted_data)
+    data_write(filename, sorted_data)
     unknown_fields() # list unknown field names (if any)
     elapsed_time(start_time)
 
@@ -845,8 +845,9 @@ def orgs(authuser, source, filename, fields, display, verbose, listfields):
     orglist = github_data(
         endpoint='/user/orgs', entity='org', fields=fldnames,
         constants={"user": authuser}, headers={})
-    data_display(orglist)
-    data_write(filename, orglist)
+    sorted_data = sorted(orglist, key=data_sort) # sort the data
+    data_display(sorted_data)
+    data_write(filename, sorted_data)
     unknown_fields() # list unknown field names (if any)
     elapsed_time(start_time)
 
@@ -962,8 +963,9 @@ def repos(org, user, authuser, source, filename, fields, display, verbose, listf
     auth_config({'username': authuser})
     fldnames = fields.split('/') if fields else None
     repolist = reposdata(org=org, user=user, fields=fldnames)
-    data_display(repolist)
-    data_write(filename, repolist)
+    sorted_data = sorted(repolist, key=data_sort) # sort the data
+    data_display(sorted_data)
+    data_write(filename, sorted_data)
     unknown_fields() # list unknown field names (if any)
     elapsed_time(start_time)
 
@@ -1156,8 +1158,9 @@ def teams(org, authuser, source, filename, fields, display, verbose, listfields)
     teamlist = github_data(
         endpoint='/orgs/' + org + '/teams', entity='team',
         fields=fldnames, constants={"org": org}, headers={})
-    data_display(teamlist)
-    data_write(filename, teamlist)
+    sorted_data = sorted(teamlist, key=data_sort) # sort the data
+    data_display(sorted_data)
+    data_write(filename, sorted_data)
     unknown_fields() # list unknown field names (if any)
     elapsed_time(start_time)
 
