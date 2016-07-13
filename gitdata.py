@@ -1,4 +1,4 @@
-"""GitHub query CLI.
+"""GitData 2.0 - GitHub query CLI
 
 Entry point:
 cli() --------------------> Handle command-line arguments.

@@ -4,7 +4,7 @@ from setuptools import setup
 
 setup(
     name='GitData',
-    version='1.0',
+    version='2.0',
     license='MIT License',
     author='Doug Mahugh',
     py_modules=['gitdata'],
