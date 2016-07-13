@@ -2,7 +2,9 @@
 _pyfind
 _todo.txt
 bus_unit.py
-gitinfo.log
+gitinfo.*
+gitinfo_test.*
+msgithub.*
 repos_by_bu.py
 
 # we create many CSV and XSLX files, don't need to put those in the repo

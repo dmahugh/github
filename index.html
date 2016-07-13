@@ -80,7 +80,13 @@
         <p>As you can see, use of the cached data provides very fast performance.</p>
 
         <h3>Fields and Sorting</h3>
-        <p>/// defaults fields by entity type, sort order; note cached data, all fields available</p>
+        <p>All fields returned by the GitHub API are saved in gitdata's local cache, but only specified fields are included in console output and/or CSV and JSON output files. If you don't specify any fields, a set of <i>default fields</i> are returned for each entity type (collabs, members, orgs, repos, teams).</p>
+        <p>To specify a custom set of fields, use the <code>-f/--fields</code> option and specify the field names as a /-delimited string. For example:</p>
+        <p><b>/// example of specifying custom field names</b></p>
+        <p><b>/// example of how ALL fields are available from the local cache</b></p>
+        <p>To determine which field names are available for an entity type, use the <code>-l/--listfields</code> option. For example:</p>
+        <p><b>/// annotated example of --listfields output for an entity</b></p>
+        <p>Gitdata sorts all output by the <i>first</i> field specified.</p>
 
         <h3>Saving Output</h3>
         <p>/// build on above example - why were those fields listed? (add defaults to listfields screens???); /// options for display, CSV, JSON</p>
