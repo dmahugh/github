@@ -7,12 +7,12 @@ A command-line tool for querying GitHub APIs to retrieve information about repos
 Simple usage example &mdash; list repos for the *octocat* user:
 ```
 c:\> gitdata repos --user=octocat --source=API
-octocat,git-consortium
-octocat,hello-worId
-octocat,Hello-World
-octocat,octocat.github.io
-octocat,Spoon-Knife
-octocat,test-repo1
+git-consortium,octocat
+hello-worId,octocat
+Hello-World,octocat
+octocat.github.io,octocat
+Spoon-Knife,octocat
+test-repo1,octocat
 c:\>
 ```
 All JSON data returned by the GitHub API is cached locally, enabling fast offline queries. Here's a query that returns the license name for the same repos listed above, from the local cached data, using optional abbreviated syntax, and writes it to a license.csv file:
