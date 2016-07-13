@@ -21,6 +21,8 @@ data_sort() --------------> Sort function for data_display().
 
 data_write() -------------> Write output file.
 
+default_fields() ---------> Get default field names for an entity.
+
 elapsed_time() -----------> Display elapsed time.
 filename_valid() ---------> Check passed filename for valid file type.
 
@@ -360,19 +362,7 @@ def data_fields(*, entity=None, jsondata=None, fields=None, constants=None):
     """
 
     if not fields:
-        # if no fields specified, use default field list
-        if entity == 'member':
-            fields = ['login', 'id', 'type', 'site_admin']
-        elif entity == 'repo':
-            fields = ['name', 'owner.login']
-        elif entity == 'team':
-            fields = ['name', 'id', 'privacy', 'permission']
-        elif entity == 'org':
-            fields = ['login', 'user']
-        elif entity == 'collab':
-            fields = ['login', 'owner', 'repo', 'id']
-        else:
-            fields = ['name']
+        fields = default_fields(entity)
 
     values = collections.OrderedDict()
 
@@ -462,6 +452,27 @@ def data_write(filename=None, datasource=None):
         write_csv(datasource, filename) # write CSV file
 
     click.echo('Output file written: ' + filename)
+
+#------------------------------------------------------------------------------
+def default_fields(entity=None):
+    """Get default field names for an entity.
+
+    entity = the entity/data type (e.g., "team" or "repo")
+
+    Returns a list of the default field names for this entity.
+    """
+    if entity == 'member':
+        return ['login', 'id', 'type', 'site_admin']
+    elif entity == 'repo':
+        return ['name', 'owner.login']
+    elif entity == 'team':
+        return ['name', 'id', 'privacy', 'permission']
+    elif entity == 'org':
+        return ['login', 'user']
+    elif entity == 'collab':
+        return ['login', 'owner', 'repo', 'id']
+
+    return ['name'] # if unknown entity type, use name
 
 #------------------------------------------------------------------------------
 def elapsed_time(starttime):
