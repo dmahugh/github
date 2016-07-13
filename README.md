@@ -14,9 +14,6 @@ A command-line tool for querying GitHub APIs to retrieve information about repos
 Gitdata uses these packages:
 * [Click](http://docs.python-requests.org/en/master/) version 6.6 or above
 * [Requests](http://docs.python-requests.org/en/master/) version 2.9.1 or above
-* [PyTest](http://pytest.org/latest/) version 2.9.1 or above
-
-PyTest is currently only used for the *gitinfo* tests, and is not required to use gitdata.
 
 To quickly install gitdata and begin using it:
 * Clone this repo or download as a ZIP file
