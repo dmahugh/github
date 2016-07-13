@@ -13,7 +13,6 @@ cache_filename() ---------> Get cache filename for specified user/endpoint.
 cache_update() -----------> Updated cached data for specified endpoint.
 
 collabs() ----------------> Main handler for "collabs" subcommand.
-collabs_listfields() -----> List valid field names for collabs().
 
 data_display() -----------> Display data on console.
 data_fields() ------------> Get dictionary of values from GitHub API JSON payload.
@@ -33,25 +32,23 @@ github_data_from_cache() -> Get data from local cache file.
 
 inifile_name() -----------> Return name of INI file.
 
+list_fields() ------------> Display available field names for an entity.
+
 members() ----------------> Main handler for "members" subcommand.
-members_listfields() -----> List valid field names for members().
 membersdata() ------------> Get member information for orgs or teams.
 membersget() -------------> Get member info for a specified organization.
 
 orgs() -------------------> Main handler for "orgs" subcommand.
-orgs_listfields() --------> List valid field names for orgs().
 
 pagination() -------------> Parse pagination URLs from 'link' HTTP header.
 
 read_json() --------------> Read serialized object from JSON file.
 
 repos() ------------------> Main handler for "repos" subcommand.
-repos_listfields() -------> List valid field names for repos().
 reposdata() --------------> Get repo information for organizations or users.
 reposget() ---------------> Get repo information for a specified org or user.
 
 teams() ------------------> Main handler for "teams" subcommand.
-teams_listfields() -------> List valid field names for teams().
 
 timestamp() --------------> Get current timestamp or a file timestamp.
 token_abbr() -------------> Get abbreviated access token (for display purposes).
@@ -300,7 +297,7 @@ def collabs(owner, repo, authuser, source, filename, fields, display, verbose, l
     """Get collaborator information for a repo.
     """
     if listfields:
-        collabs_listfields()
+        list_fields('collab')
         return
 
     if not owner or not repo:
@@ -327,21 +324,6 @@ def collabs(owner, repo, authuser, source, filename, fields, display, verbose, l
     data_write(filename, sorted_data)
     unknown_fields() # list unknown field names (if any)
     elapsed_time(start_time)
-
-#-------------------------------------------------------------------------------
-def collabs_listfields():
-    """List valid field names for collabs().
-    """
-    wildcard_fields()
-    click.echo(click.style('avatar_url'.ljust(27) + 'organizations_url', fg='cyan'))
-    click.echo(click.style('events_url'.ljust(27) + 'received_events_url', fg='cyan'))
-    click.echo(click.style('followers_url'.ljust(27) + 'repos_url', fg='cyan'))
-    click.echo(click.style('following_url'.ljust(27) + 'site_admin', fg='cyan'))
-    click.echo(click.style('gists_url'.ljust(27) + 'starred_url', fg='cyan'))
-    click.echo(click.style('gravatar_id'.ljust(27) + 'subscriptions_url', fg='cyan'))
-    click.echo(click.style('html_url'.ljust(27) + 'type', fg='cyan'))
-    click.echo(click.style('id'.ljust(27) + 'url', fg='cyan'))
-    click.echo(click.style('login', fg='cyan'))
 
 #-------------------------------------------------------------------------------
 def data_fields(*, entity=None, jsondata=None, fields=None, constants=None):
@@ -693,6 +675,137 @@ def inifile_name():
     return os.path.join(source_folder, '../_private/github_users.ini')
 
 #------------------------------------------------------------------------------
+def list_fields(entity=None):
+    """Display available field names for an entity.
+
+    entity = the entity type (e.g., 'org' or 'team')
+
+    Displays to the console a list of available field names for this entity.
+    """
+    click.echo('\nDefault fields for ' + entity.upper() + 'S subcommand:')
+    click.echo(click.style('/'.join(default_fields(entity)), fg='cyan'))
+    click.echo(click.style(60*'-', fg='blue'))
+    wildcard_fields()
+
+    if entity == 'collab':
+        click.echo(click.style('avatar_url'.ljust(27) + 'organizations_url', fg='cyan'))
+        click.echo(click.style('events_url'.ljust(27) + 'received_events_url', fg='cyan'))
+        click.echo(click.style('followers_url'.ljust(27) + 'repos_url', fg='cyan'))
+        click.echo(click.style('following_url'.ljust(27) + 'site_admin', fg='cyan'))
+        click.echo(click.style('gists_url'.ljust(27) + 'starred_url', fg='cyan'))
+        click.echo(click.style('gravatar_id'.ljust(27) + 'subscriptions_url', fg='cyan'))
+        click.echo(click.style('html_url'.ljust(27) + 'type', fg='cyan'))
+        click.echo(click.style('id'.ljust(27) + 'url', fg='cyan'))
+        click.echo(click.style('login', fg='cyan'))
+    elif entity == 'member':
+        click.echo(click.style('id                  avatar_url          ' +
+                               'html_url', fg='cyan'))
+        click.echo(click.style('login               events_url          ' +
+                               'organizations_url', fg='cyan'))
+        click.echo(click.style('org                 followers_url       ' +
+                               'received_events_url', fg='cyan'))
+        click.echo(click.style('site_admin          following_url       ' +
+                               'repos_url', fg='cyan'))
+        click.echo(click.style('type                gists_url           ' +
+                               'starred_url', fg='cyan'))
+        click.echo(click.style('url                 gravatar_id         ' +
+                               'subscriptions_url', fg='cyan'))
+    elif entity == 'org':
+        click.echo(click.style('avatar_url', fg='cyan'))
+        click.echo(click.style('description', fg='cyan'))
+        click.echo(click.style('events_url', fg='cyan'))
+        click.echo(click.style('hooks_url', fg='cyan'))
+        click.echo(click.style('id', fg='cyan'))
+        click.echo(click.style('issues_url', fg='cyan'))
+        click.echo(click.style('login', fg='cyan'))
+        click.echo(click.style('members_url', fg='cyan'))
+        click.echo(click.style('public_members_url', fg='cyan'))
+        click.echo(click.style('repos_url', fg='cyan'))
+        click.echo(click.style('url', fg='cyan'))
+        click.echo(click.style('user', fg='cyan'))
+    elif entity == 'repo':
+        click.echo(click.style('archive_url         git_tags_url         ' +
+                               'open_issues', fg='cyan'))
+        click.echo(click.style('assignees_url       git_url              ' +
+                               'open_issues_count', fg='cyan'))
+        click.echo(click.style('blobs_url           has_downloads        ' +
+                               'private', fg='cyan'))
+        click.echo(click.style('branches_url        has_issues           ' +
+                               'pulls_url', fg='cyan'))
+        click.echo(click.style('clone_url           has_pages            ' +
+                               'pushed_at', fg='cyan'))
+        click.echo(click.style('collaborators_url   has_wiki             ' +
+                               'releases_url', fg='cyan'))
+        click.echo(click.style('commits_url         homepage             ' +
+                               'size', fg='cyan'))
+        click.echo(click.style('compare_url         hooks_url            ' +
+                               'ssh_url', fg='cyan'))
+        click.echo(click.style('contents_url        html_url             ' +
+                               'stargazers_count', fg='cyan'))
+        click.echo(click.style('contributors_url    id                   ' +
+                               'stargazers_url', fg='cyan'))
+        click.echo(click.style('created_at          issue_comment_url    ' +
+                               'statuses_url', fg='cyan'))
+        click.echo(click.style('default_branch      issue_events_url     ' +
+                               'subscribers_url', fg='cyan'))
+        click.echo(click.style('deployments_url     issues_url           ' +
+                               'subscription_url', fg='cyan'))
+        click.echo(click.style('description         keys_url             ' +
+                               'svn_url', fg='cyan'))
+        click.echo(click.style('downloads_url       labels_url           ' +
+                               'tags_url', fg='cyan'))
+        click.echo(click.style('events_url          language             ' +
+                               'teams_url', fg='cyan'))
+        click.echo(click.style('fork                languages_url        ' +
+                               'trees_url', fg='cyan'))
+        click.echo(click.style('forks               master_branch        ' +
+                               'updated_at', fg='cyan'))
+        click.echo(click.style('forks_count         merges_url           ' +
+                               'url', fg='cyan'))
+        click.echo(click.style('forks_url           milestones_url       ' +
+                               'watchers', fg='cyan'))
+        click.echo(click.style('full_name           mirror_url           ' +
+                               'watchers_count', fg='cyan'))
+        click.echo(click.style('git_commits_url     name', fg='cyan'))
+        click.echo(click.style('git_refs_url        notifications_url', fg='cyan'))
+        click.echo(click.style(60*'-', fg='blue'))
+        click.echo(click.style('license.featured              ' +
+                               'owner.login', fg='cyan'))
+        click.echo(click.style('license.key                   ' +
+                               'owner.organizations_url', fg='cyan'))
+        click.echo(click.style('license.name                  ' +
+                               'owner.received_events_url', fg='cyan'))
+        click.echo(click.style('license.url                   ' +
+                               'owner.repos_url', fg='cyan'))
+        click.echo(click.style('owner.avatar_url              ' +
+                               'owner.site_admin', fg='cyan'))
+        click.echo(click.style('owner.events_url              ' +
+                               'owner.starred_url', fg='cyan'))
+        click.echo(click.style('owner.followers_url           ' +
+                               'owner.subscriptions_url', fg='cyan'))
+        click.echo(click.style('owner.following_url           ' +
+                               'owner.type', fg='cyan'))
+        click.echo(click.style('owner.gists_url               ' +
+                               'owner.url', fg='cyan'))
+        click.echo(click.style('owner.gravatar_id             ' +
+                               'permissions.admin', fg='cyan'))
+        click.echo(click.style('owner.html_url                ' +
+                               'permissions.pull', fg='cyan'))
+        click.echo(click.style('owner.id                      ' +
+                               'permissions.push', fg='cyan'))
+    elif entity == 'team':
+        click.echo(click.style('description', fg='cyan'))
+        click.echo(click.style('id', fg='cyan'))
+        click.echo(click.style('members_url', fg='cyan'))
+        click.echo(click.style('name', fg='cyan'))
+        click.echo(click.style('org', fg='cyan'))
+        click.echo(click.style('permission', fg='cyan'))
+        click.echo(click.style('privacy', fg='cyan'))
+        click.echo(click.style('repositories_url', fg='cyan'))
+        click.echo(click.style('slug', fg='cyan'))
+        click.echo(click.style('url', fg='cyan'))
+
+#------------------------------------------------------------------------------
 @cli.command(help='Get member information by org or team ID')
 @click.option('-o', '--org', default='',
               help='organization name', metavar='')
@@ -718,7 +831,7 @@ def members(org, team, authuser, source, filename, fields, audit2fa, display, ve
     """Get member info for an organization or team.
     """
     if listfields:
-        members_listfields()
+        list_fields('member')
         return
 
     if not org and not team:
@@ -745,24 +858,6 @@ def members(org, team, authuser, source, filename, fields, audit2fa, display, ve
     unknown_fields() # list unknown field names (if any)
     elapsed_time(start_time)
 
-#------------------------------------------------------------------------------
-def members_listfields():
-    """List valid field names for members().
-    """
-    wildcard_fields()
-    click.echo(click.style('id                  avatar_url          ' +
-                           'html_url', fg='cyan'))
-    click.echo(click.style('login               events_url          ' +
-                           'organizations_url', fg='cyan'))
-    click.echo(click.style('org                 followers_url       ' +
-                           'received_events_url', fg='cyan'))
-    click.echo(click.style('site_admin          following_url       ' +
-                           'repos_url', fg='cyan'))
-    click.echo(click.style('type                gists_url           ' +
-                           'starred_url', fg='cyan'))
-    click.echo(click.style('url                 gravatar_id         ' +
-                           'subscriptions_url', fg='cyan'))
-
 #-------------------------------------------------------------------------------
 def membersdata(*, org=None, team=None, fields=None, audit2fa=False):
     """Get members for one or more teams or organizations.
@@ -770,7 +865,7 @@ def membersdata(*, org=None, team=None, fields=None, audit2fa=False):
     org = organization name
     team = team ID; if provided, org is ignored
     fields = list of field names to be returned; names must be the same as
-             returned by the GitHub API (see members_listfields() for the list).
+             returned by the GitHub API (see list_fields()).
     audit2fa = whether to only return members with 2FA disabled. You must be
                authenticated via auth_config() as an admin of the org(s) to use
                this option.
@@ -834,7 +929,7 @@ def orgs(authuser, source, filename, fields, display, verbose, listfields):
     """Get organization information.
     """
     if listfields:
-        orgs_listfields()
+        list_fields('org')
         return
 
     if not authuser:
@@ -861,24 +956,6 @@ def orgs(authuser, source, filename, fields, display, verbose, listfields):
     data_write(filename, sorted_data)
     unknown_fields() # list unknown field names (if any)
     elapsed_time(start_time)
-
-#-------------------------------------------------------------------------------
-def orgs_listfields():
-    """List valid field names for orgs().
-    """
-    wildcard_fields()
-    click.echo(click.style('avatar_url', fg='cyan'))
-    click.echo(click.style('description', fg='cyan'))
-    click.echo(click.style('events_url', fg='cyan'))
-    click.echo(click.style('hooks_url', fg='cyan'))
-    click.echo(click.style('id', fg='cyan'))
-    click.echo(click.style('issues_url', fg='cyan'))
-    click.echo(click.style('login', fg='cyan'))
-    click.echo(click.style('members_url', fg='cyan'))
-    click.echo(click.style('public_members_url', fg='cyan'))
-    click.echo(click.style('repos_url', fg='cyan'))
-    click.echo(click.style('url', fg='cyan'))
-    click.echo(click.style('user', fg='cyan'))
 
 #------------------------------------------------------------------------------
 def pagination(link_header):
@@ -954,7 +1031,7 @@ def repos(org, user, authuser, source, filename, fields, display, verbose, listf
     """Get repository information.
     """
     if listfields:
-        repos_listfields()
+        list_fields('repo')
         return
 
     if not org and not user:
@@ -988,7 +1065,7 @@ def reposdata(*, org=None, user=None, fields=None):
     user   = username; a username or list of usernames (if org is provided,
              user is ignored)
     fields = list of fields to be returned; names must be the same as
-             returned by the GitHub API (see repos_listfields() for the list).
+             returned by the GitHub API (see list_fields()).
              Dot notation for embedded elements is supported. For example,
              pass a field named 'license.name' to get the 'name' element of
              the 'license' entry for each repo.
@@ -1051,81 +1128,6 @@ def reposget(*, org=None, user=None, fields=None):
                        headers=headers)
 
 #------------------------------------------------------------------------------
-def repos_listfields():
-    """List valid field names for repos().
-    """
-    wildcard_fields()
-    click.echo(click.style('archive_url         git_tags_url         ' +
-                           'open_issues', fg='cyan'))
-    click.echo(click.style('assignees_url       git_url              ' +
-                           'open_issues_count', fg='cyan'))
-    click.echo(click.style('blobs_url           has_downloads        ' +
-                           'private', fg='cyan'))
-    click.echo(click.style('branches_url        has_issues           ' +
-                           'pulls_url', fg='cyan'))
-    click.echo(click.style('clone_url           has_pages            ' +
-                           'pushed_at', fg='cyan'))
-    click.echo(click.style('collaborators_url   has_wiki             ' +
-                           'releases_url', fg='cyan'))
-    click.echo(click.style('commits_url         homepage             ' +
-                           'size', fg='cyan'))
-    click.echo(click.style('compare_url         hooks_url            ' +
-                           'ssh_url', fg='cyan'))
-    click.echo(click.style('contents_url        html_url             ' +
-                           'stargazers_count', fg='cyan'))
-    click.echo(click.style('contributors_url    id                   ' +
-                           'stargazers_url', fg='cyan'))
-    click.echo(click.style('created_at          issue_comment_url    ' +
-                           'statuses_url', fg='cyan'))
-    click.echo(click.style('default_branch      issue_events_url     ' +
-                           'subscribers_url', fg='cyan'))
-    click.echo(click.style('deployments_url     issues_url           ' +
-                           'subscription_url', fg='cyan'))
-    click.echo(click.style('description         keys_url             ' +
-                           'svn_url', fg='cyan'))
-    click.echo(click.style('downloads_url       labels_url           ' +
-                           'tags_url', fg='cyan'))
-    click.echo(click.style('events_url          language             ' +
-                           'teams_url', fg='cyan'))
-    click.echo(click.style('fork                languages_url        ' +
-                           'trees_url', fg='cyan'))
-    click.echo(click.style('forks               master_branch        ' +
-                           'updated_at', fg='cyan'))
-    click.echo(click.style('forks_count         merges_url           ' +
-                           'url', fg='cyan'))
-    click.echo(click.style('forks_url           milestones_url       ' +
-                           'watchers', fg='cyan'))
-    click.echo(click.style('full_name           mirror_url           ' +
-                           'watchers_count', fg='cyan'))
-    click.echo(click.style('git_commits_url     name', fg='cyan'))
-    click.echo(click.style('git_refs_url        notifications_url', fg='cyan'))
-    click.echo(click.style(60*'-', fg='blue'))
-    click.echo(click.style('license.featured              ' +
-                           'owner.login', fg='cyan'))
-    click.echo(click.style('license.key                   ' +
-                           'owner.organizations_url', fg='cyan'))
-    click.echo(click.style('license.name                  ' +
-                           'owner.received_events_url', fg='cyan'))
-    click.echo(click.style('license.url                   ' +
-                           'owner.repos_url', fg='cyan'))
-    click.echo(click.style('owner.avatar_url              ' +
-                           'owner.site_admin', fg='cyan'))
-    click.echo(click.style('owner.events_url              ' +
-                           'owner.starred_url', fg='cyan'))
-    click.echo(click.style('owner.followers_url           ' +
-                           'owner.subscriptions_url', fg='cyan'))
-    click.echo(click.style('owner.following_url           ' +
-                           'owner.type', fg='cyan'))
-    click.echo(click.style('owner.gists_url               ' +
-                           'owner.url', fg='cyan'))
-    click.echo(click.style('owner.gravatar_id             ' +
-                           'permissions.admin', fg='cyan'))
-    click.echo(click.style('owner.html_url                ' +
-                           'permissions.pull', fg='cyan'))
-    click.echo(click.style('owner.id                      ' +
-                           'permissions.push', fg='cyan'))
-
-#------------------------------------------------------------------------------
 @cli.command(help='Get team information for an organization')
 @click.option('-o', '--org', default='',
               help='GitHub organization', metavar='<str>')
@@ -1147,7 +1149,7 @@ def teams(org, authuser, source, filename, fields, display, verbose, listfields)
     """get team information for an organization.
     """
     if listfields:
-        teams_listfields()
+        list_fields('team')
         return
 
     if not org:
@@ -1174,22 +1176,6 @@ def teams(org, authuser, source, filename, fields, display, verbose, listfields)
     data_write(filename, sorted_data)
     unknown_fields() # list unknown field names (if any)
     elapsed_time(start_time)
-
-#-------------------------------------------------------------------------------
-def teams_listfields():
-    """List valid field names for teams().
-    """
-    wildcard_fields()
-    click.echo(click.style('description', fg='cyan'))
-    click.echo(click.style('id', fg='cyan'))
-    click.echo(click.style('members_url', fg='cyan'))
-    click.echo(click.style('name', fg='cyan'))
-    click.echo(click.style('org', fg='cyan'))
-    click.echo(click.style('permission', fg='cyan'))
-    click.echo(click.style('privacy', fg='cyan'))
-    click.echo(click.style('repositories_url', fg='cyan'))
-    click.echo(click.style('slug', fg='cyan'))
-    click.echo(click.style('url', fg='cyan'))
 
 #-------------------------------------------------------------------------------
 def timestamp(filename=None):
@@ -1233,7 +1219,7 @@ def unknown_fields():
 def wildcard_fields():
     """Display wildcard field options.
     """
-    click.echo(click.style('\n     specified fields -->  --fields=',
+    click.echo(click.style('     specified fields -->  --fields=',
                            fg='white'), nl=False)
     click.echo(click.style('fld1/fld2/etc', fg='cyan'))
     click.echo(click.style('           ALL fields -->  --fields=',
