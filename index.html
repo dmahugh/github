@@ -83,8 +83,6 @@
         <p>All fields returned by the GitHub API are saved in gitdata's local cache, but only specified fields are included in console output and/or CSV and JSON output files. If you don't specify any fields, a set of <i>default fields</i> are returned for each entity type (collabs, members, orgs, repos, teams).</p>
         <p>To specify a custom set of fields, use the <code>-f/--fields</code> option and specify the field names as a /-delimited string. For example:</p>
         <img src="https://raw.githubusercontent.com/dmahugh/gitdata/master/images/customfields.png"/>
-        <p><i>All</i> fields are saved in gitdata's local cache, which means you can do a query from the cache that includes different fields from the ones in your original query of the API. For example:</p>
-        <img src="https://raw.githubusercontent.com/dmahugh/gitdata/master/images/cachedfields.png"/>
         <p>To determine which field names are available for an entity type, use the <code>-l/--listfields</code> option. For example:</p>
         <img src="https://raw.githubusercontent.com/dmahugh/gitdata/master/images/listfields.png"/>
         <p>Gitdata sorts all output by the <i>first</i> field specified.</p>
@@ -103,6 +101,8 @@
         username and same selection criteria, gitdata gives you the option of using the cached data:</p>
         <img src="https://raw.githubusercontent.com/dmahugh/gitdata/master/images/cache02.png"/>
         <p>Note: if you had chosen to read from the API instead, the cache would have been automatically updated with the more recent data.</p>
+        <p><i>All</i> fields are saved in gitdata's local cache, which means you can do a query from the cache that includes different fields from the ones in your original query of the API. For example:</p>
+        <img src="https://raw.githubusercontent.com/dmahugh/gitdata/master/images/cachedfields.png"/>
         <p>Each combination of authentication username, selection criteria, and data type is stored in a unique filename in the
         <b>gh_cache</b> folder. The filename describes the data:</p>
         <ul>
