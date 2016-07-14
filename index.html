@@ -164,10 +164,13 @@
         <p>The <code>orgs</code> subcommand does not support or require any selection criteria, but (unlike the other subcommands) it <i>requires</i> that an authentication username (with associated PAT) be used. The returned list of organizations contains the organizations for which this GitHub user is a member.</p>
 
         <h3>Repositories</h3>
-        <p>/// /// ///</p>
+        <p>/// match format of entities above</p>
+        <p>/// must specify org OR user</p>
+        <p>/// note that it does not return private repos for a user; different GitHub API endpoint needed for this</p>
 
         <h3>Teams</h3>
-        <p>/// /// ///</p>
+        <p>/// match format of entities above</p>
+        <p>/// must specify an org, lists all teams for the org</p>
 
         <h1>Programmatic Use</h1>
         <p>/// can chain as a command-line tool, of course, but can also import gitdata, etc.</p>
