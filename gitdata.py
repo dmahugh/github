@@ -350,7 +350,7 @@ def data_fields(*, entity=None, jsondata=None, fields=None, constants=None):
 
     if fields[0] in ['*', 'urls', 'nourls']:
         # special cases to return all fields or all url/non-url fields
-        if fields[0] in ['*', 'nourls']:
+        if constants and fields[0] in ['*', 'nourls']:
             values.update(constants)
         for fldname in jsondata:
             if fields[0] == '*' or \
