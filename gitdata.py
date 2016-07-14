@@ -301,7 +301,7 @@ def collabs(owner, repo, authuser, source, filename, fields, display, verbose, l
         return
 
     if not owner or not repo:
-        click.echo('ERROR: must owner and repo')
+        click.echo('ERROR: must specify owner and repo')
         return
 
     if not filename_valid(filename):
