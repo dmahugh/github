@@ -149,9 +149,16 @@
           <li><code>-o/--owner</code> owner of the repo (org or user) &mdash; <i>required</i></li>
           <li><code>-r/--repo</code> repository name &mdash; <i>required</i></li>
         </ul>
+        <p>These two criteria uniquely identify a repo, and the collaborators for that repo will be returned.</p>
 
         <h3>Members</h3>
-        <p>/// /// ///</p>
+        <p>The <code>members</code> subcommand supports two selection criteria: <i>org</i> and <i>team ID</i>.</p>
+        <ul>
+          <li><code>-o/--org</code> organization name</li>
+          <li><code>-t/--teamid</code> team ID (the numeric ID, not the team name)</li>
+        </ul>
+        <p>You must provide one of these criteria, and the members of that org or team will be returned.</p>
+        <p>The <i>members</i> subcommand also supports an <code>--audit2fa</code> command-line option. If you use this option, the returned list of members includes <i>only those members that <b>do not</b> have two-factor authentication enabled.</i></p>
 
         <h3>Organizations</h3>
         <p>/// /// ///</p>
