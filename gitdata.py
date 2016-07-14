@@ -682,7 +682,7 @@ def list_fields(entity=None):
 
     Displays to the console a list of available field names for this entity.
     """
-    click.echo('\nDefault fields for ' + entity.upper() + 'S subcommand:')
+    click.echo('\nDefault fields for ' + entity.upper() + 'S: ', nl=False)
     click.echo(click.style('/'.join(default_fields(entity)), fg='cyan'))
     click.echo(click.style(60*'-', fg='blue'))
     wildcard_fields()
@@ -1219,7 +1219,7 @@ def unknown_fields():
 def wildcard_fields():
     """Display wildcard field options.
     """
-    click.echo(click.style('     specified fields -->  --fields=',
+    click.echo(click.style('       specify fields -->  --fields=',
                            fg='white'), nl=False)
     click.echo(click.style('fld1/fld2/etc', fg='cyan'))
     click.echo(click.style('           ALL fields -->  --fields=',
