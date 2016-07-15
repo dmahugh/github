@@ -164,8 +164,7 @@
         <p>The <code>orgs</code> subcommand does not support or require any selection criteria, but (unlike the other subcommands) it <i>requires</i> that an authentication username (with associated PAT) be used. The returned list of organizations contains the organizations for which this GitHub user is a member.</p>
 
         <h3>Repositories</h3>
-        <p>/// match format of entities above</p>
-        <p>/// must specify org OR user</p>
+        <p>The <code>repos</code> subcommand requires that you specify the owner of the repositories. The owner can be either an <i>organization</i> (specified by the <code>-o/--org</code> option) or a <i>user</i> (specified by the <code>-u/--user</code> option).</p>
         <p>/// note that it does not return private repos for a user; different GitHub API endpoint needed for this</p>
 
         <h3>Teams</h3>
