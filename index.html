@@ -165,7 +165,8 @@
 
         <h3>Repositories</h3>
         <p>The <code>repos</code> subcommand requires that you specify the owner of the repositories. The owner can be either an <i>organization</i> (specified by the <code>-o/--org</code> option) or a <i>user</i> (specified by the <code>-u/--user</code> option).</p>
-        <p>/// note that it does not return private repos for a user; different GitHub API endpoint needed for this</p>
+        <p>When an organization is specified for the owner, this subcommand will return all public repos in that organization, and will also include all private repos <i>if you are authenticating under a GitHub user who has access to those private repos</i>.</p>
+        <p>When a user is specified for the owner, <i>only public repos</i> are returned. This is a limitation of the <code>/users/:user/repos</code> endpoint used in this case &mdash; that endpoint does not return private repos, even if you are authenticated under the same username as specified in the endpoint. This may be addressed in a future update, by using a different GitHub API endpoint in that particular case.<p>
 
         <h3>Teams</h3>
         <p>/// match format of entities above</p>
