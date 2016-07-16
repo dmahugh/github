@@ -86,6 +86,11 @@
         <p>To determine which field names are available for an entity type, use the <code>-l/--listfields</code> option. For example, here are the fields that can be specified for the <code>members</code> subcommand:</p>
         <img src="https://raw.githubusercontent.com/dmahugh/gitdata/master/images/listfields.png"/>
         <p>Shorthand notation can be used for all fields (*), or only the url or non-url fields. GitHub APIs return many URLs, which can be useful when building a user interface. If you're just doing data analysis and reporting, the <code>nourls</code> option can make data payloads up to 90% smaller.</p>
+        <p>For example, here is the full JSON payload returned for a member of an organization when using the <code>members</code> subcommand:</p>
+        <img src="https://raw.githubusercontent.com/dmahugh/gitdata/master/images/minimize-before.png"/>
+        <p>And here's the data returned when using the <code>--fields=nourls</code> option for the same member:</p>
+        <img src="https://raw.githubusercontent.com/dmahugh/gitdata/master/images/minimize-after.png"/>
+
         <p>NOTE: gitdata sorts all output by the <i>first</i> field specified.</p>
 
         <h3>Saving Output</h3>
