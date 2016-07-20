@@ -35,7 +35,10 @@
         <p>This page covers how to use the gitdata CLI (command-line interface). For installation instructions, source code, and other additional information, see the <a href="http://github.com/dmahugh/gitdata">gitdata GitHub repo</a>.</p>
 
         <h1>Overview</h1>
-        <p>The gitdata CLI currently includes these features:</p>
+        <p>Gitdata is a tool that I built for my own use, to help automate some tasks I found myself doing over and over again.<p>
+        <p>I work at Microsoft in the Open Source Programs Office, and we have occasional needs to retrieve data from the GitHub APIs. For example, we may want to create a report showing growth of public or private repos in one of Microsoft's GitHub organizations. Or we may need to audit an organization's members to determine who doesn't have two-factor authentication activated.</p>
+        <p>I've written various one-off Python programs to handle these sorts of tasks, using the Requests module. After a while I decided it would be simpler to package up this functionality into a command-line tool, and gitdata is the result of that refactoring.</p>
+        <p>Gitdata's current functionality covers the specific types of queries that I've needed to date, including these features:</p>
         <ul>
           <li>get info about organizations, repos, teams, members, collaborators</li>
           <li>output to the console and/or CSV/JSON files</li>
