@@ -74,7 +74,7 @@ import requests
 #------------------------------------------------------------------------------
 CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'])
 @click.group(context_settings=CONTEXT_SETTINGS, options_metavar='[options]',
-             invoke_without_command=True)
+             invoke_without_command=False)
 @click.option('-a', '--auth', default='',
               help='GitHub username (for configuring access)', metavar='<str>')
 @click.option('-t', '--token', default='',
@@ -93,8 +93,8 @@ syntax help: gitdata <subcommand> -h"""
         auth_status(auth.lower(), token, delete)
         return
 
-    if ctx.invoked_subcommand is None:
-        click.echo('Nothing to do. Type gitdata -h for help.')
+    # note that all subcommands are invoked by the Click framework decorators,
+    # so nothing to do here.
 
 #------------------------------------------------------------------------------
 class _settings:
