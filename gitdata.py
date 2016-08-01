@@ -52,7 +52,6 @@ teams() ------------------> Main handler for "teams" subcommand.
 
 timestamp() --------------> Get current timestamp or a file timestamp.
 token_abbr() -------------> Get abbreviated access token (for display purposes).
-unknown_fields() ---------> List unknown field names encountered this session.
 
 wildcard_fields() --------> Display wildcard field options.
 
@@ -325,7 +324,6 @@ def collabs(owner, repo, authuser, source, filename, fields, display, verbose, l
     # handle returned data (sorting, displaying saving)
     sorted_data = sorted(templist, key=data_sort)
     data_display(sorted_data)
-    unknown_fields()
     data_write(filename, sorted_data)
 
     elapsed_time(start_time)
@@ -409,6 +407,14 @@ def data_display(datasource=None):
     for data_item in datasource:
         values = [str(value) for _, value in data_item.items()]
         click.echo(click.style(','.join(values), fg='cyan'))
+
+    # List unknown field names encountered in this session (if any)
+    try:
+        if _settings.unknownfieldname:
+            click.echo('Unknown field name: ' + _settings.unknownfieldname)
+    except AttributeError:
+        # no unknown fields have been logged
+        pass
 
 #------------------------------------------------------------------------------
 def data_sort(datadict):
@@ -860,7 +866,6 @@ def members(org, team, audit2fa, authuser, source, filename, fields, display, ve
     sorted_data = sorted(memberlist, key=data_sort) # sort the data
     data_display(sorted_data)
     data_write(filename, sorted_data)
-    unknown_fields() # list unknown field names (if any)
     elapsed_time(start_time)
 
 #-------------------------------------------------------------------------------
@@ -959,7 +964,6 @@ def orgs(authuser, source, filename, fields, display, verbose, listfields):
     sorted_data = sorted(orglist, key=data_sort) # sort the data
     data_display(sorted_data)
     data_write(filename, sorted_data)
-    unknown_fields() # list unknown field names (if any)
     elapsed_time(start_time)
 
 #------------------------------------------------------------------------------
@@ -1059,7 +1063,6 @@ def repos(org, user, authuser, source, filename, fields, display, verbose, listf
     sorted_data = sorted(repolist, key=data_sort) # sort the data
     data_display(sorted_data)
     data_write(filename, sorted_data)
-    unknown_fields() # list unknown field names (if any)
     elapsed_time(start_time)
 
 #-------------------------------------------------------------------------------
@@ -1179,7 +1182,6 @@ def teams(org, authuser, source, filename, fields, display, verbose, listfields)
     sorted_data = sorted(teamlist, key=data_sort) # sort the data
     data_display(sorted_data)
     data_write(filename, sorted_data)
-    unknown_fields() # list unknown field names (if any)
     elapsed_time(start_time)
 
 #-------------------------------------------------------------------------------
@@ -1208,17 +1210,6 @@ def token_abbr(accesstoken):
         return accesstoken[0:2] + '...' + accesstoken[-2:]
     else:
         return "*none*"
-
-#-------------------------------------------------------------------------------
-def unknown_fields():
-    """List unknown field names encountered in this session.
-    """
-    try:
-        if _settings.unknownfieldname:
-            click.echo('Unknown field name: ' + _settings.unknownfieldname)
-    except AttributeError:
-        # no unknown fields have been logged
-        pass
 
 #-------------------------------------------------------------------------------
 def wildcard_fields():
