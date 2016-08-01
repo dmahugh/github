@@ -947,28 +947,33 @@ def orgs(authuser, source, filename, fields, display, verbose, listfields):
         list_fields('org')
         return
 
+    # validate inputs/options
     if not authuser:
         click.echo('ERROR: authentication username is required')
         return
-
     if not filename_valid(filename):
         return
 
+    start_time = default_timer()
+
+    # store settings in _settings
     _settings.display_data = display
     _settings.verbose = verbose
-    # for source option, store the 1st character, lower-case
     source = source if source else 'p'
     _settings.datasource = source.lower()[0]
 
-    start_time = default_timer()
+    # retrieve requested data
     auth_config({'username': authuser})
     fldnames = fields.split('/') if fields else None
-    orglist = github_data(
+    templist = github_data(
         endpoint='/user/orgs', entity='org', fields=fldnames,
         constants={"user": authuser}, headers={})
-    sorted_data = sorted(orglist, key=data_sort) # sort the data
+
+    # handle returned data
+    sorted_data = sorted(templist, key=data_sort)
     data_display(sorted_data)
     data_write(filename, sorted_data)
+
     elapsed_time(start_time)
 
 #------------------------------------------------------------------------------
