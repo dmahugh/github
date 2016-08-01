@@ -321,7 +321,7 @@ def collabs(owner, repo, authuser, source, filename, fields, display, verbose, l
         endpoint='/repos/' + owner + '/' + repo + '/collaborators', entity='collab',
         fields=fldnames, constants={"owner": owner, "repo": repo}, headers={})
 
-    # handle returned data (sorting, displaying saving)
+    # handle returned data
     sorted_data = sorted(templist, key=data_sort)
     data_display(sorted_data)
     data_write(filename, sorted_data)
@@ -845,27 +845,32 @@ def members(org, team, audit2fa, authuser, source, filename, fields, display, ve
         list_fields('member')
         return
 
+    # validate inputs/options
     if not org and not team:
         click.echo('ERROR: must specify an org or team ID')
         return
-
     if not filename_valid(filename=filename):
         return
 
+    start_time = default_timer()
+
+    # store settings in _settings
     _settings.display_data = display
     _settings.verbose = verbose
-    # for source option, store the 1st character, lower-case
     source = source if source else 'p'
     _settings.datasource = source.lower()[0]
 
-    start_time = default_timer()
+    # retrieve requested data
     auth_config({'username': authuser})
     fldnames = fields.split('/') if fields else None
-    memberlist = membersdata(org=org, team=team, audit2fa=audit2fa,
-                             fields=fldnames)
-    sorted_data = sorted(memberlist, key=data_sort) # sort the data
+    templist = membersdata(org=org, team=team, audit2fa=audit2fa,
+                           fields=fldnames)
+
+    # handle returned data
+    sorted_data = sorted(templist, key=data_sort)
     data_display(sorted_data)
     data_write(filename, sorted_data)
+
     elapsed_time(start_time)
 
 #-------------------------------------------------------------------------------
