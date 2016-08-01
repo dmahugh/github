@@ -297,32 +297,37 @@ def collabs(owner, repo, authuser, source, filename, fields, display, verbose, l
     """Get collaborator information for a repo.
     """
     if listfields:
-        list_fields('collab')
+        list_fields('collab') # display online help
         return
 
+    # validate inputs/options
     if not owner or not repo:
         click.echo('ERROR: must specify owner and repo')
         return
-
     if not filename_valid(filename):
         return
 
+    start_time = default_timer()
+
+    # store settings in _settings
     _settings.display_data = display
     _settings.verbose = verbose
-    # for source option, store the 1st character, lower-case
     source = source if source else 'p'
     _settings.datasource = source.lower()[0]
 
-    start_time = default_timer()
+    # retrieve requested data
     auth_config({'username': authuser})
     fldnames = fields.split('/') if fields else None
-    collablist = github_data(
+    templist = github_data(
         endpoint='/repos/' + owner + '/' + repo + '/collaborators', entity='collab',
         fields=fldnames, constants={"owner": owner, "repo": repo}, headers={})
-    sorted_data = sorted(collablist, key=data_sort) # sort the data
+
+    # handle returned data (sorting, displaying saving)
+    sorted_data = sorted(templist, key=data_sort)
     data_display(sorted_data)
+    unknown_fields()
     data_write(filename, sorted_data)
-    unknown_fields() # list unknown field names (if any)
+
     elapsed_time(start_time)
 
 #-------------------------------------------------------------------------------
