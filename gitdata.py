@@ -1175,28 +1175,33 @@ def teams(org, authuser, source, filename, fields, display, verbose, listfields)
         list_fields('team')
         return
 
+    # validate inputs/options
     if not org:
         click.echo('ERROR: must specify an org')
         return
-
     if not filename_valid(filename):
         return
 
+    start_time = default_timer()
+
+    # store settings in _settings
     _settings.display_data = display
     _settings.verbose = verbose
-    # for source option, store the 1st character, lower-case
     source = source if source else 'p'
     _settings.datasource = source.lower()[0]
 
-    start_time = default_timer()
+    # retrieve requested data
     auth_config({'username': authuser})
     fldnames = fields.split('/') if fields else None
-    teamlist = github_data(
+    templist = github_data(
         endpoint='/orgs/' + org + '/teams', entity='team',
         fields=fldnames, constants={"org": org}, headers={})
-    sorted_data = sorted(teamlist, key=data_sort) # sort the data
+
+    # handle returned data
+    sorted_data = sorted(templist, key=data_sort)
     data_display(sorted_data)
     data_write(filename, sorted_data)
+
     elapsed_time(start_time)
 
 #-------------------------------------------------------------------------------
