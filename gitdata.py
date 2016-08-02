@@ -1053,26 +1053,31 @@ def repos(org, user, authuser, source, filename, fields, display, verbose, listf
         list_fields('repo')
         return
 
+    # validate inputs/options
     if not org and not user:
         click.echo('ERROR: must specify an org or user')
         return
-
     if not filename_valid(filename):
         return
 
+    start_time = default_timer()
+
+    # store settings in _settings
     _settings.display_data = display
     _settings.verbose = verbose
-    # for source option, store the 1st character, lower-case
     source = source if source else 'p'
     _settings.datasource = source.lower()[0]
 
-    start_time = default_timer()
+    # retrieve requested data
     auth_config({'username': authuser})
     fldnames = fields.split('/') if fields else None
-    repolist = reposdata(org=org, user=user, fields=fldnames)
-    sorted_data = sorted(repolist, key=data_sort) # sort the data
+    templist = reposdata(org=org, user=user, fields=fldnames)
+
+    # handle returned data
+    sorted_data = sorted(templist, key=data_sort)
     data_display(sorted_data)
     data_write(filename, sorted_data)
+
     elapsed_time(start_time)
 
 #-------------------------------------------------------------------------------
