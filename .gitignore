@@ -1,11 +1,6 @@
 # don't include these files
 _pyfind
 _todo.txt
-bus_unit.py
-gitinfo.*
-gitinfo_test.*
-msgithub.py
-repos_by_bu.py
 
 # we create many CSV and XSLX files, don't need to put those in the repo
 *.csv

@@ -38,6 +38,7 @@ members() ----------------> Main handler for "members" subcommand.
 membersdata() ------------> Get member information for orgs or teams.
 membersget() -------------> Get member info for a specified organization.
 
+orglist() ----------------> Get all orgs for a GitHub user.
 orgs() -------------------> Main handler for "orgs" subcommand.
 
 pagination() -------------> Parse pagination URLs from 'link' HTTP header.
@@ -602,9 +603,12 @@ def github_data(*, endpoint=None, entity=None, fields=None, constants=None,
         read_from = 'c'
     else:
         # prompt user for which data source to use
+        click.echo('    Endpoint: ', nl=False)
+        click.echo(click.style(endpoint, fg='cyan'))
         if cache_exists(endpoint):
             filetime = timestamp(cache_filename(endpoint))
-            click.echo('Cached data found -->> ' + filetime)
+            click.echo(' Cached data: ', nl=False)
+            click.echo(click.style(filetime, fg='cyan'))
             read_from = \
                 click.prompt('Read from API (a), cache (c) or exit (x)?').lower()
         else:
@@ -925,6 +929,19 @@ def membersget(*, org=None, team=None, fields=None, audit2fa=False):
                        constants={"org": org}, headers={})
 
 #------------------------------------------------------------------------------
+def orglist(authname=None):
+    """Get all orgs for a GitHub user.
+
+    authname = GitHub user name
+
+    Returns a list of all GitHub organizations that this user is a member of.
+    """
+    auth_config({'username': authname})
+    templist = github_data(endpoint='/user/orgs', entity='org', fields=['login'],
+                           constants={"user": authname}, headers={})
+    return [_['login'] for _ in templist]
+
+#------------------------------------------------------------------------------
 @cli.command(help='Get org memberships for a user')
 @click.option('-a', '--authuser', default='',
               help='authentication username', metavar='<str>')
@@ -1029,7 +1046,7 @@ def read_json(filename=None):
 #------------------------------------------------------------------------------
 @cli.command(help='Get repo information by org or user/owner')
 @click.option('-o', '--org', default='',
-              help='GitHub organization', metavar='<str>')
+              help='GitHub org (* = all orgs authuser is a member of)', metavar='<str>')
 @click.option('-u', '--user', default='',
               help='GitHub user', metavar='<str>')
 @click.option('-a', '--authuser', default='',
@@ -1071,7 +1088,7 @@ def repos(org, user, authuser, source, filename, fields, display, verbose, listf
     # retrieve requested data
     auth_config({'username': authuser})
     fldnames = fields.split('/') if fields else None
-    templist = reposdata(org=org, user=user, fields=fldnames)
+    templist = reposdata(org=org, user=user, fields=fldnames, authname=authuser)
 
     # handle returned data
     sorted_data = sorted(templist, key=data_sort)
@@ -1081,21 +1098,22 @@ def repos(org, user, authuser, source, filename, fields, display, verbose, listf
     elapsed_time(start_time)
 
 #-------------------------------------------------------------------------------
-def reposdata(*, org=None, user=None, fields=None):
+def reposdata(*, org=None, user=None, fields=None, authname=None):
     """Get repo information for one or more organizations or users.
 
-    org    = organization; an organization or list of organizations
-    user   = username; a username or list of usernames (if org is provided,
-             user is ignored)
-    fields = list of fields to be returned; names must be the same as
-             returned by the GitHub API (see list_fields()).
-             Dot notation for embedded elements is supported. For example,
-             pass a field named 'license.name' to get the 'name' element of
-             the 'license' entry for each repo.
-             These special cases are also supported:
-             fields=['*'] -------> return all fields returned by GitHub API
-             fields=['nourls'] -> return all non-URL fields (not *_url or url)
-             fields=['urls'] ----> return all URL fields (*_url and url)
+    org      = organization; an organization or list of organizations
+    user     = username; a username or list of usernames (if org is provided,
+               user is ignored)
+    fields   = list of fields to be returned; names must be the same as
+               returned by the GitHub API (see list_fields()).
+               Dot notation for embedded elements is supported. For example,
+               pass a field named 'license.name' to get the 'name' element of
+               the 'license' entry for each repo.
+               These special cases are also supported:
+               fields=['*'] -------> return all fields returned by GitHub API
+               fields=['nourls'] -> return all non-URL fields (not *_url or url)
+               fields=['urls'] ----> return all URL fields (*_url and url)
+    authname = GitHub authentication username; required for org=* syntax
 
     Returns a list of dictionary objects, one per repo.
     """
@@ -1103,22 +1121,20 @@ def reposdata(*, org=None, user=None, fields=None):
 
     if org:
         # get repos by organization
-        if isinstance(org, str):
-            # one organization
-            repolist.extend(reposget(org=org, fields=fields))
-        else:
-            # list of organizations
-            for orgid in org:
+        if org == '*':
+            # handle special org=* syntax: all orgs for this user
+            if not authname:
+                click.echo('ERROR: -a option required for org=* syntax.')
+                return []
+            user_orgs = orglist(authname)
+            for orgid in user_orgs:
                 repolist.extend(reposget(org=orgid, fields=fields))
+        else:
+            # get repos for specified organization
+            repolist.extend(reposget(org=org, fields=fields))
     else:
         # get repos by user
-        if isinstance(user, str):
-            # one user
-            repolist.extend(reposget(user=user, fields=fields))
-        else:
-            # list of users
-            for userid in user:
-                repolist.extend(reposget(user=userid, fields=fields))
+        repolist.extend(reposget(user=user, fields=fields))
 
     return repolist
 
