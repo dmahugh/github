@@ -929,17 +929,24 @@ def membersget(*, org=None, team=None, fields=None, audit2fa=False):
                        constants={"org": org}, headers={})
 
 #------------------------------------------------------------------------------
-def orglist(authname=None):
+def orglist(authname=None, contoso=False):
     """Get all orgs for a GitHub user.
 
     authname = GitHub user name
+    contoso  = whether to include orgs named contoso* (to deal with a Microsoft
+               specific problem)
 
     Returns a list of all GitHub organizations that this user is a member of.
     """
     auth_config({'username': authname})
     templist = github_data(endpoint='/user/orgs', entity='org', fields=['login'],
                            constants={"user": authname}, headers={})
-    return sorted([_['login'].lower() for _ in templist])
+    sortedlist = sorted([_['login'].lower() for _ in templist])
+
+    if contoso:
+        return sortedlist
+    else:
+        return [orgname for orgname in sortedlist if not orgname.startswith('contoso')]
 
 #------------------------------------------------------------------------------
 @cli.command(help='Get org memberships for a user')
