@@ -939,7 +939,7 @@ def orglist(authname=None):
     auth_config({'username': authname})
     templist = github_data(endpoint='/user/orgs', entity='org', fields=['login'],
                            constants={"user": authname}, headers={})
-    return [_['login'] for _ in templist]
+    return sorted([_['login'].lower() for _ in templist])
 
 #------------------------------------------------------------------------------
 @cli.command(help='Get org memberships for a user')
