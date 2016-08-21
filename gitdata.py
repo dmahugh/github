@@ -239,9 +239,12 @@ def cache_filename(endpoint, auth=None):
         auth = _settings.username if _settings.username else '_anon'
 
     source_folder = os.path.dirname(os.path.realpath(__file__))
-    filename = auth + '_' + endpoint.replace('/', '-').strip('-') + '.json'
+    filename = auth + '_' + endpoint.replace('/', '-').strip('-')
+    if '?' in filename:
+        # remove parameters from the endpoint
+        filename = filename[:filename.find('?')]
 
-    return os.path.join(source_folder, 'gh_cache/' + filename)
+    return os.path.join(source_folder, 'gh_cache/' + filename + '.json')
 
 #------------------------------------------------------------------------------
 def cache_update(endpoint, payload, constants):
