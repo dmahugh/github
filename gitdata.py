@@ -665,7 +665,6 @@ def github_data_from_api(endpoint=None, headers=None):
                                    ' bytes returned', fg='cyan'))
         if response.ok:
             thispage = json.loads(response.text)
-            print('length of returned data: ' + str(len(thispage)))
             # commit data is handled differently from everything else, because
             # the sheer volume (e.g., over 100K commits in a repo) causes out of
             # memory errors if all fields are returned.
