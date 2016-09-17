@@ -114,9 +114,9 @@ class _settings:
     verbose = False # whether to display status information on console
     display_data = True # whether to display retrieved data on console
 
-    # initialize gitinfo session settings
+    # initialize gitdata session settings
     start_time = time.time() # session start time (seconds)
-    tot_api_calls = 0 # number of API calls made through gitinfo
+    tot_api_calls = 0 # number of API calls made through gitdata
     tot_api_bytes = 0 # total bytes returned by these API calls
     last_ratelimit = 0 # API rate limit for the most recent API call
     last_remaining = 0 # remaining portion of rate limit after last API call
@@ -694,7 +694,7 @@ def github_data_from_cache(endpoint=None):
 def inifile_name():
     """Return full name of INI file where GitHub tokens are stored.
     Note that this file is stored in a 'private' subfolder under the parent
-    folder of the gitinfo module.
+    folder of the gitdata module.
     """
     source_folder = os.path.dirname(os.path.realpath(__file__))
     return os.path.join(source_folder, '../_private/github_users.ini')
