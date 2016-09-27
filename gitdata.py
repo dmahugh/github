@@ -838,6 +838,8 @@ def list_fields(entity=None):
               help='team ID', metavar='<str>')
 @click.option('--audit2fa', is_flag=True,
               help='include only 2FA-not-enabled members')
+@click.option('--adminonly', is_flag=True,
+              help='include only members with role=admin')
 @click.option('-a', '--authuser', default='',
               help='authentication username', metavar='<str>')
 @click.option('-s', '--source', default='p',
@@ -852,7 +854,7 @@ def list_fields(entity=None):
               help="Display verbose status info")
 @click.option('-l', '--listfields', is_flag=True,
               help='list available fields and exit.')
-def members(org, team, audit2fa, authuser, source, filename, fields, display, verbose, listfields):
+def members(org, team, audit2fa, adminonly, authuser, source, filename, fields, display, verbose, listfields):
     """Get member info for an organization or team.
     """
     if listfields:
@@ -878,7 +880,7 @@ def members(org, team, audit2fa, authuser, source, filename, fields, display, ve
     auth_config({'username': authuser})
     fldnames = fields.split('/') if fields else None
     templist = membersdata(org=org, team=team, audit2fa=audit2fa,
-                           fields=fldnames)
+                           adminonly=adminonly, fields=fldnames)
 
     # handle returned data
     sorted_data = sorted(templist, key=data_sort)
@@ -888,16 +890,19 @@ def members(org, team, audit2fa, authuser, source, filename, fields, display, ve
     elapsed_time(start_time)
 
 #-------------------------------------------------------------------------------
-def membersdata(*, org=None, team=None, fields=None, audit2fa=False):
+def membersdata(*, org=None, team=None, fields=None, audit2fa=False, adminonly=False):
     """Get members for one or more teams or organizations.
 
     org = organization name
     team = team ID; if provided, org is ignored
     fields = list of field names to be returned; names must be the same as
              returned by the GitHub API (see list_fields()).
-    audit2fa = whether to only return members with 2FA disabled. You must be
-               authenticated via auth_config() as an admin of the org(s) to use
-               this option.
+
+    You must be authenticated via auth_config() as an admin of the org(s) to
+    use the audit2fa or adminonly options ...
+
+    audit2fa  = whether to only return members with 2FA disabled.
+    adminonly = whether to only return members with role=admin.
 
     Returns a list of dictionary objects, one per member.
     """
@@ -908,23 +913,24 @@ def membersdata(*, org=None, team=None, fields=None, audit2fa=False):
         memberlist.extend(membersget(team=team, fields=fields))
     else:
         # get members by organization
-        memberlist.extend(membersget(org=org, fields=fields, audit2fa=audit2fa))
+        memberlist.extend(membersget(org=org, fields=fields, audit2fa=audit2fa, adminonly=adminonly))
 
     return memberlist
 
 #------------------------------------------------------------------------------
-def membersget(*, org=None, team=None, fields=None, audit2fa=False):
+def membersget(*, org=None, team=None, fields=None, audit2fa=False, adminonly=False):
     """Get member info for a specified organization. Called by members() to
     aggregate member info for multiple organizations.
 
     org =          organization ID (ignored if a team is specified)
     team =         team ID
     fields =       list of fields to be returned
-    audit2fa =     whether to only return members with 2FA disabled. This
-                   option is only available when retrieving members by
-                   organization.
-                   Note: for audit2fa=True, you must be authenticated via
-                   auth_config() as an admin of the org(s).
+
+    You must be authenticated via auth_config() as an admin of the org(s) to
+    use the audit2fa or adminonly options ...
+
+    audit2fa  = whether to only return members with 2FA disabled.
+    adminonly = whether to only return members with role=admin.
 
     Returns a list of dictionaries containing the specified fields.
     <internal>
@@ -933,7 +939,8 @@ def membersget(*, org=None, team=None, fields=None, audit2fa=False):
         endpoint = '/teams/' + team + '/members'
     else:
         endpoint = '/orgs/' + org + '/members' + \
-            ('?filter=2fa_disabled' if audit2fa else '')
+            ('?filter=2fa_disabled' if audit2fa else '') + \
+            ('?role=admin' if adminonly else '')
 
     return github_data(endpoint=endpoint, entity='member', fields=fields,
                        constants={"org": org}, headers={})

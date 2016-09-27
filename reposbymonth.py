@@ -1,7 +1,7 @@
 # reposbymonth.py
 # Convert temp.csv to temp2.csv (monthly totals)
 # temp.csv was created with this gitdata command:
-# gitdata repos -o* -amsftgits -sa -nmsrepos20160901.csv -fowner.login/name/private -v
+# gitdata repos -o* -amsftgits -sa -ntemp.csv -fowner.login/name/private -v
 import csv
 
 with open('temp.csv', newline='') as csvfile1, open('temp2.csv', 'w', newline='') as csvfile2:
