@@ -459,7 +459,7 @@ def default_fields(entity=None):
     Returns a list of the default field names for this entity.
     """
     if entity == 'member':
-        return ['login', 'id', 'type', 'site_admin']
+        return ['login', 'id', 'type']
     elif entity == 'repo':
         return ['name', 'owner.login']
     elif entity == 'team':
@@ -833,7 +833,7 @@ def list_fields(entity=None):
 #------------------------------------------------------------------------------
 @cli.command(help='Get member information by org or team ID')
 @click.option('-o', '--org', default='',
-              help='organization name', metavar='')
+              help='GitHub org (* = all orgs authuser is a member of)', metavar='<str>')
 @click.option('-t', '--team', default='',
               help='team ID', metavar='<str>')
 @click.option('--audit2fa', is_flag=True,
@@ -880,7 +880,7 @@ def members(org, team, audit2fa, adminonly, authuser, source, filename, fields, 
     auth_config({'username': authuser})
     fldnames = fields.split('/') if fields else None
     templist = membersdata(org=org, team=team, audit2fa=audit2fa,
-                           adminonly=adminonly, fields=fldnames)
+                           authname=authuser, adminonly=adminonly, fields=fldnames)
 
     # handle returned data
     sorted_data = sorted(templist, key=data_sort)
@@ -890,13 +890,14 @@ def members(org, team, audit2fa, adminonly, authuser, source, filename, fields, 
     elapsed_time(start_time)
 
 #-------------------------------------------------------------------------------
-def membersdata(*, org=None, team=None, fields=None, audit2fa=False, adminonly=False):
+def membersdata(*, org=None, team=None, fields=None, authname=None, audit2fa=False, adminonly=False):
     """Get members for one or more teams or organizations.
 
     org = organization name
     team = team ID; if provided, org is ignored
     fields = list of field names to be returned; names must be the same as
              returned by the GitHub API (see list_fields()).
+    authname = GitHub authentication username; required for org=* syntax
 
     You must be authenticated via auth_config() as an admin of the org(s) to
     use the audit2fa or adminonly options ...
@@ -913,7 +914,21 @@ def membersdata(*, org=None, team=None, fields=None, audit2fa=False, adminonly=F
         memberlist.extend(membersget(team=team, fields=fields))
     else:
         # get members by organization
-        memberlist.extend(membersget(org=org, fields=fields, audit2fa=audit2fa, adminonly=adminonly))
+        if org == '*':
+            # handle special org=* syntax: all orgs for this user
+            if not authname:
+                click.echo('ERROR: -a option required for org=* syntax.')
+                return []
+            user_orgs = orglist(authname)
+            for orgid in user_orgs:
+                memberlist.extend( \
+                    membersget(org=orgid, fields=fields,
+                               audit2fa=audit2fa, adminonly=adminonly))
+        else:
+            # get members for a single specified organization
+            memberlist.extend( \
+                membersget(org=org, fields=fields,
+                           audit2fa=audit2fa, adminonly=adminonly))
 
     return memberlist
 
