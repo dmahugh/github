@@ -166,7 +166,8 @@
           <li><code>-t/--teamid</code> team ID (the numeric ID, not the team name)</li>
         </ul>
         <p>You must provide one of these criteria, and the members of that org or team will be returned. Note that you can get team IDs for the teams in an organization via the <code>teams</code> subcommand if needed.</p>
-        <p>The <i>members</i> subcommand also supports an <code>--audit2fa</code> command-line option. If you use this option, the returned list of members includes <i>only those members that <b>do not</b> have two-factor authentication enabled.</i></p>
+
+        <p>The <i>members</i> subcommand also supports two command-line options that may be useful for membership governance tasks: <code>--audit2fa</code> and <code>--adminonly</code>. The <code>--audit2fa</code> option returns only the members that <i>do not</i> have two-factor authentication enabled. The <code>--adminonly</code> option returns all members that have <i>role=admin</i>.</p>
 
         <h3>Organizations</h3>
         <p>The <code>orgs</code> subcommand does not support or require any selection criteria, but (unlike the other subcommands) it <i>requires</i> that an authentication username (with associated PAT) be used. The returned list of organizations contains the organizations for which this GitHub user is a member.</p>
