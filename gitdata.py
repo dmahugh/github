@@ -854,7 +854,8 @@ def list_fields(entity=None):
               help="Display verbose status info")
 @click.option('-l', '--listfields', is_flag=True,
               help='list available fields and exit.')
-def members(org, team, audit2fa, adminonly, authuser, source, filename, fields, display, verbose, listfields):
+def members(org, team, audit2fa, adminonly, authuser, source, filename, \
+    fields, display, verbose, listfields):
     """Get member info for an organization or team.
     """
     if listfields:
@@ -890,7 +891,8 @@ def members(org, team, audit2fa, adminonly, authuser, source, filename, fields, 
     elapsed_time(start_time)
 
 #-------------------------------------------------------------------------------
-def membersdata(*, org=None, team=None, fields=None, authname=None, audit2fa=False, adminonly=False):
+def membersdata(*, org=None, team=None, fields=None, authname=None, \
+    audit2fa=False, adminonly=False):
     """Get members for one or more teams or organizations.
 
     org = organization name
