@@ -5,12 +5,12 @@ A command-line tool for querying GitHub APIs to retrieve information about repos
 ![language:Python](https://img.shields.io/badge/Language-Python-blue.svg?style=flat-square) ![license:MIT](https://img.shields.io/badge/License-MIT-green.svg?style=flat-square) ![release:2.0](https://img.shields.io/badge/Release-2.0-lightgrey.svg?style=flat-square)
 
 # Table of Contents
-* [Requirements/Installation](#requirements)
+* [Installation](#installation)
 * [Usage](#usage)
 * [Contributing](#contributing)
 * [License](#license)
 
-# Requirements/Installation
+# Installation
 Gitdata uses these packages:
 * [Click](http://docs.python-requests.org/en/master/) version 6.6 or above
 * [Requests](http://docs.python-requests.org/en/master/) version 2.9.1 or above
