@@ -282,6 +282,8 @@ def cache_update(endpoint, payload, constants):
               help='owner (org or user)', metavar='<str>')
 @click.option('-r', '--repo', default='',
               help='repo name', metavar='<str>')
+@click.option('--audit2fa', is_flag=True,
+              help='include only 2FA-not-enabled collaborators')
 @click.option('-a', '--authuser', default='',
               help='authentication username', metavar='<str>')
 @click.option('-s', '--source', default='p',
@@ -296,7 +298,7 @@ def cache_update(endpoint, payload, constants):
               help="Display verbose status info")
 @click.option('-l', '--listfields', is_flag=True,
               help='list available fields and exit.')
-def collabs(owner, repo, authuser, source, filename, fields, display, verbose, listfields):
+def collabs(owner, repo, audit2fa, authuser, source, filename, fields, display, verbose, listfields):
     """Get collaborator information for a repo.
     """
     if listfields:
@@ -321,8 +323,10 @@ def collabs(owner, repo, authuser, source, filename, fields, display, verbose, l
     # retrieve requested data
     auth_config({'username': authuser})
     fldnames = fields.split('/') if fields else None
+    endpoint = '/repos/' + owner + '/' + repo + '/collaborators' + \
+        ('?filter=2fa_disabled' if audit2fa else '')
     templist = github_data(
-        endpoint='/repos/' + owner + '/' + repo + '/collaborators', entity='collab',
+        endpoint=endpoint, entity='collab',
         fields=fldnames, constants={"owner": owner, "repo": repo}, headers={})
 
     # handle returned data
