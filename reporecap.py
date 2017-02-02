@@ -37,7 +37,7 @@ def get_totals(filename):
     return ymtotals
 
 #-------------------------------------------------------------------------------
-def write_csv(ymtotals, filename):
+def write_ymtotals(ymtotals, filename):
     """Write a CSV file summarizing cumulative totals for Azure, Microsoft, and
     other orgs.
     """
@@ -79,4 +79,4 @@ def write_csv(ymtotals, filename):
 if __name__ == '__main__':
 
     TOTALS = get_totals('microsoft-repos.csv')
-    write_csv(TOTALS, 'publicrepototals.csv')
+    write_ymtotals(TOTALS, 'publicrepototals.csv')
