@@ -51,9 +51,13 @@ def getmsdata():
             firstline = False
             continue
         orgname = line.split(',')[0]
+        #/// extract an appendteams() function that takes teamfile/orgname as parms, appends this org's team info to the file
         #/// get team data for this org; use gdwrapper()
+        #/// modify gdwrapper: return sorted_data, so can use here without writing a file
+        #/// example command: gitdata teams -omsopentech -amsftgits -sa
+        #/// see gitdata.teams() for endpoint/entity/etc
         open(teamfile, 'a').write('///org=' + orgname)
-        #/// get repo data for this org; use gdwrapper()
+        #/// get repo data for this org; use an appendrepos() wrapper function as with appendteams()
         open(repofile, 'a').write('///org=' + orgname)
 
         break #///
