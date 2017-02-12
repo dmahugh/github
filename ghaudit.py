@@ -13,13 +13,15 @@ def appendrepos(filename, org=None):
     Special case: if no org provided, initialize the data file.
     """
     if not org:
-        open(filename, 'w').write('///header\n')
+        open(filename, 'w').write('org,repo,private,fork\n')
         return
 
-    #/// get repo data for this org; use gdwrapper()
-    #/// see appendteams, use that approach
-    #/// see gitdata.repos() for endpoint/entity
-    open(filename, 'a').write('///org=' + org)
+    repodata = gdwrapper(endpoint='/orgs/' + org + '/repos', filename=None, \
+        entity='repo', authuser='msftgits', \
+        fields=['name', 'owner.login', 'private', 'fork'])
+    for repo in repodata:
+        open(filename, 'a').write(org + ',' + repo['name'] + ',' + \
+            repo['private'] + ',' + str(repo['fork']) + '\n')
 
 #-------------------------------------------------------------------------------
 def appendteams(filename, org=None):
@@ -66,17 +68,18 @@ def gdwrapper(*, endpoint, filename, entity, authuser, fields):
 def getmsdata():
     """Retrieve/refresh all Microsoft data needed for audit reports.
     """
+    orgfile = 'ghaudit/orgs.csv'
+    teamfile = 'ghaudit/teams.csv'
+    repofile = 'ghaudit/repos.csv'
+    collabfile = 'ghaudit/collabs.csv'
 
     # create the ORG data file, list of organizations to be audited
     # Below is inline automation of this command:
     #   gitdata orgs -amsftgits -sa -nghaudit/orgs.csv -flogin/user/id
-    orgfile = 'ghaudit/orgs.csv'
     gdwrapper(endpoint='/user/orgs', filename=orgfile, entity='org', \
         authuser='msftgits', fields=['login', 'user', 'id'])
 
     # create the TEAM and REPO data files, iterating over ORGs
-    teamfile = 'ghaudit/teams.csv'
-    repofile = 'ghaudit/repos.csv'
     appendteams(teamfile) # initialize data file
     appendrepos(repofile) # initialize data file
     firstline = True
@@ -90,8 +93,15 @@ def getmsdata():
         break #///
 
     # create the COLLAB data file, iterating over REPOs
-    #/// step through repofile to create the collabs list:
-    #/// ghaudit/collabs.csv = all collaborators for each repo
+    #/// initialize with appendcollabs()
+    firstline = True
+    for line in open(repofile, 'r').readlines():
+        if firstline:
+            firstline = False
+            continue
+        orgname = line.split(',')[0]
+        reponame = line.split(',')[1]
+        print('///appendcollabs(collabfile,' + orgname + ',' + reponame + ')')
 
 #-------------------------------------------------------------------------------
 def printhdr(acct, msg):
