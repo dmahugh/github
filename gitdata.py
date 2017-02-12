@@ -323,8 +323,8 @@ def collabs(owner, repo, audit2fa, authuser, source, filename, fields, display, 
     # retrieve requested data
     auth_config({'username': authuser})
     fldnames = fields.split('/') if fields else None
-    endpoint = '/repos/' + owner + '/' + repo + '/collaborators' + \
-        ('?filter=2fa_disabled' if audit2fa else '')
+    endpoint = '/repos/' + owner + '/' + repo + '/collaborators?per_page=100' + \
+        ('&filter=2fa_disabled' if audit2fa else '')
     templist = github_data(
         endpoint=endpoint, entity='collab',
         fields=fldnames, constants={"owner": owner, "repo": repo}, headers={})
@@ -957,11 +957,11 @@ def membersget(*, org=None, team=None, fields=None, audit2fa=False, adminonly=Fa
     <internal>
     """
     if team:
-        endpoint = '/teams/' + team + '/members'
+        endpoint = '/teams/' + team + '/members?per_page=100'
     else:
-        endpoint = '/orgs/' + org + '/members' + \
-            ('?filter=2fa_disabled' if audit2fa else '') + \
-            ('?role=admin' if adminonly else '')
+        endpoint = '/orgs/' + org + '/members?per_page=100' + \
+            ('&filter=2fa_disabled' if audit2fa else '') + \
+            ('&role=admin' if adminonly else '')
 
     return github_data(endpoint=endpoint, entity='member', fields=fields,
                        constants={"org": org}, headers={})
@@ -1201,9 +1201,9 @@ def reposget(*, org=None, user=None, fields=None):
     <internal>
     """
     if org:
-        endpoint = '/orgs/' + org + '/repos'
+        endpoint = '/orgs/' + org + '/repos?per_page=100'
     else:
-        endpoint = '/users/' + user + '/repos'
+        endpoint = '/users/' + user + '/repos?per_page=100'
 
     # custom header to retrieve license info while License API is in preview
     headers = {'Accept': 'application/vnd.github.drax-preview+json'}
@@ -1255,7 +1255,7 @@ def teams(org, authuser, source, filename, fields, display, verbose, listfields)
     auth_config({'username': authuser})
     fldnames = fields.split('/') if fields else None
     templist = github_data(
-        endpoint='/orgs/' + org + '/teams', entity='team',
+        endpoint='/orgs/' + org + '/teams?per_page=100', entity='team',
         fields=fldnames, constants={"org": org}, headers={})
 
     # handle returned data
