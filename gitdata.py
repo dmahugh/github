@@ -1348,11 +1348,4 @@ def write_json(source=None, filename=None):
 
 # code to execute when running standalone: -------------------------------------
 if __name__ == '__main__':
-
-    #- write/test code for a ghaudit.py
-    #- username = ikofish
-    #- prints out:
-    #    which MS* orgs user is a member (and role)
-    #    which MS* orgs user is a collaborator (and role)
-    #    which repos you own/admin that don't have readme, contributing, license, code of conduct
     pass
