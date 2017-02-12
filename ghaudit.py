@@ -1,9 +1,5 @@
 """ghaudit.py
-Audit a GitHub account.
-
-1st command-line argument = username to be audited
-
-Displays a summary of this user's repos and roles across Microsoft orgs.
+Audit GitHub account for Microsoft users.
 """
 import json
 import sys
@@ -16,6 +12,33 @@ def authenticate():
     Currently using msftgits for all auditing of Microsoft accounts.
     """
     gd.auth_config({'username': 'msftgits'})
+
+#-------------------------------------------------------------------------------
+def getmsdata():
+    """Retrieve/refresh all Microsoft data needed for audit reports.
+    """
+
+   # orgs.csv
+   # command line: gitdata orgs -amsftgits -sa -nghaudit/orgs.csv -flogin/user/id
+    authuser = 'msftgits'
+    gd._settings.display_data = True
+    gd._settings.verbose = False
+    gd._settings.datasource = 'a'
+    gd.auth_config({'username': authuser})
+    fldnames = ['login', 'user', 'id']
+    templist = gd.github_data(
+        endpoint='/user/orgs', entity='org', fields=fldnames,
+        constants={"user": authuser}, headers={})
+    sorted_data = sorted(templist, key=gd.data_sort)
+    gd.data_display(sorted_data)
+    gd.data_write('ghaudit/orgs.csv', sorted_data)
+
+    #/// step through orgs.csv to handle these:
+    #/// ghaudit/teams.csv = list of all teams for each org
+    #/// ghaudit/repos.csv = list of all repos for each org
+
+    #/// step through repos.csv to create the collabs list:
+    #/// ghaudit/collabs.csv = all collaborators for each repo
 
 #-------------------------------------------------------------------------------
 def printhdr(acct, msg):
@@ -41,11 +64,4 @@ def userrepos(acct):
 
 #-------------------------------------------------------------------------------
 if __name__ == '__main__':
-
-    if len(sys.argv) == 2:
-        username = sys.argv[1].lower()
-    else:
-        username = 'ikofish' # default for testing
-
-    userrepos(username)
-    printhdr(username, 'END REPORT')
+    getmsdata()
