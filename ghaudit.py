@@ -7,6 +7,39 @@ import sys
 import gitdata as gd
 
 #-------------------------------------------------------------------------------
+def appendrepos(filename, org=None):
+    """Append repo info for an org to repos.csv data file.
+
+    Special case: if no org provided, initialize the data file.
+    """
+    if not org:
+        open(filename, 'w').write('///header\n')
+        return
+
+    #/// get repo data for this org; use gdwrapper()
+    #/// see appendteams, use that approach
+    #/// see gitdata.repos() for endpoint/entity
+    open(filename, 'a').write('///org=' + org)
+
+#-------------------------------------------------------------------------------
+def appendteams(filename, org=None):
+    """Append team info for an org to teams.csv data file.
+
+    Special case: if no org provided, initialize the data file.
+    """
+    if not org:
+        open(filename, 'w').write('org,name,id,privacy,permission\n')
+        return
+
+    teamdata = gdwrapper(endpoint='/orgs/' + org + '/teams', filename=None, \
+        entity='team', authuser='msftgits', \
+        fields=['name', 'id', 'privacy', 'permission'])
+    for team in teamdata:
+        open(filename, 'a').write(org + ',' + team['name'] + ',' + \
+            str(team['id']) + ',' + team['privacy'] + ',' + \
+            team['permission'] + '\n')
+
+#-------------------------------------------------------------------------------
 def authenticate():
     """Set up gitdata authentication.
     Currently using msftgits for all auditing of Microsoft accounts.
@@ -17,7 +50,7 @@ def authenticate():
 def gdwrapper(*, endpoint, filename, entity, authuser, fields):
     """gitdata wrapper for automating gitdata calls
     """
-    gd._settings.display_data = True
+    gd._settings.display_data = False
     gd._settings.verbose = False
     gd._settings.datasource = 'a'
     gd.auth_config({'username': authuser})
@@ -27,6 +60,7 @@ def gdwrapper(*, endpoint, filename, entity, authuser, fields):
     sorted_data = sorted(templist, key=gd.data_sort)
     gd.data_display(sorted_data)
     gd.data_write(filename, sorted_data)
+    return sorted_data
 
 #-------------------------------------------------------------------------------
 def getmsdata():
@@ -43,23 +77,16 @@ def getmsdata():
     # create the TEAM and REPO data files, iterating over ORGs
     teamfile = 'ghaudit/teams.csv'
     repofile = 'ghaudit/repos.csv'
-    open(teamfile, 'w').write('///header\n') # initialize data file
-    open(repofile, 'w').write('///header\n') # initialize data file
+    appendteams(teamfile) # initialize data file
+    appendrepos(repofile) # initialize data file
     firstline = True
     for line in open(orgfile, 'r').readlines():
         if firstline:
             firstline = False
             continue
         orgname = line.split(',')[0]
-        #/// extract an appendteams() function that takes teamfile/orgname as parms, appends this org's team info to the file
-        #/// get team data for this org; use gdwrapper()
-        #/// modify gdwrapper: return sorted_data, so can use here without writing a file
-        #/// example command: gitdata teams -omsopentech -amsftgits -sa
-        #/// see gitdata.teams() for endpoint/entity/etc
-        open(teamfile, 'a').write('///org=' + orgname)
-        #/// get repo data for this org; use an appendrepos() wrapper function as with appendteams()
-        open(repofile, 'a').write('///org=' + orgname)
-
+        appendteams(teamfile, orgname)
+        appendrepos(repofile, orgname)
         break #///
 
     # create the COLLAB data file, iterating over REPOs
