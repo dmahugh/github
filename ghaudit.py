@@ -14,38 +14,49 @@ def authenticate():
     gd.auth_config({'username': 'msftgits'})
 
 #-------------------------------------------------------------------------------
-def getmsdata():
-    """Retrieve/refresh all Microsoft data needed for audit reports.
+def gdwrapper(*, endpoint, filename, entity, authuser, fields):
+    """gitdata wrapper for automating gitdata calls
     """
-
-   # create the ORG data file, list of organizations to be audited
-   # Below is inline automation of this command:
-   #   gitdata orgs -amsftgits -sa -nghaudit/orgs.csv -flogin/user/id
-    orgfile = 'ghaudit/orgs.csv'
-    authuser = 'msftgits'
     gd._settings.display_data = True
     gd._settings.verbose = False
     gd._settings.datasource = 'a'
     gd.auth_config({'username': authuser})
-    fldnames = ['login', 'user', 'id']
     templist = gd.github_data(
-        endpoint='/user/orgs', entity='org', fields=fldnames,
+        endpoint=endpoint, entity=entity, fields=fields,
         constants={"user": authuser}, headers={})
     sorted_data = sorted(templist, key=gd.data_sort)
     gd.data_display(sorted_data)
-    gd.data_write(orgfile, sorted_data)
+    gd.data_write(filename, sorted_data)
+
+#-------------------------------------------------------------------------------
+def getmsdata():
+    """Retrieve/refresh all Microsoft data needed for audit reports.
+    """
+
+    # create the ORG data file, list of organizations to be audited
+    # Below is inline automation of this command:
+    #   gitdata orgs -amsftgits -sa -nghaudit/orgs.csv -flogin/user/id
+    orgfile = 'ghaudit/orgs.csv'
+    gdwrapper(endpoint='/user/orgs', filename=orgfile, entity='org', \
+        authuser='msftgits', fields=['login', 'user', 'id'])
 
     # create the TEAM and REPO data files, iterating over ORGs
     teamfile = 'ghaudit/teams.csv'
     repofile = 'ghaudit/repos.csv'
-    open(teamfile, 'w').write('///header') # initialize data file
-    open(repofile, 'w').write('///header') # initialize data file
+    open(teamfile, 'w').write('///header\n') # initialize data file
+    open(repofile, 'w').write('///header\n') # initialize data file
+    firstline = True
     for line in open(orgfile, 'r').readlines():
+        if firstline:
+            firstline = False
+            continue
         orgname = line.split(',')[0]
-        #/// get team data for this org
+        #/// get team data for this org; use gdwrapper()
         open(teamfile, 'a').write('///org=' + orgname)
-        #/// get repo data for this org
+        #/// get repo data for this org; use gdwrapper()
         open(repofile, 'a').write('///org=' + orgname)
+
+        break #///
 
     # create the COLLAB data file, iterating over REPOs
     #/// step through repofile to create the collabs list:
