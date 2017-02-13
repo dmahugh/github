@@ -18,7 +18,7 @@ def appendrepos(filename, org=None):
 
     repodata = gdwrapper(endpoint='/orgs/' + org + '/repos', filename=None, \
         entity='repo', authuser='msftgits', \
-        fields=['name', 'owner.login', 'private', 'fork'])
+        fields=['name', 'owner.login', 'private', 'fork'], headers={})
     for repo in repodata:
         open(filename, 'a').write(org + ',' + repo['name'] + ',' + \
             repo['private'] + ',' + str(repo['fork']) + '\n')
@@ -35,7 +35,7 @@ def appendteams(filename, org=None):
 
     teamdata = gdwrapper(endpoint='/orgs/' + org + '/teams', filename=None, \
         entity='team', authuser='msftgits', \
-        fields=['name', 'id', 'privacy', 'permission'])
+        fields=['name', 'id', 'privacy', 'permission'], headers={})
     for team in teamdata:
         open(filename, 'a').write(org + ',' + team['name'] + ',' + \
             str(team['id']) + ',' + team['privacy'] + ',' + \
@@ -49,7 +49,7 @@ def authenticate():
     gd.auth_config({'username': 'msftgits'})
 
 #-------------------------------------------------------------------------------
-def gdwrapper(*, endpoint, filename, entity, authuser, fields):
+def gdwrapper(*, endpoint, filename, entity, authuser, fields, headers):
     """gitdata wrapper for automating gitdata calls
     """
     gd._settings.display_data = False
@@ -58,11 +58,41 @@ def gdwrapper(*, endpoint, filename, entity, authuser, fields):
     gd.auth_config({'username': authuser})
     templist = gd.github_data(
         endpoint=endpoint, entity=entity, fields=fields,
-        constants={"user": authuser}, headers={})
+        constants={"user": authuser}, headers=headers)
     sorted_data = sorted(templist, key=gd.data_sort)
     gd.data_display(sorted_data)
     gd.data_write(filename, sorted_data)
     return sorted_data
+
+#-------------------------------------------------------------------------------
+def collabapis(orgname, filename):
+    """Testing/comparison of the repo-level and org-level collaborator APIs.
+
+    If filename specified, appends the collaborators to that CSV file.
+    """
+
+    # REPO-level collaborators ...
+    repodata = gdwrapper(endpoint='/orgs/' + orgname + '/repos', filename=None, \
+        entity='repo', authuser='msftgits', \
+        fields=['name', 'owner.login', 'private', 'fork'], headers={})
+    for repo in repodata:
+        if repo['private'] == 'private':
+            continue # skip private repos
+        reponame = repo['name']
+        endpoint = '/repos/' + orgname + '/' + reponame + '/collaborators'
+        collabdata = gdwrapper(endpoint='/repos/' + orgname + '/' + reponame + '/collaborators', \
+            filename=None, entity='collab', authuser='msftgits', \
+            fields=['login', 'repo', 'id'], headers={})
+        for collab in collabdata:
+            print(orgname + ',' + reponame + ',' + collab['login'])
+
+    # ORG-level collaborators ...
+    headers_dict = {"Accept": "application/vnd.github.korra-preview"}
+    collabdata = gdwrapper(endpoint='/orgs/' + orgname + '/outside_collaborators', \
+        filename=None, entity='collab', authuser='msftgits', \
+        fields=['*'], headers=headers_dict)
+    for collab in collabdata:
+        print(orgname + ',,' + collab['login'])
 
 #-------------------------------------------------------------------------------
 def getmsdata():
@@ -127,4 +157,8 @@ def userrepos(acct):
 
 #-------------------------------------------------------------------------------
 if __name__ == '__main__':
-    getmsdata()
+    #getmsdata()
+
+    #/// write header to collabapis.csv org,repo,collaborator
+    collabapis('deployr')
+    #/// for each MS* org, collabapis(orgname, 'collabapis.csv')
