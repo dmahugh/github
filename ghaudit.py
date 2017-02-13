@@ -65,34 +65,41 @@ def gdwrapper(*, endpoint, filename, entity, authuser, fields, headers):
     return sorted_data
 
 #-------------------------------------------------------------------------------
-def collabapis(orgname, filename):
+def collabapis(orgname, filename=None):
     """Testing/comparison of the repo-level and org-level collaborator APIs.
 
     If filename specified, appends the collaborators to that CSV file.
     """
 
     # REPO-level collaborators ...
-    repodata = gdwrapper(endpoint='/orgs/' + orgname + '/repos', filename=None, \
+    repodata = gdwrapper(endpoint='/orgs/' + orgname + '/repos?per_page=100', filename=None, \
         entity='repo', authuser='msftgits', \
         fields=['name', 'owner.login', 'private', 'fork'], headers={})
     for repo in repodata:
         if repo['private'] == 'private':
             continue # skip private repos
         reponame = repo['name']
-        endpoint = '/repos/' + orgname + '/' + reponame + '/collaborators'
-        collabdata = gdwrapper(endpoint='/repos/' + orgname + '/' + reponame + '/collaborators', \
+        endpoint = '/repos/' + orgname + '/' + reponame + '/collaborators?per_page=100'
+        collabdata = gdwrapper(endpoint=endpoint, \
             filename=None, entity='collab', authuser='msftgits', \
             fields=['login', 'repo', 'id'], headers={})
         for collab in collabdata:
-            print(orgname + ',' + reponame + ',' + collab['login'])
+            line = orgname + ',' + reponame + ',' + collab['login']
+            print(line)
+            if filename:
+                open(filename, 'a').write(line + '\n')
 
     # ORG-level collaborators ...
     headers_dict = {"Accept": "application/vnd.github.korra-preview"}
-    collabdata = gdwrapper(endpoint='/orgs/' + orgname + '/outside_collaborators', \
+    endpoint = '/orgs/' + orgname + '/outside_collaborators?per_page=100'
+    collabdata = gdwrapper(endpoint=endpoint, \
         filename=None, entity='collab', authuser='msftgits', \
         fields=['*'], headers=headers_dict)
     for collab in collabdata:
-        print(orgname + ',,' + collab['login'])
+        line = orgname + ',,' + collab['login']
+        print(line)
+        if filename:
+            open(filename, 'a').write(line + '\n')
 
 #-------------------------------------------------------------------------------
 def getmsdata():
@@ -159,6 +166,8 @@ def userrepos(acct):
 if __name__ == '__main__':
     #getmsdata()
 
-    #/// write header to collabapis.csv org,repo,collaborator
-    collabapis('deployr')
+    COLLABFILE = 'test.csv'
+    open(COLLABFILE, 'w').write('org,repo,collaborator\n')
+
     #/// for each MS* org, collabapis(orgname, 'collabapis.csv')
+    collabapis('deployr', COLLABFILE)
