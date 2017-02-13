@@ -7,6 +7,41 @@ import sys
 import gitdata as gd
 
 #-------------------------------------------------------------------------------
+def appendcollabs_org(filename, org=None):
+    """Append collaborator info for an org to collabs.csv data file.
+
+    Special case: if no org provided, initialize the data file.
+    """
+    if not org:
+        open(filename, 'w').write('org,repo,collaborator\n')
+        return
+
+    headers_dict = {"Accept": "application/vnd.github.korra-preview"}
+    endpoint = '/orgs/' + org + '/outside_collaborators?per_page=100'
+    collabdata = gdwrapper(endpoint=endpoint, \
+        filename=None, entity='collab', authuser='msftgits', \
+        fields=['*'], headers=headers_dict)
+    for collab in collabdata:
+        line = org + ',,' + collab['login']
+        print(line)
+        open(filename, 'a').write(line + '\n')
+
+#-------------------------------------------------------------------------------
+def appendcollabs_repo(filename, org, repo):
+    """Append collaborator info for an org/repo to collabs.csv data file.
+
+    Org/repo required - assumes data file already initialized by appendcollab_org().
+    """
+    endpoint = '/repos/' + org + '/' + repo + '/collaborators?per_page=100'
+    collabdata = gdwrapper(endpoint=endpoint, \
+        filename=None, entity='collab', authuser='msftgits', \
+        fields=['login', 'repo', 'id'], headers={})
+    for collab in collabdata:
+        line = org + ',' + repo + ',' + collab['login']
+        print(line)
+        open(filename, 'a').write(line + '\n')
+
+#-------------------------------------------------------------------------------
 def appendrepos(filename, org=None):
     """Append repo info for an org to repos.csv data file.
 
@@ -119,6 +154,7 @@ def getmsdata():
     # create the TEAM and REPO data files, iterating over ORGs
     appendteams(teamfile) # initialize data file
     appendrepos(repofile) # initialize data file
+    appendcollabs_org(collabfile) # initialize data file
     firstline = True
     for line in open(orgfile, 'r').readlines():
         if firstline:
@@ -127,10 +163,10 @@ def getmsdata():
         orgname = line.split(',')[0]
         appendteams(teamfile, orgname)
         appendrepos(repofile, orgname)
+        appendcollabs_org(collabfile, orgname)
         break #///
 
-    # create the COLLAB data file, iterating over REPOs
-    #/// initialize with appendcollabs()
+    # iterate over REPOs to add repo-level collaborators
     firstline = True
     for line in open(repofile, 'r').readlines():
         if firstline:
@@ -138,7 +174,7 @@ def getmsdata():
             continue
         orgname = line.split(',')[0]
         reponame = line.split(',')[1]
-        print('///appendcollabs(collabfile,' + orgname + ',' + reponame + ')')
+        appendcollabs_repo(collabfile, orgname, reponame)
 
 #-------------------------------------------------------------------------------
 def printhdr(acct, msg):
@@ -164,10 +200,4 @@ def userrepos(acct):
 
 #-------------------------------------------------------------------------------
 if __name__ == '__main__':
-    #getmsdata()
-
-    COLLABFILE = 'test.csv'
-    open(COLLABFILE, 'w').write('org,repo,collaborator\n')
-
-    #/// for each MS* org, collabapis(orgname, 'collabapis.csv')
-    collabapis('deployr', COLLABFILE)
+    getmsdata()
