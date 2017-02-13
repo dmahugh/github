@@ -23,7 +23,6 @@ def appendcollabs_org(filename, org=None):
         fields=['*'], headers=headers_dict)
     for collab in collabdata:
         line = org + ',,' + collab['login']
-        print(line)
         open(filename, 'a').write(line + '\n')
 
 #-------------------------------------------------------------------------------
@@ -38,7 +37,6 @@ def appendcollabs_repo(filename, org, repo):
         fields=['login', 'repo', 'id'], headers={})
     for collab in collabdata:
         line = org + ',' + repo + ',' + collab['login']
-        print(line)
         open(filename, 'a').write(line + '\n')
 
 #-------------------------------------------------------------------------------
@@ -84,22 +82,6 @@ def authenticate():
     gd.auth_config({'username': 'msftgits'})
 
 #-------------------------------------------------------------------------------
-def gdwrapper(*, endpoint, filename, entity, authuser, fields, headers):
-    """gitdata wrapper for automating gitdata calls
-    """
-    gd._settings.display_data = False
-    gd._settings.verbose = False
-    gd._settings.datasource = 'a'
-    gd.auth_config({'username': authuser})
-    templist = gd.github_data(
-        endpoint=endpoint, entity=entity, fields=fields,
-        constants={"user": authuser}, headers=headers)
-    sorted_data = sorted(templist, key=gd.data_sort)
-    gd.data_display(sorted_data)
-    gd.data_write(filename, sorted_data)
-    return sorted_data
-
-#-------------------------------------------------------------------------------
 def collabapis(orgname, filename=None):
     """Testing/comparison of the repo-level and org-level collaborator APIs.
 
@@ -137,6 +119,29 @@ def collabapis(orgname, filename=None):
             open(filename, 'a').write(line + '\n')
 
 #-------------------------------------------------------------------------------
+def gdwrapper(*, endpoint, filename, entity, authuser, fields, headers):
+    """gitdata wrapper for automating gitdata calls
+    """
+    gd._settings.display_data = False
+    gd._settings.verbose = False
+    gd._settings.datasource = 'a'
+    gd.auth_config({'username': authuser})
+    templist = gd.github_data(
+        endpoint=endpoint, entity=entity, fields=fields,
+        constants={"user": authuser}, headers=headers)
+    sorted_data = sorted(templist, key=gd.data_sort)
+    gd.data_display(sorted_data)
+    gd.data_write(filename, sorted_data)
+
+    # display rate-limit status
+    used = gd._settings.last_ratelimit - gd._settings.last_remaining
+    print('Rate Limit: ' + str(gd._settings.last_remaining) +
+                    ' available, ' + str(used) +
+                    ' used, ' + str(gd._settings.last_ratelimit) + ' total')
+
+    return sorted_data
+
+#-------------------------------------------------------------------------------
 def getmsdata():
     """Retrieve/refresh all Microsoft data needed for audit reports.
     """
@@ -149,7 +154,7 @@ def getmsdata():
     # Below is inline automation of this command:
     #   gitdata orgs -amsftgits -sa -nghaudit/orgs.csv -flogin/user/id
     gdwrapper(endpoint='/user/orgs', filename=orgfile, entity='org', \
-        authuser='msftgits', fields=['login', 'user', 'id'])
+        authuser='msftgits', fields=['login', 'user', 'id'], headers={})
 
     # create the TEAM and REPO data files, iterating over ORGs
     appendteams(teamfile) # initialize data file
@@ -161,10 +166,10 @@ def getmsdata():
             firstline = False
             continue
         orgname = line.split(',')[0]
+        print('ORG = ' + orgname)
         appendteams(teamfile, orgname)
         appendrepos(repofile, orgname)
         appendcollabs_org(collabfile, orgname)
-        break #///
 
     # iterate over REPOs to add repo-level collaborators
     firstline = True
@@ -174,6 +179,7 @@ def getmsdata():
             continue
         orgname = line.split(',')[0]
         reponame = line.split(',')[1]
+        print('REPO = ' + orgname + '/' + reponame)
         appendcollabs_repo(collabfile, orgname, reponame)
 
 #-------------------------------------------------------------------------------
