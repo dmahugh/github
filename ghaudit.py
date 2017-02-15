@@ -208,6 +208,21 @@ def getmsdata():
         appendcollabs_repo(collabfile, orgname, reponame)
 
 #-------------------------------------------------------------------------------
+def islinked(username):
+    """Returns True if passed GitHub username is a linked Microsoft account.
+    """
+    if not hasattr(gd._settings, 'linked'):
+        gd._settings.linked = []
+        firstline = True
+        for line in open('ghaudit/linkdata.csv', 'r').readlines():
+            if firstline:
+                firstline = False
+                continue
+            gd._settings.linked.append(line.split(',')[0].lower())
+
+    return (username.lower() in gd._settings.linked)
+
+#-------------------------------------------------------------------------------
 def latestlinkdata():
     """Returns the most recent filename for Azure blobs that contain linkdata.
     """
@@ -276,4 +291,7 @@ if __name__ == '__main__':
     sys.stdout = open(sys.stdout.fileno(), mode='w', encoding='utf8', buffering=1)
     #getmsdata()
     #updatelinkdata()
-    pass
+
+    print(islinked('dmahugh'))
+    print(islinked('mbradley'))
+    print(islinked('meganbradley'))
