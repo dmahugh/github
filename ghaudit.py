@@ -2,6 +2,7 @@
 Audit GitHub account for Microsoft users.
 """
 import configparser
+import gzip
 import json
 import os
 import sys
@@ -237,13 +238,23 @@ def updatelinkdata():
     azure_acct = azure_setting('linkingdata', 'account')
     azure_key = azure_setting('linkingdata', 'key')
     azure_container = azure_setting('linkingdata', 'container')
-
     azure_blobname = latestlinkdata()
+    gzfile = 'ghaudit/' + azure_blobname
     print('retrieving link data: ' + azure_blobname)
 
+    # download the Azure blob
     from azure.storage.blob import BlockBlobService
     block_blob_service = BlockBlobService(account_name=azure_acct, account_key=azure_key)
-    block_blob_service.get_blob_to_path(azure_container, azure_blobname, 'ghaudit/' + azure_blobname)
+    block_blob_service.get_blob_to_path(azure_container, azure_blobname, gzfile)
+
+    # decompress the JSON file and write to linkdata.csv
+    outfile = 'ghaudit/linkdata.csv'
+    with open(outfile, 'w') as fhandle:
+        fhandle.write('githubuser,email\n')
+        for line in gzip.open(gzfile).readlines():
+            jsondata = json.loads(line.decode('utf-8'))
+            outline = jsondata['ghu'] + ',' + jsondata['aadupn']
+            fhandle.write(outline + '\n')
 
 #-------------------------------------------------------------------------------
 def userrepos(acct):
@@ -262,6 +273,7 @@ def userrepos(acct):
 
 #-------------------------------------------------------------------------------
 if __name__ == '__main__':
+    sys.stdout = open(sys.stdout.fileno(), mode='w', encoding='utf8', buffering=1)
     #getmsdata()
-
-    updatelinkdata()
+    #updatelinkdata()
+    pass
