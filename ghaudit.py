@@ -44,6 +44,27 @@ def appendcollabs_repo(filename, org, repo):
         open(filename, 'a').write(line + '\n')
 
 #-------------------------------------------------------------------------------
+def appendorgmembers(filename, org=None):
+
+    """Append member info for an organization to orgmembers.csv data file.
+
+    Special case: if no org provided, initialize the data file.
+    """
+    if not org:
+        open(filename, 'w').write('org,login,type,site_admin,linked\n')
+        return
+
+    memberdata = gdwrapper(endpoint='/orgs/' + org + '/members?per_page=100', filename=None, \
+        entity='member', authuser='msftgits', \
+        fields=['login', 'type', 'site_admin'], headers={})
+    for member in memberdata:
+        site_admin = 'True' if member['site_admin'] else 'False'
+        linked = 'True' if islinked(member['login']) else 'False'
+        open(filename, 'a').write(org + ',' + member['login'] + ',' + \
+            member['type'] + ',' + site_admin + ',' + \
+            linked + '\n')
+
+#-------------------------------------------------------------------------------
 def appendrepos(filename, org=None):
     """Append repo info for an org to repos.csv data file.
 
@@ -70,7 +91,7 @@ def appendteammembers(filename, team=None):
         open(filename, 'w').write('teamid,login,type,site_admin,linked\n')
         return
 
-    memberdata = gdwrapper(endpoint='/teams/' + team + '/members', filename=None, \
+    memberdata = gdwrapper(endpoint='/teams/' + team + '/members?per_page=100', filename=None, \
         entity='teammember', authuser='msftgits', \
         fields=['login', 'type', 'site_admin'], headers={})
     for member in memberdata:
@@ -257,6 +278,7 @@ def updatemsdata():
     repofile = 'ghaudit/repos.csv'
     collabfile = 'ghaudit/collabs.csv'
     tmembersfile = 'ghaudit/teammembers.csv'
+    omembersfile = 'ghaudit/orgmembers.csv'
 
     # these variables control which data files are generated (for testing, etc.)
     write_orgs = False
@@ -264,7 +286,8 @@ def updatemsdata():
     write_repos = False
     write_collabs = False
     write_linkdata = False
-    write_teammembers = True
+    write_teammembers = False
+    write_orgmembers = True
 
     if write_orgs:
         # create the ORG data file, list of organizations to be audited
@@ -280,19 +303,23 @@ def updatemsdata():
         appendrepos(repofile) # initialize data file
     if write_collabs:
         appendcollabs_org(collabfile) # initialize data file
+    if write_orgmembers:
+        appendorgmembers(omembersfile) # initialize data file
     firstline = True
     for line in open(orgfile, 'r').readlines():
         if firstline:
             firstline = False
             continue
         orgname = line.split(',')[0]
-        #print('ORG = ' + orgname)
+        print('ORG = ' + orgname)
         if write_teams:
             appendteams(teamfile, orgname)
         if write_repos:
             appendrepos(repofile, orgname)
         if write_collabs:
             appendcollabs_org(collabfile, orgname)
+        if write_orgmembers:
+            appendorgmembers(omembersfile, orgname)
 
     if write_collabs:
         # iterate over REPOs to add repo-level collaborators
