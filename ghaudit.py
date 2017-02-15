@@ -120,6 +120,23 @@ def appendteams(filename, org=None):
             team['permission'] + '\n')
 
 #-------------------------------------------------------------------------------
+def audituser(username):
+    """Show which repos/orgs/teams a GitHub user is associated with.
+    """
+    print('GitHub username: ' + username + \
+        ' (linked Microsoft account)' if islinked(username) else ' (not linked)')
+
+    print('org memberships: ' + ','.join(orgmemberships(username)))
+
+    print('team memberships: ' + ','.join(teammemberships(username)))
+
+    #- collaborator orgs/repos
+
+    #- show status of repos they maintain (see existing userrepos() function)
+    #- list of Microsoft repos that they own/admin
+    #- for each repo: last update, readme, contributing, license, code of conduct
+
+#-------------------------------------------------------------------------------
 def authenticate():
     """Set up gitdata authentication.
     Currently using msftgits for all auditing of Microsoft accounts.
@@ -237,11 +254,43 @@ def latestlinkdata():
     return latest if latest else None
 
 #-------------------------------------------------------------------------------
+def orgmemberships(username):
+    """Return list of orgs that user is member of.
+    """
+    orgs = []
+    firstline = True
+    for line in open('ghaudit/orgmembers.csv', 'r').readlines():
+        if firstline:
+            firstline = False
+            continue
+        orgname = line.split(',')[0]
+        user = line.split(',')[1]
+        if username.lower() == user.lower():
+            orgs.append(orgname)
+    return orgs
+
+#-------------------------------------------------------------------------------
 def printhdr(acct, msg):
     """Print a header for a section of the audit report.
     """
     ndashes = 65 - len(msg)
     print('>> ' + msg + ' <<' + ndashes*'-' + ' account: ' + acct.upper())
+
+#-------------------------------------------------------------------------------
+def teammemberships(username):
+    """Return list of teams that user is member of.
+    """
+    teams = []
+    firstline = True
+    for line in open('ghaudit/teammembers.csv', 'r').readlines():
+        if firstline:
+            firstline = False
+            continue
+        teamid = line.split(',')[0]
+        user = line.split(',')[1]
+        if username.lower() == user.lower():
+            teams.append(teamid)
+    return teams
 
 #-------------------------------------------------------------------------------
 def updatelinkdata():
@@ -365,4 +414,5 @@ def userrepos(acct):
 #-------------------------------------------------------------------------------
 if __name__ == '__main__':
     sys.stdout = open(sys.stdout.fileno(), mode='w', encoding='utf8', buffering=1)
-    updatemsdata()
+    #updatemsdata()
+    audituser('meganbradley')
