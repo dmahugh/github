@@ -207,11 +207,43 @@ def getmsdata():
         appendcollabs_repo(collabfile, orgname, reponame)
 
 #-------------------------------------------------------------------------------
+def latestlinkdata():
+    """Returns the most recent filename for Azure blobs that contain linkdata.
+    """
+    azure_acct = azure_setting('linkingdata', 'account')
+    azure_key = azure_setting('linkingdata', 'key')
+    azure_container = azure_setting('linkingdata', 'container')
+
+    from azure.storage.blob import BlockBlobService
+    block_blob_service = BlockBlobService(account_name=azure_acct, account_key=azure_key)
+    blobs = block_blob_service.list_blobs(azure_container)
+    latest = ''
+    for blob in blobs:
+        latest = blob.name if blob.name > latest else latest
+    return latest if latest else None
+
+#-------------------------------------------------------------------------------
 def printhdr(acct, msg):
     """Print a header for a section of the audit report.
     """
     ndashes = 65 - len(msg)
     print('>> ' + msg + ' <<' + ndashes*'-' + ' account: ' + acct.upper())
+
+#-------------------------------------------------------------------------------
+def updatelinkdata():
+    """Retrieve the latest Microsoft linking data from Azure blob storage
+    and store in the ghaudit folder.
+    """
+    azure_acct = azure_setting('linkingdata', 'account')
+    azure_key = azure_setting('linkingdata', 'key')
+    azure_container = azure_setting('linkingdata', 'container')
+
+    azure_blobname = latestlinkdata()
+    print('retrieving link data: ' + azure_blobname)
+
+    from azure.storage.blob import BlockBlobService
+    block_blob_service = BlockBlobService(account_name=azure_acct, account_key=azure_key)
+    block_blob_service.get_blob_to_path(azure_container, azure_blobname, 'ghaudit/' + azure_blobname)
 
 #-------------------------------------------------------------------------------
 def userrepos(acct):
@@ -232,9 +264,4 @@ def userrepos(acct):
 if __name__ == '__main__':
     #getmsdata()
 
-  azure_acct = azure_setting('linkingdata', 'account')
-  azure_key = azure_setting('linkingdata', 'key')
-  azure_container = azure_setting('linkingdata', 'container')
-  print(azure_acct)
-  print(azure_key)
-  print(azure_container)
+    updatelinkdata()
