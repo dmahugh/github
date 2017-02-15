@@ -123,12 +123,17 @@ def appendteams(filename, org=None):
 def audituser(username):
     """Show which repos/orgs/teams a GitHub user is associated with.
     """
-    print('GitHub username: ' + username + \
+    print('\nGitHub username:'.ljust(80, '-'))
+    print(username + \
         ' (linked Microsoft account)' if islinked(username) else ' (not linked)')
 
-    print('org memberships: ' + ','.join(orgmemberships(username)))
+    print('ORG memberships:'.ljust(80, '-'))
+    for org in orgmemberships(username):
+        print(org)
 
-    print('team memberships: ' + ','.join(teammemberships(username)))
+    print('TEAM memberships:'.ljust(80, '-'))
+    for teamid in teammemberships(username):
+        print(teamdesc(teamid))
 
     #- collaborator orgs/repos
 
@@ -277,6 +282,27 @@ def printhdr(acct, msg):
     print('>> ' + msg + ' <<' + ndashes*'-' + ' account: ' + acct.upper())
 
 #-------------------------------------------------------------------------------
+def teamdesc(teamid):
+    """Return a 1-liner description for specified team id.
+    """
+    if not hasattr(gd._settings, 'teamdescription'):
+        gd._settings.teamdescription = dict()
+        firstline = True
+        for line in open('ghaudit/teams.csv', 'r').readlines():
+            if firstline:
+                firstline = False
+                continue
+            orgname = line.split(',')[0]
+            teamname = line.split(',')[1]
+            teamno = line.split(',')[2]
+            privacy = line.split(',')[3]
+            perms = line.split(',')[4].strip()
+            gd._settings.teamdescription[teamno] = 'perm=' + perms.ljust(6) + \
+                'privacy=' + privacy.ljust(7) + orgname + '/' + teamname
+
+    return gd._settings.teamdescription.get(teamid, teamid + ' (unknown team id)')
+
+#-------------------------------------------------------------------------------
 def teammemberships(username):
     """Return list of teams that user is member of.
     """
@@ -415,4 +441,9 @@ def userrepos(acct):
 if __name__ == '__main__':
     sys.stdout = open(sys.stdout.fileno(), mode='w', encoding='utf8', buffering=1)
     #updatemsdata()
-    audituser('meganbradley')
+
+    if len(sys.argv) < 2:
+        audituser('meganbradley')
+    else:
+        for username in sys.argv[1:]:
+            audituser(username)
