@@ -137,8 +137,11 @@ def audituser(username):
         print(teamdesc(teamid))
 
     print('COLLABORATOR relationships:'.ljust(80, '-'))
-    print('///')
-    #- collaborator orgs/repos
+    for collab in collaborations(username):
+        if '/' in collab:
+            print('repo: ' + collab)
+        else:
+            print('org:  ' + collab)
 
     print('REPOSITORIES maintained:'.ljust(80, '-'))
     print('///')
@@ -209,6 +212,27 @@ def collabapis(orgname, filename=None):
         print(line)
         if filename:
             open(filename, 'a').write(line + '\n')
+
+#-------------------------------------------------------------------------------
+def collaborations(username):
+    """Return list of orgs and/or repos that user has a collaborator
+    relationship with.
+    """
+    collabs = []
+    firstline = True
+    for line in open('ghaudit/collabs.csv', 'r').readlines():
+        if firstline:
+            firstline = False
+            continue
+        org = line.split(',')[0]
+        repo = line.split(',')[1]
+        user = line.split(',')[2].strip()
+        if username.lower() == user.lower():
+            if repo:
+                collabs.append(org + '/' + repo)
+            else:
+                collabs.append(org)
+    return sorted(collabs)
 
 #-------------------------------------------------------------------------------
 def gdwrapper(*, endpoint, filename, entity, authuser, fields, headers):
