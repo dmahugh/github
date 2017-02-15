@@ -143,12 +143,9 @@ def audituser(username):
         else:
             print('org:  ' + collab)
 
-    print('REPOSITORIES maintained:'.ljust(80, '-'))
-    print('///')
-    #- find repos for which they have admin rights (and what about push/pull for team perms?)
-    #- show status of repos they maintain (see existing userrepos() function)
-    #- list of Microsoft repos that they own/admin
-    #- for each repo: last update, readme, contributing, license, code of conduct
+    #print('REPOSITORIES maintained:'.ljust(80, '-'))
+    #/// see teamrepos()
+    #/// for each repo: last update, readme, contributing, license, code of conduct
 
 #-------------------------------------------------------------------------------
 def authenticate():
@@ -235,7 +232,7 @@ def collaborations(username):
     return sorted(collabs)
 
 #-------------------------------------------------------------------------------
-def gdwrapper(*, endpoint, filename, entity, authuser, fields, headers):
+def gdwrapper(*, endpoint, filename, entity, authuser, fields, headers, verbose=True):
     """gitdata wrapper for automating gitdata calls
     """
     gd._settings.display_data = False
@@ -249,11 +246,12 @@ def gdwrapper(*, endpoint, filename, entity, authuser, fields, headers):
     gd.data_display(sorted_data)
     gd.data_write(filename, sorted_data)
 
-    # display rate-limit status
-    used = gd._settings.last_ratelimit - gd._settings.last_remaining
-    print('Rate Limit: ' + str(gd._settings.last_remaining) +
-                    ' available, ' + str(used) +
-                    ' used, ' + str(gd._settings.last_ratelimit) + ' total')
+    if verbose:
+        # display rate-limit status
+        used = gd._settings.last_ratelimit - gd._settings.last_remaining
+        print('Rate Limit: ' + str(gd._settings.last_remaining) +
+                        ' available, ' + str(used) +
+                        ' used, ' + str(gd._settings.last_ratelimit) + ' total')
 
     return sorted_data
 
@@ -362,6 +360,29 @@ def teammemberships(username):
         if username.lower() == user.lower():
             teams.append(teamid)
     return teams
+
+#-------------------------------------------------------------------------------
+def teamrepos():
+    """Show repos that a team manages. Need to think about how to aggregate
+    this info for audituser().
+    """
+    #Microsoft,CE-CSI-docs-Admins,1936912,secret,pull
+    #Microsoft,CE-CSI-docs-Readers,1940010,secret,pull
+    #Microsoft,CE-CSI-docs-Writers,1937015,secret,push
+    #Microsoft,Everyone,864314,secret,pull
+    #MicrosoftDocs,Everyone,2141704,closed,pull
+    for teamid in ['1936912', '1940010', '1937015', '864314', '2141704']:
+        print('team id = ' + teamid)
+        endpoint = '/teams/' + teamid + '/repos?per_page=100'
+        repodata = gdwrapper(endpoint=endpoint, \
+            filename=None, entity='repo', authuser='msftgits', \
+            fields=['*'], headers={}, verbose=False)
+        for repo in repodata:
+            reponame = repo['full_name']
+            perm_admin = 'admin ' if repo['permissions']['admin'] else '      '
+            perm_push = 'push ' if repo['permissions']['push'] else '     '
+            perm_pull = 'pull ' if repo['permissions']['pull'] else '     '
+            print(perm_admin + perm_push + perm_pull + '-> ' + reponame)
 
 #-------------------------------------------------------------------------------
 def updatelinkdata():
