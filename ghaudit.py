@@ -61,6 +61,26 @@ def appendrepos(filename, org=None):
             repo['private'] + ',' + str(repo['fork']) + '\n')
 
 #-------------------------------------------------------------------------------
+def appendteammembers(filename, team=None):
+    """Append member info for a team to teammembers.csv data file.
+
+    Special case: if no team provided, initialize the data file.
+    """
+    if not team:
+        open(filename, 'w').write('teamid,login,type,site_admin,linked\n')
+        return
+
+    memberdata = gdwrapper(endpoint='/teams/' + team + '/members', filename=None, \
+        entity='teammember', authuser='msftgits', \
+        fields=['login', 'type', 'site_admin'], headers={})
+    for member in memberdata:
+        site_admin = 'True' if member['site_admin'] else 'False'
+        linked = 'True' if islinked(member['login']) else 'False'
+        open(filename, 'a').write(team + ',' + member['login'] + ',' + \
+            member['type'] + ',' + site_admin + ',' + \
+            linked + '\n')
+
+#-------------------------------------------------------------------------------
 def appendteams(filename, org=None):
     """Append team info for an org to teams.csv data file.
 
@@ -165,49 +185,6 @@ def gdwrapper(*, endpoint, filename, entity, authuser, fields, headers):
     return sorted_data
 
 #-------------------------------------------------------------------------------
-def getmsdata():
-    """Retrieve/refresh all Microsoft data needed for audit reports.
-    """
-    orgfile = 'ghaudit/orgs.csv'
-    teamfile = 'ghaudit/teams.csv'
-    repofile = 'ghaudit/repos.csv'
-    collabfile = 'ghaudit/collabs.csv'
-
-    """
-    # create the ORG data file, list of organizations to be audited
-    # Below is inline automation of this command:
-    #   gitdata orgs -amsftgits -sa -nghaudit/orgs.csv -flogin/user/id
-    gdwrapper(endpoint='/user/orgs', filename=orgfile, entity='org', \
-        authuser='msftgits', fields=['login', 'user', 'id'], headers={})
-
-    # create the TEAM and REPO data files, iterating over ORGs
-    appendteams(teamfile) # initialize data file
-    appendrepos(repofile) # initialize data file
-    appendcollabs_org(collabfile) # initialize data file
-    firstline = True
-    for line in open(orgfile, 'r').readlines():
-        if firstline:
-            firstline = False
-            continue
-        orgname = line.split(',')[0]
-        print('ORG = ' + orgname)
-        appendteams(teamfile, orgname)
-        appendrepos(repofile, orgname)
-        appendcollabs_org(collabfile, orgname)
-    """
-
-    # iterate over REPOs to add repo-level collaborators
-    firstline = True
-    for line in open(repofile, 'r').readlines():
-        if firstline:
-            firstline = False
-            continue
-        orgname = line.split(',')[0]
-        reponame = line.split(',')[1]
-        print('REPO = ' + orgname + '/' + reponame)
-        appendcollabs_repo(collabfile, orgname, reponame)
-
-#-------------------------------------------------------------------------------
 def islinked(username):
     """Returns True if passed GitHub username is a linked Microsoft account.
     """
@@ -272,6 +249,78 @@ def updatelinkdata():
             fhandle.write(outline + '\n')
 
 #-------------------------------------------------------------------------------
+def updatemsdata():
+    """Retrieve/refresh all Microsoft data needed for audit reports.
+    """
+    orgfile = 'ghaudit/orgs.csv'
+    teamfile = 'ghaudit/teams.csv'
+    repofile = 'ghaudit/repos.csv'
+    collabfile = 'ghaudit/collabs.csv'
+    tmembersfile = 'ghaudit/teammembers.csv'
+
+    # these variables control which data files are generated (for testing, etc.)
+    write_orgs = False
+    write_teams = False
+    write_repos = False
+    write_collabs = False
+    write_linkdata = False
+    write_teammembers = True
+
+    if write_orgs:
+        # create the ORG data file, list of organizations to be audited
+        # Below is inline automation of this command:
+        #   gitdata orgs -amsftgits -sa -nghaudit/orgs.csv -flogin/user/id
+        gdwrapper(endpoint='/user/orgs', filename=orgfile, entity='org', \
+            authuser='msftgits', fields=['login', 'user', 'id'], headers={})
+
+    # create the TEAM and REPO data files, iterating over ORGs
+    if write_teams:
+        appendteams(teamfile) # initialize data file
+    if write_repos:
+        appendrepos(repofile) # initialize data file
+    if write_collabs:
+        appendcollabs_org(collabfile) # initialize data file
+    firstline = True
+    for line in open(orgfile, 'r').readlines():
+        if firstline:
+            firstline = False
+            continue
+        orgname = line.split(',')[0]
+        #print('ORG = ' + orgname)
+        if write_teams:
+            appendteams(teamfile, orgname)
+        if write_repos:
+            appendrepos(repofile, orgname)
+        if write_collabs:
+            appendcollabs_org(collabfile, orgname)
+
+    if write_collabs:
+        # iterate over REPOs to add repo-level collaborators
+        firstline = True
+        for line in open(repofile, 'r').readlines():
+            if firstline:
+                firstline = False
+                continue
+            orgname = line.split(',')[0]
+            reponame = line.split(',')[1]
+            print('REPO = ' + orgname + '/' + reponame)
+            appendcollabs_repo(collabfile, orgname, reponame)
+
+    if write_linkdata:
+        updatelinkdata() # get latest Microsoft linking data
+
+    if write_teammembers:
+        appendteammembers(tmembersfile) # initialize data file
+        firstline = True
+        for line in open(teamfile, 'r').readlines():
+            if firstline:
+                firstline = False
+                continue
+            print(line.strip())
+            teamid = line.split(',')[2]
+            appendteammembers(tmembersfile, teamid)
+
+#-------------------------------------------------------------------------------
 def userrepos(acct):
     """Print summary of user repositories for an account.
     """
@@ -289,9 +338,4 @@ def userrepos(acct):
 #-------------------------------------------------------------------------------
 if __name__ == '__main__':
     sys.stdout = open(sys.stdout.fileno(), mode='w', encoding='utf8', buffering=1)
-    #getmsdata()
-    #updatelinkdata()
-
-    print(islinked('dmahugh'))
-    print(islinked('mbradley'))
-    print(islinked('meganbradley'))
+    updatemsdata()
