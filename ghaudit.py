@@ -125,7 +125,8 @@ def audituser(username):
     """
     print('\nGitHub username:'.ljust(80, '-'))
     print(username + \
-        ' (linked Microsoft account)' if islinked(username) else ' (not linked)')
+        ' (linked to ' + linkedemail(username) + ')' if islinked(username) \
+        else ' (not linked)')
 
     print('ORG memberships:'.ljust(80, '-'))
     for org in orgmemberships(username):
@@ -135,8 +136,13 @@ def audituser(username):
     for teamid in teammemberships(username):
         print(teamdesc(teamid))
 
+    print('COLLABORATOR relationships:'.ljust(80, '-'))
+    print('///')
     #- collaborator orgs/repos
 
+    print('REPOSITORIES maintained:'.ljust(80, '-'))
+    print('///')
+    #- find repos for which they have admin rights (and what about push/pull for team perms?)
     #- show status of repos they maintain (see existing userrepos() function)
     #- list of Microsoft repos that they own/admin
     #- for each repo: last update, readme, contributing, license, code of conduct
@@ -257,6 +263,21 @@ def latestlinkdata():
     for blob in blobs:
         latest = blob.name if blob.name > latest else latest
     return latest if latest else None
+
+#-------------------------------------------------------------------------------
+def linkedemail(username):
+    """Returned linked email address (if any) for specified GitHub username.
+    """
+    if not hasattr(gd._settings, 'linkedemail'):
+        gd._settings.linkedemail = dict()
+        firstline = True
+        for line in open('ghaudit/linkdata.csv', 'r').readlines():
+            if firstline:
+                firstline = False
+                continue
+            gd._settings.linkedemail[line.split(',')[0].lower()] = line.split(',')[1].strip()
+
+    return gd._settings.linkedemail.get(username.lower(), None)
 
 #-------------------------------------------------------------------------------
 def orgmemberships(username):
