@@ -1,6 +1,7 @@
 """ghaudit.py
 Audit GitHub account for Microsoft users.
 """
+import configparser
 import json
 import sys
 
@@ -31,10 +32,11 @@ def appendcollabs_repo(filename, org, repo):
 
     Org/repo required - assumes data file already initialized by appendcollab_org().
     """
-    endpoint = '/repos/' + org + '/' + repo + '/collaborators?per_page=100'
+    headers_dict = {"Accept": "application/vnd.github.korra-preview"}
+    endpoint = '/repos/' + org + '/' + repo + '/collaborators?per_page=100&affiliation=outside'
     collabdata = gdwrapper(endpoint=endpoint, \
         filename=None, entity='collab', authuser='msftgits', \
-        fields=['login', 'repo', 'id'], headers={})
+        fields=['login', 'repo', 'id'], headers=headers_dict)
     for collab in collabdata:
         line = org + ',' + repo + ',' + collab['login']
         open(filename, 'a').write(line + '\n')
@@ -150,6 +152,7 @@ def getmsdata():
     repofile = 'ghaudit/repos.csv'
     collabfile = 'ghaudit/collabs.csv'
 
+    """
     # create the ORG data file, list of organizations to be audited
     # Below is inline automation of this command:
     #   gitdata orgs -amsftgits -sa -nghaudit/orgs.csv -flogin/user/id
@@ -170,6 +173,7 @@ def getmsdata():
         appendteams(teamfile, orgname)
         appendrepos(repofile, orgname)
         appendcollabs_org(collabfile, orgname)
+    """
 
     # iterate over REPOs to add repo-level collaborators
     firstline = True
@@ -207,3 +211,4 @@ def userrepos(acct):
 #-------------------------------------------------------------------------------
 if __name__ == '__main__':
     getmsdata()
+
