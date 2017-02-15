@@ -3,6 +3,7 @@ Audit GitHub account for Microsoft users.
 """
 import configparser
 import json
+import os
 import sys
 
 import gitdata as gd
@@ -82,6 +83,25 @@ def authenticate():
     Currently using msftgits for all auditing of Microsoft accounts.
     """
     gd.auth_config({'username': 'msftgits'})
+
+#-------------------------------------------------------------------------------
+def azure_setting(section, setting):
+    """Get Azure setting from private INI data.
+
+    section = section within the INI file
+    setting = the setting to return from within that section
+
+    Returns the setting's value, or None if not found.
+    """
+    source_folder = os.path.dirname(os.path.realpath(__file__))
+    datafile = os.path.join(source_folder, '../_private/azure.ini')
+    config = configparser.ConfigParser()
+    config.read(datafile)
+    try:
+        retval = config.get(section, setting)
+    except configparser.NoSectionError:
+        retval = None
+    return retval
 
 #-------------------------------------------------------------------------------
 def collabapis(orgname, filename=None):
@@ -210,5 +230,11 @@ def userrepos(acct):
 
 #-------------------------------------------------------------------------------
 if __name__ == '__main__':
-    getmsdata()
+    #getmsdata()
 
+  azure_acct = azure_setting('linkingdata', 'account')
+  azure_key = azure_setting('linkingdata', 'key')
+  azure_container = azure_setting('linkingdata', 'container')
+  print(azure_acct)
+  print(azure_key)
+  print(azure_container)
