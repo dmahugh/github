@@ -82,6 +82,27 @@ def appendrepos(filename, org=None):
             repo['private'] + ',' + str(repo['fork']) + '\n')
 
 #-------------------------------------------------------------------------------
+def appendrepoteams(filename, teamid=None):
+    """Append teamp-repo info for a teamp to repoteams.csv data file.
+
+    Special case: if no teamid provided, initialize the data file.
+    """
+    if not teamid:
+        open(filename, 'w').write('org,repo,teamid,admin,push,pull\n')
+        return
+
+    repodata = gdwrapper(endpoint='/teams/' + teamid + '/repos?per_page=100',\
+        filename=None, entity='repo', authuser='msftgits', \
+        fields=['full_name','permissions.admin','permissions.push','permissions.pull'], \
+        headers={})
+    for repo in repodata:
+        orgname, reponame = repo['full_name'].split('/')
+        open(filename, 'a').write(orgname + ',' + reponame + ',' + teamid + ',' + \
+            str(repo['permissions_admin']) + ',' + \
+            str(repo['permissions_push']) + ',' + \
+            str(repo['permissions_pull']) + '\n')
+
+#-------------------------------------------------------------------------------
 def appendteammembers(filename, team=None):
     """Append member info for a team to teammembers.csv data file.
 
@@ -91,8 +112,8 @@ def appendteammembers(filename, team=None):
         open(filename, 'w').write('teamid,login,type,site_admin,linked\n')
         return
 
-    memberdata = gdwrapper(endpoint='/teams/' + team + '/members?per_page=100', filename=None, \
-        entity='teammember', authuser='msftgits', \
+    memberdata = gdwrapper(endpoint='/teams/' + team + '/members?per_page=100', \
+        filename=None, entity='teammember', authuser='msftgits', \
         fields=['login', 'type', 'site_admin'], headers={})
     for member in memberdata:
         site_admin = 'True' if member['site_admin'] else 'False'
@@ -133,8 +154,17 @@ def audituser(username):
         print(org)
 
     print('TEAM memberships:'.ljust(80, '-'))
+    lastline = '*none*' # used to avoid re-printing of an org after first time
     for teamid in teammemberships(username):
-        print(teamdesc(teamid))
+        thisline = teamdesc(teamid)
+        if thisline.split('/')[0][26:] == lastline.split('/')[0][26:]:
+            # repetition of same org, so remove org from printed line
+            permpriv = thisline[:26]
+            reponame = thisline.split('/')[1]
+            print(permpriv.ljust(len(thisline) - len(reponame) - 1) + '/' + reponame)
+        else:
+            print(thisline)
+        lastline = thisline
 
     print('COLLABORATOR relationships:'.ljust(80, '-'))
     for collab in collaborations(username):
@@ -362,29 +392,6 @@ def teammemberships(username):
     return teams
 
 #-------------------------------------------------------------------------------
-def teamrepos():
-    """Show repos that a team manages. Need to think about how to aggregate
-    this info for audituser().
-    """
-    #Microsoft,CE-CSI-docs-Admins,1936912,secret,pull
-    #Microsoft,CE-CSI-docs-Readers,1940010,secret,pull
-    #Microsoft,CE-CSI-docs-Writers,1937015,secret,push
-    #Microsoft,Everyone,864314,secret,pull
-    #MicrosoftDocs,Everyone,2141704,closed,pull
-    for teamid in ['1936912', '1940010', '1937015', '864314', '2141704']:
-        print('team id = ' + teamid)
-        endpoint = '/teams/' + teamid + '/repos?per_page=100'
-        repodata = gdwrapper(endpoint=endpoint, \
-            filename=None, entity='repo', authuser='msftgits', \
-            fields=['*'], headers={}, verbose=False)
-        for repo in repodata:
-            reponame = repo['full_name']
-            perm_admin = 'admin ' if repo['permissions']['admin'] else '      '
-            perm_push = 'push ' if repo['permissions']['push'] else '     '
-            perm_pull = 'pull ' if repo['permissions']['pull'] else '     '
-            print(perm_admin + perm_push + perm_pull + '-> ' + reponame)
-
-#-------------------------------------------------------------------------------
 def updatelinkdata():
     """Retrieve the latest Microsoft linking data from Azure blob storage
     and store in the ghaudit folder.
@@ -420,6 +427,7 @@ def updatemsdata():
     collabfile = 'ghaudit/collabs.csv'
     tmembersfile = 'ghaudit/teammembers.csv'
     omembersfile = 'ghaudit/orgmembers.csv'
+    repoteamsfile = 'ghaudit/repoteams.csv'
 
     # these variables control which data files are generated (for testing, etc.)
     write_orgs = False
@@ -428,7 +436,8 @@ def updatemsdata():
     write_collabs = False
     write_linkdata = False
     write_teammembers = False
-    write_orgmembers = True
+    write_orgmembers = False
+    write_repoteams = True
 
     if write_orgs:
         # create the ORG data file, list of organizations to be audited
@@ -488,6 +497,16 @@ def updatemsdata():
             teamid = line.split(',')[2]
             appendteammembers(tmembersfile, teamid)
 
+    if write_repoteams:
+        appendrepoteams(repoteamsfile) # initialize data file
+        firstline = True
+        for line in open(teamfile, 'r').readlines():
+            if firstline:
+                firstline = False
+                continue
+            teamid = line.split(',')[2]
+            appendrepoteams(repoteamsfile, teamid)
+
 #-------------------------------------------------------------------------------
 def userrepos(acct):
     """Print summary of user repositories for an account.
@@ -506,10 +525,10 @@ def userrepos(acct):
 #-------------------------------------------------------------------------------
 if __name__ == '__main__':
     sys.stdout = open(sys.stdout.fileno(), mode='w', encoding='utf8', buffering=1)
-    #updatemsdata()
+    updatemsdata()
 
-    if len(sys.argv) < 2:
-        audituser('meganbradley')
-    else:
-        for username in sys.argv[1:]:
-            audituser(username)
+    #if len(sys.argv) < 2:
+    #    audituser('meganbradley')
+    #else:
+    #    for username in sys.argv[1:]:
+    #        audituser(username)
