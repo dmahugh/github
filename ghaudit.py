@@ -165,6 +165,8 @@ def audituser(username):
         else:
             print(thisline)
         lastline = thisline
+        repolist = teamrepos(teamid)
+        print('  # repos: ' + str(len(repolist)))
 
     print('COLLABORATOR relationships:'.ljust(80, '-'))
     for collab in collaborations(username):
@@ -173,8 +175,6 @@ def audituser(username):
         else:
             print('org:  ' + collab)
 
-    #print('REPOSITORIES maintained:'.ljust(80, '-'))
-    #/// see teamrepos()
     #/// for each repo: last update, readme, contributing, license, code of conduct
 
 #-------------------------------------------------------------------------------
@@ -392,6 +392,22 @@ def teammemberships(username):
     return teams
 
 #-------------------------------------------------------------------------------
+def teamrepos(teamid):
+    """Return list of repos that this team has rights to.
+    """
+    repos = []
+    firstline = True
+    for line in open('ghaudit/repoteams.csv', 'r').readlines():
+        if firstline:
+            firstline = False
+            continue
+        this_id = line.split(',')[2]
+        if this_id == teamid:
+            reponame = line.split(',')[1]
+            repos.append(reponame)
+    return repos
+
+#-------------------------------------------------------------------------------
 def updatelinkdata():
     """Retrieve the latest Microsoft linking data from Azure blob storage
     and store in the ghaudit folder.
@@ -437,7 +453,7 @@ def updatemsdata():
     write_linkdata = False
     write_teammembers = False
     write_orgmembers = False
-    write_repoteams = True
+    write_repoteams = False
 
     if write_orgs:
         # create the ORG data file, list of organizations to be audited
@@ -525,10 +541,10 @@ def userrepos(acct):
 #-------------------------------------------------------------------------------
 if __name__ == '__main__':
     sys.stdout = open(sys.stdout.fileno(), mode='w', encoding='utf8', buffering=1)
-    updatemsdata()
+    #updatemsdata()
 
-    #if len(sys.argv) < 2:
-    #    audituser('meganbradley')
-    #else:
-    #    for username in sys.argv[1:]:
-    #        audituser(username)
+    if len(sys.argv) < 2:
+        audituser('meganbradley')
+    else:
+        for username in sys.argv[1:]:
+            audituser(username)
