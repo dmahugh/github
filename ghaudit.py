@@ -161,12 +161,12 @@ def audituser(username):
             # repetition of same org, so remove org from printed line
             permpriv = thisline[:26]
             reponame = thisline.split('/')[1]
-            print(permpriv.ljust(len(thisline) - len(reponame) - 1) + '/' + reponame)
+            print(permpriv.ljust(len(thisline) - len(reponame) - 1) + '/' + reponame, end='')
         else:
-            print(thisline)
+            print(thisline, end='')
         lastline = thisline
         repolist = teamrepos(teamid)
-        print('  # repos: ' + str(len(repolist)))
+        print(' (' + str(len(repolist)) + ' repos)')
 
     print('COLLABORATOR relationships:'.ljust(80, '-'))
     for collab in collaborations(username):
