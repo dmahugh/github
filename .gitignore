@@ -17,6 +17,7 @@ __pycache__/
 archive/
 backups/
 gh_cache/
+ghaudit/
 data/
 OSPO/
 reports/
