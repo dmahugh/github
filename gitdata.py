@@ -149,7 +149,7 @@ def auth_config(settings=None): #--------------------------------------------<<<
     config_settings = ['username', 'accesstoken']
 
     # if username is specified but no accesstoken specified, look up this
-    # user's PAT in github_users.ini
+    # user's PAT in github.ini
     if settings and 'username' in settings and not 'accesstoken' in settings:
         if not settings['username']:
             settings['accesstoken'] = None
@@ -681,7 +681,7 @@ def inifile_name(): #--------------------------------------------------------<<<
     folder of the gitdata module.
     """
     source_folder = os.path.dirname(os.path.realpath(__file__))
-    return os.path.join(source_folder, '../_private/github_users.ini')
+    return os.path.join(source_folder, '../_private/github.ini')
 
 def list_fields(entity=None): #----------------------------------------------<<<
     """Display available field names for an entity.
