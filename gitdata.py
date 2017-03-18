@@ -71,7 +71,6 @@ from timeit import default_timer
 import click
 import requests
 
-#------------------------------------------------------------------------------
 CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'])
 @click.group(context_settings=CONTEXT_SETTINGS, options_metavar='[options]',
              invoke_without_command=False)
@@ -83,7 +82,7 @@ CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'])
               help='delete specified username', is_flag=True, metavar='')
 @click.version_option(version='1.0', prog_name='Gitdata')
 @click.pass_context
-def cli(ctx, auth, token, delete):
+def cli(ctx, auth, token, delete): #-----------------------------------------<<<
     """\b
 ------------------------------------
 Get information from GitHub REST API
@@ -96,8 +95,7 @@ syntax help: gitdata <subcommand> -h"""
     # note that all subcommands are invoked by the Click framework decorators,
     # so nothing to do here.
 
-#------------------------------------------------------------------------------
-class _settings:
+class _settings: #-----------------------------------------------------------<<<
     """This class exists to provide a namespace used for global settings.
     Use auth_config() or log_config() to change these settings.
     """
@@ -121,8 +119,7 @@ class _settings:
     last_ratelimit = 0 # API rate limit for the most recent API call
     last_remaining = 0 # remaining portion of rate limit after last API call
 
-#-------------------------------------------------------------------------------
-def access_token(username):
+def access_token(username): #------------------------------------------------<<<
     """Get GitHub access token from private INI data.
 
     username = GitHub username
@@ -140,8 +137,7 @@ def access_token(username):
 
     return retval
 
-#-------------------------------------------------------------------------------
-def auth_config(settings=None):
+def auth_config(settings=None): #--------------------------------------------<<<
     """Configure authentication settings.
 
     1st parameter = dictionary of configuration settings; see config_settings
@@ -174,8 +170,7 @@ def auth_config(settings=None):
 
     return retval
 
-#------------------------------------------------------------------------------
-def auth_status(auth, token, delete):
+def auth_status(auth, token, delete): #--------------------------------------<<<
     """Display status for a GitHub user.
 
     auth   = username
@@ -202,8 +197,7 @@ def auth_status(auth, token, delete):
     click.echo('  Username: ' + auth)
     click.echo('     Token: ' + token_abbr(access_token(auth)))
 
-#------------------------------------------------------------------------------
-def auth_user():
+def auth_user(): #-----------------------------------------------------------<<<
     """Credentials for basic authentication.
 
     Returns the tuple used for API calls, based on current settings.
@@ -215,8 +209,7 @@ def auth_user():
 
     return None
 
-#------------------------------------------------------------------------------
-def cache_exists(endpoint, auth=None):
+def cache_exists(endpoint, auth=None): #-------------------------------------<<<
     """Check whether cached data exists for an endpoint.
 
     endpoint = GitHub REST API endpoint
@@ -226,8 +219,7 @@ def cache_exists(endpoint, auth=None):
     """
     return os.path.isfile(cache_filename(endpoint, auth))
 
-#------------------------------------------------------------------------------
-def cache_filename(endpoint, auth=None):
+def cache_filename(endpoint, auth=None): #-----------------------------------<<<
     """Get cache filename for specified user/endpoint.
 
     endpoint = the endpoint at https://api.github.com (starts with /)
@@ -246,8 +238,7 @@ def cache_filename(endpoint, auth=None):
 
     return os.path.join(source_folder, 'gh_cache/' + filename + '.json')
 
-#------------------------------------------------------------------------------
-def cache_update(endpoint, payload, constants):
+def cache_update(endpoint, payload, constants): #----------------------------<<<
     """Update cached data.
 
     endpoint  = the API endpoint (e.g., '/repos/org')
@@ -276,7 +267,6 @@ def cache_update(endpoint, payload, constants):
         click.echo('Cache update: ', nl=False)
         click.echo(click.style(nameonly, fg='cyan'))
 
-#------------------------------------------------------------------------------
 @cli.command(help='Get collaborator information for a repo')
 @click.option('-o', '--owner', default='',
               help='owner (org or user)', metavar='<str>')
@@ -298,7 +288,8 @@ def cache_update(endpoint, payload, constants):
               help="Display verbose status info")
 @click.option('-l', '--listfields', is_flag=True,
               help='list available fields and exit.')
-def collabs(owner, repo, audit2fa, authuser, source, filename, fields, display, verbose, listfields):
+def collabs(owner, repo, audit2fa, authuser, source, #-----------------------<<<
+            filename, fields, display, verbose, listfields):
     """Get collaborator information for a repo.
     """
     if listfields:
@@ -336,8 +327,8 @@ def collabs(owner, repo, audit2fa, authuser, source, filename, fields, display, 
 
     elapsed_time(start_time)
 
-#-------------------------------------------------------------------------------
-def data_fields(*, entity=None, jsondata=None, fields=None, constants=None):
+def data_fields(*, entity=None, jsondata=None, #-----------------------------<<<
+                fields=None, constants=None):
     """Get dictionary of desired values from GitHub API JSON payload.
 
     entity   = entity type ('repo', 'member')
@@ -401,8 +392,7 @@ def data_fields(*, entity=None, jsondata=None, fields=None, constants=None):
 
     return values
 
-#------------------------------------------------------------------------------
-def data_display(datasource=None):
+def data_display(datasource=None): #-----------------------------------------<<<
     """Display data on console.
 
     datasource   = list of dictionaries
@@ -424,8 +414,7 @@ def data_display(datasource=None):
         # no unknown fields have been logged
         pass
 
-#------------------------------------------------------------------------------
-def data_sort(datadict):
+def data_sort(datadict): #---------------------------------------------------<<<
     """Sort function for output lists.
 
     takes an OrderedDict object as input, returns lower-case version of the
@@ -435,8 +424,7 @@ def data_sort(datadict):
     sortvalue = str(datadict[sortkey]).lower()
     return sortvalue
 
-#------------------------------------------------------------------------------
-def data_write(filename=None, datasource=None):
+def data_write(filename=None, datasource=None): #----------------------------<<<
     """Write output file.
 
     filename   = output filename
@@ -454,8 +442,7 @@ def data_write(filename=None, datasource=None):
 
     click.echo('Output file written: ' + filename)
 
-#------------------------------------------------------------------------------
-def default_fields(entity=None):
+def default_fields(entity=None): #-------------------------------------------<<<
     """Get default field names for an entity.
 
     entity = the entity/data type (e.g., "team" or "repo")
@@ -475,8 +462,7 @@ def default_fields(entity=None):
 
     return ['name'] # if unknown entity type, use name
 
-#------------------------------------------------------------------------------
-def elapsed_time(starttime):
+def elapsed_time(starttime): #-----------------------------------------------<<<
     """Display elapsed time.
 
     starttime    = time to measure from, as returned by default_timer()
@@ -488,8 +474,7 @@ def elapsed_time(starttime):
         elapsed = default_timer() - starttime
         click.echo(click.style("{0:.2f}".format(elapsed) + ' seconds', fg='cyan'))
 
-#-------------------------------------------------------------------------------
-def filename_valid(filename=None):
+def filename_valid(filename=None): #-----------------------------------------<<<
     """Check filename for valid file type.
 
     filename = output filename passed on command line
@@ -506,8 +491,7 @@ def filename_valid(filename=None):
 
     return True
 
-#-------------------------------------------------------------------------------
-def github_api(*, endpoint=None, auth=None, headers=None):
+def github_api(*, endpoint=None, auth=None, headers=None): #-----------------<<<
     """Call the GitHub API.
 
     endpoint     = the HTTP endpoint to call; if it start with /, will be
@@ -579,9 +563,8 @@ def github_api(*, endpoint=None, auth=None, headers=None):
 
     return response
 
-#-------------------------------------------------------------------------------
-def github_data(*, endpoint=None, entity=None, fields=None, constants=None,
-                headers=None):
+def github_data(*, endpoint=None, entity=None, fields=None, #----------------<<<
+                constants=None, headers=None):
     """Get data for specified GitHub API endpoint.
     endpoint     = HTTP endpoint for GitHub API call
     entity       = entity type ('repo', 'member')
@@ -644,8 +627,7 @@ def github_data(*, endpoint=None, entity=None, fields=None, constants=None,
                                   fields=fields, constants=constants))
     return retval
 
-#-------------------------------------------------------------------------------
-def github_data_from_api(endpoint=None, headers=None):
+def github_data_from_api(endpoint=None, headers=None): #---------------------<<<
     """Get data from GitHub REST API.
 
     endpoint     = HTTP endpoint for GitHub API call
@@ -685,8 +667,7 @@ def github_data_from_api(endpoint=None, headers=None):
 
     return payload
 
-#-------------------------------------------------------------------------------
-def github_data_from_cache(endpoint=None):
+def github_data_from_cache(endpoint=None): #---------------------------------<<<
     """Get data from local cache file.
 
     endpoint = GitHub API endpoint
@@ -694,8 +675,7 @@ def github_data_from_cache(endpoint=None):
     filename = cache_filename(endpoint)
     return read_json(filename)
 
-#-------------------------------------------------------------------------------
-def inifile_name():
+def inifile_name(): #--------------------------------------------------------<<<
     """Return full name of INI file where GitHub tokens are stored.
     Note that this file is stored in a 'private' subfolder under the parent
     folder of the gitdata module.
@@ -703,8 +683,7 @@ def inifile_name():
     source_folder = os.path.dirname(os.path.realpath(__file__))
     return os.path.join(source_folder, '../_private/github_users.ini')
 
-#------------------------------------------------------------------------------
-def list_fields(entity=None):
+def list_fields(entity=None): #----------------------------------------------<<<
     """Display available field names for an entity.
 
     entity = the entity type (e.g., 'org' or 'team')
@@ -834,7 +813,6 @@ def list_fields(entity=None):
         click.echo(click.style('slug', fg='cyan'))
         click.echo(click.style('url', fg='cyan'))
 
-#------------------------------------------------------------------------------
 @cli.command(help='Get member information by org or team ID')
 @click.option('-o', '--org', default='',
               help='GitHub org (* = all orgs authuser is a member of)', metavar='<str>')
@@ -858,8 +836,8 @@ def list_fields(entity=None):
               help="Display verbose status info")
 @click.option('-l', '--listfields', is_flag=True,
               help='list available fields and exit.')
-def members(org, team, audit2fa, adminonly, authuser, source, filename, \
-    fields, display, verbose, listfields):
+def members(org, team, audit2fa, adminonly, authuser, #----------------------<<<
+            source, filename, fields, display, verbose, listfields):
     """Get member info for an organization or team.
     """
     if listfields:
@@ -894,9 +872,8 @@ def members(org, team, audit2fa, adminonly, authuser, source, filename, \
 
     elapsed_time(start_time)
 
-#-------------------------------------------------------------------------------
-def membersdata(*, org=None, team=None, fields=None, authname=None, \
-    audit2fa=False, adminonly=False):
+def membersdata(*, org=None, team=None, fields=None, authname=None, #--------<<<
+                audit2fa=False, adminonly=False):
     """Get members for one or more teams or organizations.
 
     org = organization name
@@ -938,8 +915,8 @@ def membersdata(*, org=None, team=None, fields=None, authname=None, \
 
     return memberlist
 
-#------------------------------------------------------------------------------
-def membersget(*, org=None, team=None, fields=None, audit2fa=False, adminonly=False):
+def membersget(*, org=None, team=None, fields=None, #------------------------<<<
+               audit2fa=False, adminonly=False):
     """Get member info for a specified organization. Called by members() to
     aggregate member info for multiple organizations.
 
@@ -966,8 +943,7 @@ def membersget(*, org=None, team=None, fields=None, audit2fa=False, adminonly=Fa
     return github_data(endpoint=endpoint, entity='member', fields=fields,
                        constants={"org": org}, headers={})
 
-#------------------------------------------------------------------------------
-def orglist(authname=None, contoso=False):
+def orglist(authname=None, contoso=False): #---------------------------------<<<
     """Get all orgs for a GitHub user.
 
     authname = GitHub user name
@@ -986,7 +962,6 @@ def orglist(authname=None, contoso=False):
     else:
         return [orgname for orgname in sortedlist if not orgname.startswith('contoso')]
 
-#------------------------------------------------------------------------------
 @cli.command(help='Get org memberships for a user')
 @click.option('-a', '--authuser', default='',
               help='authentication username', metavar='<str>')
@@ -1002,7 +977,8 @@ def orglist(authname=None, contoso=False):
               help="Display verbose status info")
 @click.option('-l', '--listfields', is_flag=True,
               help='list available fields and exit.')
-def orgs(authuser, source, filename, fields, display, verbose, listfields):
+def orgs(authuser, source, filename, fields, #-------------------------------<<<
+         display, verbose, listfields):
     """Get organization information.
     """
     if listfields:
@@ -1038,8 +1014,7 @@ def orgs(authuser, source, filename, fields, display, verbose, listfields):
 
     elapsed_time(start_time)
 
-#------------------------------------------------------------------------------
-def pagination(link_header):
+def pagination(link_header): #-----------------------------------------------<<<
     """Parse values from the 'link' HTTP header returned by GitHub API.
 
     1st parameter = either of these options ...
@@ -1076,8 +1051,7 @@ def pagination(link_header):
 
     return retval
 
-#-------------------------------------------------------------------------------
-def read_json(filename=None):
+def read_json(filename=None): #----------------------------------------------<<<
     """Read .json file into a Python object.
 
     filename = the filename
@@ -1088,7 +1062,6 @@ def read_json(filename=None):
         retval = json.loads(datafile.read())
     return retval
 
-#------------------------------------------------------------------------------
 @cli.command(help='Get repo information by org or user/owner')
 @click.option('-o', '--org', default='',
               help='GitHub org (* = all orgs authuser is a member of)', metavar='<str>')
@@ -1108,7 +1081,8 @@ def read_json(filename=None):
               help="Display verbose status info")
 @click.option('-l', '--listfields', is_flag=True,
               help='list available fields and exit.')
-def repos(org, user, authuser, source, filename, fields, display, verbose, listfields):
+def repos(org, user, authuser, source, filename, #---------------------------<<<
+          fields, display, verbose, listfields):
     """Get repository information.
     """
     if listfields:
@@ -1142,8 +1116,7 @@ def repos(org, user, authuser, source, filename, fields, display, verbose, listf
 
     elapsed_time(start_time)
 
-#-------------------------------------------------------------------------------
-def reposdata(*, org=None, user=None, fields=None, authname=None):
+def reposdata(*, org=None, user=None, fields=None, authname=None): #---------<<<
     """Get repo information for one or more organizations or users.
 
     org      = organization; an organization or list of organizations
@@ -1183,8 +1156,7 @@ def reposdata(*, org=None, user=None, fields=None, authname=None):
 
     return repolist
 
-#-------------------------------------------------------------------------------
-def reposget(*, org=None, user=None, fields=None):
+def reposget(*, org=None, user=None, fields=None): #-------------------------<<<
     """Get repo information for a specified org or user. Called by repos() to
     aggregate repo information for multiple orgs or users.
 
@@ -1211,7 +1183,6 @@ def reposget(*, org=None, user=None, fields=None):
     return github_data(endpoint=endpoint, entity='repo', fields=fields,
                        headers=headers)
 
-#------------------------------------------------------------------------------
 @cli.command(help='Get team information for an organization')
 @click.option('-o', '--org', default='',
               help='GitHub organization', metavar='<str>')
@@ -1229,7 +1200,8 @@ def reposget(*, org=None, user=None, fields=None):
               help="Display verbose status info")
 @click.option('-l', '--listfields', is_flag=True,
               help='list available fields and exit.')
-def teams(org, authuser, source, filename, fields, display, verbose, listfields):
+def teams(org, authuser, source, filename, fields, #-------------------------<<<
+          display, verbose, listfields):
     """get team information for an organization.
     """
     if listfields:
@@ -1265,8 +1237,7 @@ def teams(org, authuser, source, filename, fields, display, verbose, listfields)
 
     elapsed_time(start_time)
 
-#-------------------------------------------------------------------------------
-def timestamp(filename=None):
+def timestamp(filename=None): #----------------------------------------------<<<
     """Return timestamp as a string.
 
     filename = optional file, if passed then timestamp is returned for the file
@@ -1280,8 +1251,7 @@ def timestamp(filename=None):
     else:
         return time.strftime('%m/%d/%Y %H:%M:%S', time.localtime(time.time()))
 
-#-------------------------------------------------------------------------------
-def token_abbr(accesstoken):
+def token_abbr(accesstoken): #-----------------------------------------------<<<
     """Get abbreviated access token (for display purposes).
 
     Returns an abbreviated version of the passed access token, including only
@@ -1292,8 +1262,7 @@ def token_abbr(accesstoken):
     else:
         return "*none*"
 
-#-------------------------------------------------------------------------------
-def wildcard_fields():
+def wildcard_fields(): #-----------------------------------------------------<<<
     """Display wildcard field options.
     """
     click.echo(click.style('       specify fields -->  --fields=',
@@ -1310,8 +1279,7 @@ def wildcard_fields():
     click.echo(click.style('urls', fg='cyan'))
     click.echo(click.style(60*'-', fg='blue'))
 
-#-------------------------------------------------------------------------------
-def write_csv(listobj, filename):
+def write_csv(listobj, filename): #------------------------------------------<<<
     """Write list of dictionaries to a CSV file.
 
     1st parameter = the list of dictionaries
@@ -1332,8 +1300,7 @@ def write_csv(listobj, filename):
 
     csvfile.close()
 
-#-------------------------------------------------------------------------------
-def write_json(source=None, filename=None):
+def write_json(source=None, filename=None): #--------------------------------<<<
     """Write list of dictionaries to a JSON file.
 
     source = the list of dictionaries
@@ -1346,6 +1313,6 @@ def write_json(source=None, filename=None):
     with open(filename, 'w') as fhandle:
         fhandle.write(json.dumps(source, indent=4, sort_keys=True))
 
-# code to execute when running standalone: -------------------------------------
+# code to execute when running standalone
 if __name__ == '__main__':
     pass
