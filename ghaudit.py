@@ -1,5 +1,5 @@
 """ghaudit.py
-Audit GitHub account for Microsoft users.
+Tools used for ad-hoc audit of GitHub accounts for Microsoft users.
 """
 import configparser
 import gzip
@@ -543,8 +543,10 @@ if __name__ == '__main__':
     sys.stdout = open(sys.stdout.fileno(), mode='w', encoding='utf8', buffering=1)
     #updatemsdata()
 
-    if len(sys.argv) < 2:
-        audituser('meganbradley')
-    else:
-        for username in sys.argv[1:]:
-            audituser(username)
+    updatelinkdata()
+
+    #if len(sys.argv) < 2:
+    #    audituser('meganbradley')
+    #else:
+    #    for username in sys.argv[1:]:
+    #        audituser(username)
