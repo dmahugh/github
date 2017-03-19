@@ -9,8 +9,7 @@ import sys
 
 import gitdata as gd
 
-#-------------------------------------------------------------------------------
-def appendcollabs_org(filename, org=None):
+def appendcollabs_org(filename, org=None): #---------------------------------<<<
     """Append collaborator info for an org to collabs.csv data file.
 
     Special case: if no org provided, initialize the data file.
@@ -28,8 +27,7 @@ def appendcollabs_org(filename, org=None):
         line = org + ',,' + collab['login']
         open(filename, 'a').write(line + '\n')
 
-#-------------------------------------------------------------------------------
-def appendcollabs_repo(filename, org, repo):
+def appendcollabs_repo(filename, org, repo): #-------------------------------<<<
     """Append collaborator info for an org/repo to collabs.csv data file.
 
     Org/repo required - assumes data file already initialized by appendcollab_org().
@@ -43,8 +41,7 @@ def appendcollabs_repo(filename, org, repo):
         line = org + ',' + repo + ',' + collab['login']
         open(filename, 'a').write(line + '\n')
 
-#-------------------------------------------------------------------------------
-def appendorgmembers(filename, org=None):
+def appendorgmembers(filename, org=None): #----------------------------------<<<
 
     """Append member info for an organization to orgmembers.csv data file.
 
@@ -64,8 +61,7 @@ def appendorgmembers(filename, org=None):
             member['type'] + ',' + site_admin + ',' + \
             linked + '\n')
 
-#-------------------------------------------------------------------------------
-def appendrepos(filename, org=None):
+def appendrepos(filename, org=None): #---------------------------------------<<<
     """Append repo info for an org to repos.csv data file.
 
     Special case: if no org provided, initialize the data file.
@@ -81,8 +77,7 @@ def appendrepos(filename, org=None):
         open(filename, 'a').write(org + ',' + repo['name'] + ',' + \
             repo['private'] + ',' + str(repo['fork']) + '\n')
 
-#-------------------------------------------------------------------------------
-def appendrepoteams(filename, teamid=None):
+def appendrepoteams(filename, teamid=None): #--------------------------------<<<
     """Append teamp-repo info for a teamp to repoteams.csv data file.
 
     Special case: if no teamid provided, initialize the data file.
@@ -102,8 +97,7 @@ def appendrepoteams(filename, teamid=None):
             str(repo['permissions_push']) + ',' + \
             str(repo['permissions_pull']) + '\n')
 
-#-------------------------------------------------------------------------------
-def appendteammembers(filename, team=None):
+def appendteammembers(filename, team=None): #--------------------------------<<<
     """Append member info for a team to teammembers.csv data file.
 
     Special case: if no team provided, initialize the data file.
@@ -122,8 +116,7 @@ def appendteammembers(filename, team=None):
             member['type'] + ',' + site_admin + ',' + \
             linked + '\n')
 
-#-------------------------------------------------------------------------------
-def appendteams(filename, org=None):
+def appendteams(filename, org=None): #---------------------------------------<<<
     """Append team info for an org to teams.csv data file.
 
     Special case: if no org provided, initialize the data file.
@@ -140,8 +133,7 @@ def appendteams(filename, org=None):
             str(team['id']) + ',' + team['privacy'] + ',' + \
             team['permission'] + '\n')
 
-#-------------------------------------------------------------------------------
-def audituser(username):
+def audituser(username): #---------------------------------------------------<<<
     """Show which repos/orgs/teams a GitHub user is associated with.
     """
     print('\nGitHub username:'.ljust(80, '-'))
@@ -177,15 +169,13 @@ def audituser(username):
 
     #/// for each repo: last update, readme, contributing, license, code of conduct
 
-#-------------------------------------------------------------------------------
-def authenticate():
+def authenticate(): #--------------------------------------------------------<<<
     """Set up gitdata authentication.
     Currently using msftgits for all auditing of Microsoft accounts.
     """
     gd.auth_config({'username': 'msftgits'})
 
-#-------------------------------------------------------------------------------
-def azure_setting(section, setting):
+def azure_setting(section, setting): #---------------------------------------<<<
     """Get Azure setting from private INI data.
 
     section = section within the INI file
@@ -203,8 +193,7 @@ def azure_setting(section, setting):
         retval = None
     return retval
 
-#-------------------------------------------------------------------------------
-def collabapis(orgname, filename=None):
+def collabapis(orgname, filename=None): #------------------------------------<<<
     """Testing/comparison of the repo-level and org-level collaborator APIs.
 
     If filename specified, appends the collaborators to that CSV file.
@@ -240,8 +229,7 @@ def collabapis(orgname, filename=None):
         if filename:
             open(filename, 'a').write(line + '\n')
 
-#-------------------------------------------------------------------------------
-def collaborations(username):
+def collaborations(username): #----------------------------------------------<<<
     """Return list of orgs and/or repos that user has a collaborator
     relationship with.
     """
@@ -261,8 +249,8 @@ def collaborations(username):
                 collabs.append(org)
     return sorted(collabs)
 
-#-------------------------------------------------------------------------------
-def gdwrapper(*, endpoint, filename, entity, authuser, fields, headers, verbose=True):
+def gdwrapper(*, endpoint, filename, entity, authuser, #---------------------<<<
+              fields, headers, verbose=True):
     """gitdata wrapper for automating gitdata calls
     """
     gd._settings.display_data = False
@@ -285,8 +273,7 @@ def gdwrapper(*, endpoint, filename, entity, authuser, fields, headers, verbose=
 
     return sorted_data
 
-#-------------------------------------------------------------------------------
-def islinked(username):
+def islinked(username): #----------------------------------------------------<<<
     """Returns True if passed GitHub username is a linked Microsoft account.
     """
     if not hasattr(gd._settings, 'linked'):
@@ -300,8 +287,7 @@ def islinked(username):
 
     return (username.lower() in gd._settings.linked)
 
-#-------------------------------------------------------------------------------
-def latestlinkdata():
+def latestlinkdata(): #------------------------------------------------------<<<
     """Returns the most recent filename for Azure blobs that contain linkdata.
     """
     azure_acct = azure_setting('linkingdata', 'account')
@@ -316,8 +302,7 @@ def latestlinkdata():
         latest = blob.name if blob.name > latest else latest
     return latest if latest else None
 
-#-------------------------------------------------------------------------------
-def linkedemail(username):
+def linkedemail(username): #-------------------------------------------------<<<
     """Returned linked email address (if any) for specified GitHub username.
     """
     if not hasattr(gd._settings, 'linkedemail'):
@@ -331,8 +316,7 @@ def linkedemail(username):
 
     return gd._settings.linkedemail.get(username.lower(), None)
 
-#-------------------------------------------------------------------------------
-def orgmemberships(username):
+def orgmemberships(username): #----------------------------------------------<<<
     """Return list of orgs that user is member of.
     """
     orgs = []
@@ -347,15 +331,13 @@ def orgmemberships(username):
             orgs.append(orgname)
     return orgs
 
-#-------------------------------------------------------------------------------
-def printhdr(acct, msg):
+def printhdr(acct, msg): #---------------------------------------------------<<<
     """Print a header for a section of the audit report.
     """
     ndashes = 65 - len(msg)
     print('>> ' + msg + ' <<' + ndashes*'-' + ' account: ' + acct.upper())
 
-#-------------------------------------------------------------------------------
-def teamdesc(teamid):
+def teamdesc(teamid): #------------------------------------------------------<<<
     """Return a 1-liner description for specified team id.
     """
     if not hasattr(gd._settings, 'teamdescription'):
@@ -375,8 +357,7 @@ def teamdesc(teamid):
 
     return gd._settings.teamdescription.get(teamid, teamid + ' (unknown team id)')
 
-#-------------------------------------------------------------------------------
-def teammemberships(username):
+def teammemberships(username): #---------------------------------------------<<<
     """Return list of teams that user is member of.
     """
     teams = []
@@ -391,8 +372,7 @@ def teammemberships(username):
             teams.append(teamid)
     return teams
 
-#-------------------------------------------------------------------------------
-def teamrepos(teamid):
+def teamrepos(teamid): #-----------------------------------------------------<<<
     """Return list of repos that this team has rights to.
     """
     repos = []
@@ -407,8 +387,7 @@ def teamrepos(teamid):
             repos.append(reponame)
     return repos
 
-#-------------------------------------------------------------------------------
-def updatelinkdata():
+def updatelinkdata(): #------------------------------------------------------<<<
     """Retrieve the latest Microsoft linking data from Azure blob storage
     and store in the ghaudit folder.
     """
@@ -433,8 +412,7 @@ def updatelinkdata():
             outline = jsondata['ghu'] + ',' + jsondata['aadupn']
             fhandle.write(outline + '\n')
 
-#-------------------------------------------------------------------------------
-def updatemsdata():
+def updatemsdata(): #--------------------------------------------------------<<<
     """Retrieve/refresh all Microsoft data needed for audit reports.
     """
     orgfile = 'ghaudit/orgs.csv'
@@ -523,8 +501,7 @@ def updatemsdata():
             teamid = line.split(',')[2]
             appendrepoteams(repoteamsfile, teamid)
 
-#-------------------------------------------------------------------------------
-def userrepos(acct):
+def userrepos(acct): #-------------------------------------------------------<<<
     """Print summary of user repositories for an account.
     """
     printhdr(acct, 'user repositories')
@@ -538,7 +515,6 @@ def userrepos(acct):
         reponame = repo['name']
         print(owner + '/' + reponame)
 
-#-------------------------------------------------------------------------------
 if __name__ == '__main__':
     sys.stdout = open(sys.stdout.fileno(), mode='w', encoding='utf8', buffering=1)
     #updatemsdata()
