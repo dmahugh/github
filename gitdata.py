@@ -14,7 +14,7 @@ from timeit import default_timer
 import click
 import requests
 
-from dougerino import write_csv, write_json
+from dougerino import timestamp, write_csv, write_json
 
 CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'])
 @click.group(context_settings=CONTEXT_SETTINGS, options_metavar='[options]',
@@ -1181,20 +1181,6 @@ def teams(org, authuser, source, filename, fields, #-------------------------<<<
     data_write(filename, sorted_data)
 
     elapsed_time(start_time)
-
-def timestamp(filename=None): #----------------------------------------------<<<
-    """Return timestamp as a string.
-
-    filename = optional file, if passed then timestamp is returned for the file
-
-    Otherwise, returns current timestamp.
-    <internal>
-    """
-    if filename:
-        unixtime = os.path.getmtime(filename)
-        return time.strftime('%m/%d/%Y %H:%M:%S', time.localtime(unixtime))
-    else:
-        return time.strftime('%m/%d/%Y %H:%M:%S', time.localtime(time.time()))
 
 def token_abbr(accesstoken): #-----------------------------------------------<<<
     """Get abbreviated access token (for display purposes).
