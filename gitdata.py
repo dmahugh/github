@@ -14,7 +14,7 @@ from timeit import default_timer
 import click
 import requests
 
-from dougerino import timestamp, write_csv, write_json
+from dougerino import time_stamp, dicts2csv, dicts2json
 
 CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'])
 @click.group(context_settings=CONTEXT_SETTINGS, options_metavar='[options]',
@@ -205,7 +205,7 @@ def cache_update(endpoint, payload, constants): #----------------------------<<<
         cached_data = payload # no constants to be added
 
     filename = cache_filename(endpoint)
-    write_json(source=payload, filename=filename) # write cached data
+    dicts2json(source=payload, filename=filename) # write cached data
 
     if _settings.verbose:
         nameonly = os.path.basename(filename)
@@ -381,9 +381,9 @@ def data_write(filename=None, datasource=None): #----------------------------<<<
     _, file_ext = os.path.splitext(filename)
 
     if file_ext.lower() == '.json':
-        write_json(source=datasource, filename=filename) # write JSON file
+        dicts2json(source=datasource, filename=filename) # write JSON file
     else:
-        write_csv(datasource, filename) # write CSV file
+        dicts2csv(datasource, filename) # write CSV file
 
     click.echo('Output file written: ' + filename)
 
@@ -541,7 +541,7 @@ def github_data(*, endpoint=None, entity=None, fields=None, #----------------<<<
         click.echo('    Endpoint: ', nl=False)
         click.echo(click.style(endpoint, fg='cyan'))
         if cache_exists(endpoint):
-            filetime = timestamp(cache_filename(endpoint))
+            filetime = time_stamp(cache_filename(endpoint))
             click.echo(' Cached data: ', nl=False)
             click.echo(click.style(filetime, fg='cyan'))
             read_from = \
