@@ -14,7 +14,7 @@ from timeit import default_timer
 import click
 import requests
 
-from dougerino import write_csv
+from dougerino import write_csv, write_json
 
 CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'])
 @click.group(context_settings=CONTEXT_SETTINGS, options_metavar='[options]',
@@ -1223,19 +1223,6 @@ def wildcard_fields(): #-----------------------------------------------------<<<
                            fg='white'), nl=False)
     click.echo(click.style('urls', fg='cyan'))
     click.echo(click.style(60*'-', fg='blue'))
-
-def write_json(source=None, filename=None): #--------------------------------<<<
-    """Write list of dictionaries to a JSON file.
-
-    source = the list of dictionaries
-    filename = the filename (will be over-written if it already exists)
-    <internal>
-    """
-    if not source or not filename:
-        return # nothing to do
-
-    with open(filename, 'w') as fhandle:
-        fhandle.write(json.dumps(source, indent=4, sort_keys=True))
 
 # code to execute when running standalone
 if __name__ == '__main__':
