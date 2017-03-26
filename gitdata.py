@@ -2,66 +2,9 @@
 
 Entry point:
 cli() --------------------> Handle command-line arguments.
-
-access_token() -----------> Get GitHub access token from private settings.
-auth_config() ------------> Configure authentication settings.
-auth_status() ------------> Display status for GitHub username.
-auth_user() --------------> Return credentials for use in GitHub API calls.
-
-cache_exists() -----------> Check whether cached data exists for an endpoint.
-cache_filename() ---------> Get cache filename for specified user/endpoint.
-cache_update() -----------> Updated cached data for specified endpoint.
-
-collabs() ----------------> Main handler for "collabs" subcommand.
-
-data_display() -----------> Display data on console.
-data_fields() ------------> Get dictionary of values from GitHub API JSON payload.
-data_sort() --------------> Sort function for data_display().
-
-data_write() -------------> Write output file.
-
-default_fields() ---------> Get default field names for an entity.
-
-elapsed_time() -----------> Display elapsed time.
-filename_valid() ---------> Check passed filename for valid file type.
-
-github_api() -------------> Call the GitHub API (wrapper for requests library).
-github_data() ------------> Get data for specified GitHub API endpoint.
-github_data_from_api() ---> Get data from GitHub REST API.
-github_data_from_cache() -> Get data from local cache file.
-
-inifile_name() -----------> Return name of INI file.
-
-list_fields() ------------> Display available field names for an entity.
-
-members() ----------------> Main handler for "members" subcommand.
-membersdata() ------------> Get member information for orgs or teams.
-membersget() -------------> Get member info for a specified organization.
-
-orglist() ----------------> Get all orgs for a GitHub user.
-orgs() -------------------> Main handler for "orgs" subcommand.
-
-pagination() -------------> Parse pagination URLs from 'link' HTTP header.
-
-read_json() --------------> Read serialized object from JSON file.
-
-repos() ------------------> Main handler for "repos" subcommand.
-reposdata() --------------> Get repo information for organizations or users.
-reposget() ---------------> Get repo information for a specified org or user.
-
-teams() ------------------> Main handler for "teams" subcommand.
-
-timestamp() --------------> Get current timestamp or a file timestamp.
-token_abbr() -------------> Get abbreviated access token (for display purposes).
-
-wildcard_fields() --------> Display wildcard field options.
-
-write_csv() --------------> Write list of dictionaries to a CSV file.
-write_json() -------------> Write list of dictionaries to a JSON file.
 """
 import collections
 import configparser
-import csv
 import json
 import os
 import sys
@@ -70,6 +13,8 @@ from timeit import default_timer
 
 import click
 import requests
+
+from dougerino import write_csv
 
 CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'])
 @click.group(context_settings=CONTEXT_SETTINGS, options_metavar='[options]',
@@ -1278,27 +1223,6 @@ def wildcard_fields(): #-----------------------------------------------------<<<
                            fg='white'), nl=False)
     click.echo(click.style('urls', fg='cyan'))
     click.echo(click.style(60*'-', fg='blue'))
-
-def write_csv(listobj, filename): #------------------------------------------<<<
-    """Write list of dictionaries to a CSV file.
-
-    1st parameter = the list of dictionaries
-    2nd parameter = name of CSV file to be written
-    """
-    csvfile = open(filename, 'w', newline='')
-
-    # note that we assume all dictionaries in the list have the same keys
-    csvwriter = csv.writer(csvfile, dialect='excel')
-    header_row = [key for key, _ in listobj[0].items()]
-    csvwriter.writerow(header_row)
-
-    for row in listobj:
-        values = []
-        for fldname in header_row:
-            values.append(row[fldname])
-        csvwriter.writerow(values)
-
-    csvfile.close()
 
 def write_json(source=None, filename=None): #--------------------------------<<<
     """Write list of dictionaries to a JSON file.
