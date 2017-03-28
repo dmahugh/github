@@ -18,7 +18,7 @@ from dougerino import dicts2csv, dicts2json, github_pagination, setting, time_st
 
 CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'])
 @click.group(context_settings=CONTEXT_SETTINGS, options_metavar='[options]',
-             invoke_without_command=False)
+             invoke_without_command=True)
 @click.option('-a', '--auth', default='',
               help='GitHub username (for configuring access)', metavar='<str>')
 @click.option('-t', '--token', default='',
@@ -98,7 +98,7 @@ def auth_config(settings=None): #--------------------------------------------<<<
     return retval
 
 def auth_status(auth, token, delete): #--------------------------------------<<<
-    """Display status for a GitHub user.
+    """Display status for a GitHub username.
 
     auth   = username
     token  = optional GitHub access token; if provided, the existing token in
@@ -539,7 +539,7 @@ def github_data(*, endpoint=None, entity=None, fields=None, #----------------<<<
     if read_from == 'a':
         all_fields = github_data_from_api(endpoint=endpoint, headers=headers)
         cache_update(endpoint, all_fields, constants)
-    elif read_from == 'c':
+    elif read_from == 'c' and cache_exists(endpoint):
         all_fields = github_data_from_cache(endpoint=endpoint)
         if _settings.verbose:
             nameonly = os.path.basename(cache_filename(endpoint))
