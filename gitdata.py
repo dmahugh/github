@@ -14,7 +14,7 @@ from timeit import default_timer
 import click
 import requests
 
-from dougerino import time_stamp, dicts2csv, dicts2json
+from dougerino import dicts2csv, dicts2json, github_pagination, setting, time_stamp
 
 CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'])
 @click.group(context_settings=CONTEXT_SETTINGS, options_metavar='[options]',
@@ -64,24 +64,6 @@ class _settings: #-----------------------------------------------------------<<<
     last_ratelimit = 0 # API rate limit for the most recent API call
     last_remaining = 0 # remaining portion of rate limit after last API call
 
-def access_token(username): #------------------------------------------------<<<
-    """Get GitHub access token from private INI data.
-
-    username = GitHub username
-
-    Returns the access token for this username, or None if not found.
-    """
-    datafile = inifile_name()
-
-    config = configparser.ConfigParser()
-    config.read(datafile)
-    try:
-        retval = config.get(username, 'PAT')
-    except configparser.NoSectionError:
-        retval = None
-
-    return retval
-
 def auth_config(settings=None): #--------------------------------------------<<<
     """Configure authentication settings.
 
@@ -94,24 +76,24 @@ def auth_config(settings=None): #--------------------------------------------<<<
     config_settings = ['username', 'accesstoken']
 
     # if username is specified but no accesstoken specified, look up this
-    # user's PAT in github.ini
+    # user's PAT setting()
     if settings and 'username' in settings and not 'accesstoken' in settings:
         if not settings['username']:
             settings['accesstoken'] = None
         else:
-            settings['accesstoken'] = access_token(settings['username'])
+            settings['accesstoken'] = setting('github', settings['username'], 'pat')
             if not settings['accesstoken']:
                 click.echo('Unknown authentication username: ' +
                            settings['username'])
 
     if settings:
-        for setting in config_settings:
-            if setting in settings:
-                setattr(_settings, setting, settings[setting])
+        for settings_opt in config_settings:
+            if settings_opt in settings:
+                setattr(_settings, settings_opt, settings[settings_opt])
 
     retval = dict()
-    for setting in config_settings:
-        retval[setting] = getattr(_settings, setting)
+    for settings_opt in config_settings:
+        retval[settings_opt] = getattr(_settings, settings_opt)
 
     return retval
 
@@ -140,7 +122,7 @@ def auth_status(auth, token, delete): #--------------------------------------<<<
 
     # display username and access token
     click.echo('  Username: ' + auth)
-    click.echo('     Token: ' + token_abbr(access_token(auth)))
+    click.echo('     Token: ' + token_abbr(setting('github', auth, 'pat')))
 
 def auth_user(): #-----------------------------------------------------------<<<
     """Credentials for basic authentication.
@@ -439,15 +421,16 @@ def filename_valid(filename=None): #-----------------------------------------<<<
 def github_api(*, endpoint=None, auth=None, headers=None): #-----------------<<<
     """Call the GitHub API.
 
-    endpoint     = the HTTP endpoint to call; if it start with /, will be
-                   appended to https://api.github.com
+    endpoint     = the HTTP endpoint to call; if endpoint starts with / (for
+                   example, '/orgs/microsoft'), it will be appended to
+                   https://api.github.com
 
-    auth         = optional tuple for authentication
+    auth         = optional authentication tuple - (username, pat)
     headers      = optional dictionary of HTTP headers to pass
 
     Returns the response object.
 
-    NOTE: sends the Accept header to use version V3 of the GitHub API. This can
+    Sends the Accept header to use version V3 of the GitHub API. This can
     be explicitly overridden by passing a different Accept header if desired.
     """
     if not endpoint:
@@ -605,7 +588,7 @@ def github_data_from_api(endpoint=None, headers=None): #---------------------<<<
             else:
                 payload.extend(thispage)
 
-        pagelinks = pagination(response)
+        pagelinks = github_pagination(response)
         page_endpoint = pagelinks['nextURL']
         if not page_endpoint:
             break # no more results to process
@@ -958,43 +941,6 @@ def orgs(authuser, source, filename, fields, #-------------------------------<<<
     data_write(filename, sorted_data)
 
     elapsed_time(start_time)
-
-def pagination(link_header): #-----------------------------------------------<<<
-    """Parse values from the 'link' HTTP header returned by GitHub API.
-
-    1st parameter = either of these options ...
-                    - 'link' HTTP header passed as a string
-                    - response object returned by requests library
-
-    Returns a dictionary with entries for the URLs and page numbers parsed
-    from the link string: firstURL, firstpage, prevURL, prevpage, nextURL,
-    nextpage, lastURL, lastpage.
-    <internal>
-    """
-    # initialize the dictionary
-    retval = {'firstpage':0, 'firstURL':None, 'prevpage':0, 'prevURL':None,
-              'nextpage':0, 'nextURL':None, 'lastpage':0, 'lastURL':None}
-
-    if isinstance(link_header, str):
-        link_string = link_header
-    else:
-        # link_header is a response object, get its 'link' HTTP header
-        try:
-            link_string = link_header.headers['Link']
-        except KeyError:
-            return retval # no Link HTTP header found, nothing to parse
-
-    links = link_string.split(',')
-    for link in links:
-        # link format = '<url>; rel="type"'
-        linktype = link.split(';')[-1].split('=')[-1].strip()[1:-1]
-        url = link.split(';')[0].strip()[1:-1]
-        pageno = url.split('?')[-1].split('=')[-1].strip()
-
-        retval[linktype + 'page'] = pageno
-        retval[linktype + 'URL'] = url
-
-    return retval
 
 def read_json(filename=None): #----------------------------------------------<<<
     """Read .json file into a Python object.
