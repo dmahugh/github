@@ -14,8 +14,8 @@ from timeit import default_timer
 import click
 import requests
 
-from dougerino import dicts2csv, dicts2json, github_pagination, github_rest_api
-from dougerino import setting, time_stamp
+from dougerino import dicts2csv, dicts2json, github_allpages, github_pagination
+from dougerino import github_rest_api, setting, time_stamp
 
 CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'])
 @click.group(context_settings=CONTEXT_SETTINGS, options_metavar='[options]',
@@ -465,7 +465,7 @@ def github_data(*, endpoint=None, entity=None, fields=None, #----------------<<<
         sys.exit(0)
 
     if read_from == 'a':
-        all_fields = github_data_from_api(endpoint=endpoint, headers=headers)
+        all_fields = github_allpages(endpoint=endpoint, headers=headers)
         cache_update(endpoint, all_fields, constants)
     elif read_from == 'c' and cache_exists(endpoint):
         all_fields = github_data_from_cache(endpoint=endpoint)
@@ -482,46 +482,6 @@ def github_data(*, endpoint=None, entity=None, fields=None, #----------------<<<
         retval.append(data_fields(entity=entity, jsondata=json_item,
                                   fields=fields, constants=constants))
     return retval
-
-def github_data_from_api(endpoint=None, headers=None): #---------------------<<<
-    """Get data from GitHub REST API.
-
-    endpoint     = HTTP endpoint for GitHub API call
-    headers      = HTTP headers to be included with API call
-
-    Returns the data as a list of dictionaries. Pagination is handled by this
-    function, so the complete data set is returned.
-    """
-    headers = {} if not headers else headers
-
-    payload = [] # the full data set (all fields, all pages)
-    page_endpoint = endpoint # endpoint of each page in the loop below
-
-    while True:
-        response = github_rest_api(endpoint=page_endpoint, auth=auth_user(),
-                              headers=headers)
-        if _settings.verbose or response.status_code != 200:
-            # note that status code is always displayed if not 200/OK
-            click.echo('      Status: ', nl=False)
-            click.echo(click.style(str(response) + ', ' + str(len(response.text)) +
-                                   ' bytes returned', fg='cyan'))
-        if response.ok:
-            thispage = json.loads(response.text)
-            # commit data is handled differently from everything else, because
-            # the sheer volume (e.g., over 100K commits in a repo) causes out of
-            # memory errors if all fields are returned.
-            if 'commit' in endpoint:
-                minimized = [_['commit'] for _ in thispage]
-                payload.extend(minimized)
-            else:
-                payload.extend(thispage)
-
-        pagelinks = github_pagination(response)
-        page_endpoint = pagelinks['nextURL']
-        if not page_endpoint:
-            break # no more results to process
-
-    return payload
 
 def github_data_from_cache(endpoint=None): #---------------------------------<<<
     """Get data from local cache file.
@@ -1087,17 +1047,3 @@ def wildcard_fields(): #-----------------------------------------------------<<<
 # code to execute when running standalone
 if __name__ == '__main__':
     pass
-
-    # test github_rest_api()
-    _settings.verbose = True
-    USERNAME = 'dmahugh'
-    PAT = setting('github', USERNAME, 'pat')
-    ENDPOINT = '/repos/dmahugh/gitdata/commits'
-    RESPONSE = github_rest_api(endpoint=ENDPOINT, auth=(USERNAME, PAT), \
-        headers={}, state=_settings)
-    JSONDATA = json.loads(RESPONSE.text)
-    for commit in JSONDATA:
-        message = commit['commit']['message']
-        login = commit['author']['login']
-        thedate = commit['commit']['committer']['date']
-        print(thedate, login, message)
