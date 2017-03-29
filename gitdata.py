@@ -14,7 +14,8 @@ from timeit import default_timer
 import click
 import requests
 
-from dougerino import dicts2csv, dicts2json, github_pagination, setting, time_stamp
+from dougerino import dicts2csv, dicts2json, github_pagination, github_rest_api
+from dougerino import setting, time_stamp
 
 CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'])
 @click.group(context_settings=CONTEXT_SETTINGS, options_metavar='[options]',
@@ -418,79 +419,6 @@ def filename_valid(filename=None): #-----------------------------------------<<<
 
     return True
 
-def github_api(*, endpoint=None, auth=None, headers=None): #-----------------<<<
-    """Call the GitHub API.
-
-    endpoint     = the HTTP endpoint to call; if endpoint starts with / (for
-                   example, '/orgs/microsoft'), it will be appended to
-                   https://api.github.com
-
-    auth         = optional authentication tuple - (username, pat)
-    headers      = optional dictionary of HTTP headers to pass
-
-    Returns the response object.
-
-    Sends the Accept header to use version V3 of the GitHub API. This can
-    be explicitly overridden by passing a different Accept header if desired.
-    """
-    if not endpoint:
-        click.echo('ERROR: github_api() called with no endpoint')
-        return None
-
-    # set auth to empty tuple if not used
-    auth = auth if auth else ()
-
-    # add the V3 Accept header to the dictionary
-    headers = {} if not headers else headers
-    headers_dict = {**{"Accept": "application/vnd.github.v3+json"}, **headers}
-
-    # make the API call
-    if _settings.requests_session:
-        sess = _settings.requests_session
-    else:
-        sess = requests.session()
-        _settings.requests_session = sess
-
-    sess.auth = auth
-    full_endpoint = 'https://api.github.com' + endpoint if endpoint[0] == '/' \
-        else endpoint
-    response = sess.get(full_endpoint, headers=headers_dict)
-
-    if _settings.verbose:
-        click.echo('    Endpoint: ', nl=False)
-        click.echo( \
-            click.style(endpoint, fg='cyan'))
-
-    # update rate-limit settings
-    try:
-        _settings.last_ratelimit = int(response.headers['X-RateLimit-Limit'])
-        _settings.last_remaining = int(response.headers['X-RateLimit-Remaining'])
-    except KeyError:
-        # This is the strange and rare case (which we've encountered) where
-        # an API call that normally returns the rate-limit headers doesn't
-        # return them. Since these values are only used for monitoring, we
-        # use nonsensical values here that will show it happened, but won't
-        # crash a long-running process.
-        _settings.last_ratelimit = 999999
-        _settings.last_remaining = 999999
-
-    if _settings.verbose:
-        # display rate-limite status
-        if auth_user():
-            username = '(user = ' + auth_user()[0] + ')'
-        else:
-            username = '(non-authenticated)'
-
-        click.echo('  Rate Limit: ', nl=False)
-        used = _settings.last_ratelimit - _settings.last_remaining
-        click.echo(
-            click.style(str(_settings.last_remaining) +
-                        ' available, ' + str(used) +
-                        ' used, ' + str(_settings.last_ratelimit) + ' total ' +
-                        username, fg='cyan'))
-
-    return response
-
 def github_data(*, endpoint=None, entity=None, fields=None, #----------------<<<
                 constants=None, headers=None):
     """Get data for specified GitHub API endpoint.
@@ -570,7 +498,7 @@ def github_data_from_api(endpoint=None, headers=None): #---------------------<<<
     page_endpoint = endpoint # endpoint of each page in the loop below
 
     while True:
-        response = github_api(endpoint=page_endpoint, auth=auth_user(),
+        response = github_rest_api(endpoint=page_endpoint, auth=auth_user(),
                               headers=headers)
         if _settings.verbose or response.status_code != 200:
             # note that status code is always displayed if not 200/OK
@@ -1159,3 +1087,17 @@ def wildcard_fields(): #-----------------------------------------------------<<<
 # code to execute when running standalone
 if __name__ == '__main__':
     pass
+
+    # test github_rest_api()
+    _settings.verbose = True
+    USERNAME = 'dmahugh'
+    PAT = setting('github', USERNAME, 'pat')
+    ENDPOINT = '/repos/dmahugh/gitdata/commits'
+    RESPONSE = github_rest_api(endpoint=ENDPOINT, auth=(USERNAME, PAT), \
+        headers={}, state=_settings)
+    JSONDATA = json.loads(RESPONSE.text)
+    for commit in JSONDATA:
+        message = commit['commit']['message']
+        login = commit['author']['login']
+        thedate = commit['commit']['committer']['date']
+        print(thedate, login, message)
