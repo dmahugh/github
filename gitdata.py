@@ -12,10 +12,8 @@ import time
 from timeit import default_timer
 
 import click
-import requests
 
-from dougerino import dicts2csv, dicts2json, github_allpages, github_pagination
-from dougerino import github_rest_api, setting, time_stamp
+from dougerino import dicts2csv, dicts2json, github_allpages, setting, time_stamp
 
 CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'])
 @click.group(context_settings=CONTEXT_SETTINGS, options_metavar='[options]',
@@ -465,7 +463,8 @@ def github_data(*, endpoint=None, entity=None, fields=None, #----------------<<<
         sys.exit(0)
 
     if read_from == 'a':
-        all_fields = github_allpages(endpoint=endpoint, headers=headers)
+        all_fields = github_allpages(endpoint=endpoint, auth=auth_user(),
+                                     headers=headers, state=_settings)
         cache_update(endpoint, all_fields, constants)
     elif read_from == 'c' and cache_exists(endpoint):
         all_fields = github_data_from_cache(endpoint=endpoint)

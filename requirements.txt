@@ -1,4 +1,3 @@
 # also requires dougerino - https://github.com/dmahugh/dougerino
 Click>=6.6
 Pytest>=2.9.1
-Requests>=2.9.1
