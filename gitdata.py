@@ -277,10 +277,9 @@ def commits(owner, repo, authuser, source, filename, fields, #---------------<<<
     """Get commits for a repo.
     """
     if listfields:
-        list_fields('commits') # display online help
+        list_fields('commit') # display online help
         return
 
-    #////// continue changing collabs to commits from here
     # validate inputs/options
     if not owner or not repo:
         click.echo('ERROR: must specify owner and repo')
@@ -299,10 +298,9 @@ def commits(owner, repo, authuser, source, filename, fields, #---------------<<<
     # retrieve requested data
     auth_config({'username': authuser})
     fldnames = fields.split('/') if fields else None
-    endpoint = '/repos/' + owner + '/' + repo + '/collaborators?per_page=100' + \
-        ('&filter=2fa_disabled' if audit2fa else '')
+    endpoint = '/repos/' + owner + '/' + repo + '/commits?per_page=100'
     templist = github_data(
-        endpoint=endpoint, entity='collab',
+        endpoint=endpoint, entity='commit',
         fields=fldnames, constants={"owner": owner, "repo": repo}, headers={})
 
     # handle returned data
@@ -360,18 +358,15 @@ def data_fields(*, entity=None, jsondata=None, #-----------------------------<<<
             if constants and fldname in constants:
                 values[fldname] = constants[fldname]
             elif '.' in fldname:
-                # special case - embedded field within a JSON object
-                try:
-                    values[fldname.replace('.', '_')] = \
-                        jsondata[fldname.split('.')[0]][fldname.split('.')[1]]
-                except (TypeError, KeyError):
-                    values[fldname.replace('.', '_')] = None
+                values[fldname.replace('.', '_')] = \
+                    nested_json_value(jsondata, fldname)
             else:
                 # simple case: copy a field/value pair
                 try:
                     values[fldname] = jsondata[fldname]
                     if fldname.lower() == 'private':
-                        values[fldname] = 'private' if jsondata[fldname] else 'public'
+                        values[fldname] = \
+                            'private' if jsondata[fldname] else 'public'
                 except KeyError:
                     _settings.unknownfieldname = fldname
 
@@ -445,7 +440,7 @@ def default_fields(entity=None): #-------------------------------------------<<<
     elif entity == 'collab':
         return ['login', 'owner', 'repo', 'id']
     elif entity == 'commit':
-        return ['committer.login', 'commit.committer.date', 'commit.message']
+        return ['commit.committer.date', 'committer.login', 'commit.message']
     return ['name'] # if unknown entity type, use name
 
 def elapsed_time(starttime): #-----------------------------------------------<<<
@@ -580,7 +575,7 @@ def list_fields(entity=None): #----------------------------------------------<<<
         click.echo(click.style('html_url'.ljust(27) + 'type', fg='cyan'))
         click.echo(click.style('id'.ljust(27) + 'url', fg='cyan'))
         click.echo(click.style('login', fg='cyan'))
-    elif entity == 'commits':
+    elif entity == 'commit':
         click.echo(click.style('comments_url'.ljust(27) +
                                'commit.message', fg='cyan'))
         click.echo(click.style('html_url'.ljust(27) +
@@ -874,6 +869,45 @@ def membersget(*, org=None, team=None, fields=None, #------------------------<<<
 
     return github_data(endpoint=endpoint, entity='member', fields=fields,
                        constants={"org": org}, headers={})
+
+def nested_json_value(nested_dict, dot_fldname): #---------------------------<<<
+    """Return a nested value from a JSON payload.
+
+    nested_dict = a JSON object, which contains nested dictionaries (nested up
+                  to 4 levels deep)
+    dot_fldname = a dot-notation reference to a value nested inside the JSON
+                  for example, 'commit.committer.date' would return the value
+                  nested_dict['commit']['committer']['date']
+    """
+    depth = dot_fldname.count('.') + 1
+    keys = dot_fldname.split('.')
+    if depth == 1:
+        # not dot-notation; this should never happen, but easy to handle
+        try:
+            retval = nested_dict[dot_fldname]
+        except (TypeError, KeyError):
+            retval = None
+    elif depth == 2:
+        try:
+            retval = nested_dict[keys[0]][keys[1]]
+        except (TypeError, KeyError):
+            retval = None
+    elif depth == 3:
+        try:
+            retval = nested_dict[keys[0]][keys[1]][keys[2]]
+        except (TypeError, KeyError):
+            retval = None
+    elif depth == 4:
+        try:
+            retval = nested_dict[keys[0]][keys[1]][keys[2]][keys[3]]
+        except (TypeError, KeyError):
+            retval = None
+    else:
+        try:
+            retval = nested_dict[keys[0]][keys[1]][keys[2]][keys[3]][keys[4]]
+        except (TypeError, KeyError):
+            retval = None
+    return retval
 
 def orglist(authname=None, contoso=False): #---------------------------------<<<
     """Get all orgs for a GitHub user.
