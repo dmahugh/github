@@ -253,6 +253,65 @@ def collabs(owner, repo, audit2fa, authuser, source, #-----------------------<<<
 
     elapsed_time(start_time)
 
+@cli.command(help='Get commits for a repo')
+@click.option('-o', '--owner', default='',
+              help='owner (org or user)', metavar='<str>')
+@click.option('-r', '--repo', default='',
+              help='repo name', metavar='<str>')
+@click.option('-a', '--authuser', default='',
+              help='authentication username', metavar='<str>')
+@click.option('-s', '--source', default='p',
+              help='data source - a/API, c/cache, or p/prompt', metavar='<str>')
+@click.option('-n', '--filename', default='',
+              help='output filename (.CSV or .JSON)', metavar='<str>')
+@click.option('-f', '--fields', default='',
+              help='fields to include', metavar='<str>')
+@click.option('-d', '--display', is_flag=True, default=True,
+              help="Don't display retrieved data")
+@click.option('-v', '--verbose', is_flag=True, default=False,
+              help="Display verbose status info")
+@click.option('-l', '--listfields', is_flag=True,
+              help='list available fields and exit.')
+def commits(owner, repo, authuser, source, filename, fields, #---------------<<<
+            display, verbose, listfields):
+    """Get commits for a repo.
+    """
+    if listfields:
+        list_fields('commits') # display online help
+        return
+
+    #////// continue changing collabs to commits from here
+    # validate inputs/options
+    if not owner or not repo:
+        click.echo('ERROR: must specify owner and repo')
+        return
+    if not filename_valid(filename):
+        return
+
+    start_time = default_timer()
+
+    # store settings in _settings
+    _settings.display_data = display
+    _settings.verbose = verbose
+    source = source if source else 'p'
+    _settings.datasource = source.lower()[0]
+
+    # retrieve requested data
+    auth_config({'username': authuser})
+    fldnames = fields.split('/') if fields else None
+    endpoint = '/repos/' + owner + '/' + repo + '/collaborators?per_page=100' + \
+        ('&filter=2fa_disabled' if audit2fa else '')
+    templist = github_data(
+        endpoint=endpoint, entity='collab',
+        fields=fldnames, constants={"owner": owner, "repo": repo}, headers={})
+
+    # handle returned data
+    sorted_data = sorted(templist, key=data_sort)
+    data_display(sorted_data)
+    data_write(filename, sorted_data)
+
+    elapsed_time(start_time)
+
 def data_fields(*, entity=None, jsondata=None, #-----------------------------<<<
                 fields=None, constants=None):
     """Get dictionary of desired values from GitHub API JSON payload.
@@ -385,7 +444,8 @@ def default_fields(entity=None): #-------------------------------------------<<<
         return ['login', 'user']
     elif entity == 'collab':
         return ['login', 'owner', 'repo', 'id']
-
+    elif entity == 'commit':
+        return ['committer.login', 'commit.committer.date', 'commit.message']
     return ['name'] # if unknown entity type, use name
 
 def elapsed_time(starttime): #-----------------------------------------------<<<
@@ -520,6 +580,63 @@ def list_fields(entity=None): #----------------------------------------------<<<
         click.echo(click.style('html_url'.ljust(27) + 'type', fg='cyan'))
         click.echo(click.style('id'.ljust(27) + 'url', fg='cyan'))
         click.echo(click.style('login', fg='cyan'))
+    elif entity == 'commits':
+        click.echo(click.style('comments_url'.ljust(27) +
+                               'commit.message', fg='cyan'))
+        click.echo(click.style('html_url'.ljust(27) +
+                               'commit.tree.sha', fg='cyan'))
+        click.echo(click.style('sha'.ljust(27) +
+                               'commit.tree.url', fg='cyan'))
+        click.echo(click.style('url'.ljust(27) +
+                               'commit.url', fg='cyan'))
+        click.echo(click.style('author.avatar_url'.ljust(27) +
+                               'commit.url', fg='cyan'))
+        click.echo(click.style('author.events_url'.ljust(27) +
+                               'commit.verification.payload', fg='cyan'))
+        click.echo(click.style('author.followers_url'.ljust(27) +
+                               'commit.verification.reason', fg='cyan'))
+        click.echo(click.style('author.following_url'.ljust(27) +
+                               'commit.verification.signature', fg='cyan'))
+        click.echo(click.style('author.gists_url'.ljust(27) +
+                               'commit.verification.verified', fg='cyan'))
+        click.echo(click.style('author.gravatar_id'.ljust(27) +
+                               'committer.avatar_url', fg='cyan'))
+        click.echo(click.style('author.html_url'.ljust(27) +
+                               'committer.events_url', fg='cyan'))
+        click.echo(click.style('author.id'.ljust(27) +
+                               'committer.followers_url', fg='cyan'))
+        click.echo(click.style('author.login'.ljust(27) +
+                               'committer.following_url', fg='cyan'))
+        click.echo(click.style('author.organizations_url'.ljust(27) +
+                               'committer.gists_url', fg='cyan'))
+        click.echo(click.style('author.received_events_url'.ljust(27) +
+                               'committer.gravatar_id', fg='cyan'))
+        click.echo(click.style('author.repos_url'.ljust(27) +
+                               'committer.html_url', fg='cyan'))
+        click.echo(click.style('author.site_admin'.ljust(27) +
+                               'committer.id', fg='cyan'))
+        click.echo(click.style('author.starred_url'.ljust(27) +
+                               'committer.login', fg='cyan'))
+        click.echo(click.style('author.subscriptions_url'.ljust(27) +
+                               'committer.organizations_url', fg='cyan'))
+        click.echo(click.style('author.type'.ljust(27) +
+                               'committer.received_events_url', fg='cyan'))
+        click.echo(click.style('author.url'.ljust(27) +
+                               'committer.repos_url', fg='cyan'))
+        click.echo(click.style('commit.author.date'.ljust(27) +
+                               'committer.site_admin', fg='cyan'))
+        click.echo(click.style('commit.author.email'.ljust(27) +
+                               'committer.starred_url', fg='cyan'))
+        click.echo(click.style('commit.author.name'.ljust(27) +
+                               'committer.subscriptions_url', fg='cyan'))
+        click.echo(click.style('commit.comment_count'.ljust(27) +
+                               'committer.type', fg='cyan'))
+        click.echo(click.style('commit.committer.date'.ljust(27) +
+                               'committer.url', fg='cyan'))
+        click.echo(click.style('commit.committer.email'.ljust(27) +
+                               'parents.sha', fg='cyan'))
+        click.echo(click.style('commit.committer.name'.ljust(27) +
+                               'parents.url', fg='cyan'))
     elif entity == 'member':
         click.echo(click.style('id                  avatar_url          ' +
                                'html_url', fg='cyan'))
