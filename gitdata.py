@@ -63,6 +63,8 @@ class _settings: #-----------------------------------------------------------<<<
     last_ratelimit = 0 # API rate limit for the most recent API call
     last_remaining = 0 # remaining portion of rate limit after last API call
 
+    unknownfieldname = set() # list of unknown field names encountered
+
 def auth_config(settings=None): #--------------------------------------------<<<
     """Configure authentication settings.
 
@@ -354,22 +356,14 @@ def data_fields(*, entity=None, jsondata=None, #-----------------------------<<<
     else:
         # fields == an actual list of fieldnames, not a special case
         for fldname in fields:
-
             if constants and fldname in constants:
                 values[fldname] = constants[fldname]
-            elif '.' in fldname:
+            else:
                 values[fldname.replace('.', '_')] = \
                     nested_json_value(jsondata, fldname)
-            else:
-                # simple case: copy a field/value pair
-                try:
-                    values[fldname] = jsondata[fldname]
-                    if fldname.lower() == 'private':
-                        values[fldname] = \
-                            'private' if jsondata[fldname] else 'public'
-                except KeyError:
-                    _settings.unknownfieldname = fldname
-
+                if fldname.lower() == 'private':
+                    values[fldname] = \
+                        'private' if jsondata[fldname] else 'public'
     return values
 
 def data_display(datasource=None): #-----------------------------------------<<<
@@ -389,7 +383,8 @@ def data_display(datasource=None): #-----------------------------------------<<<
     # List unknown field names encountered in this session (if any)
     try:
         if _settings.unknownfieldname:
-            click.echo('Unknown field name: ' + _settings.unknownfieldname)
+            click.echo('Unknown field name(s): ' + \
+                ','.join(_settings.unknownfieldname))
     except AttributeError:
         # no unknown fields have been logged
         pass
@@ -882,30 +877,34 @@ def nested_json_value(nested_dict, dot_fldname): #---------------------------<<<
     depth = dot_fldname.count('.') + 1
     keys = dot_fldname.split('.')
     if depth == 1:
-        # not dot-notation; this should never happen, but easy to handle
         try:
             retval = nested_dict[dot_fldname]
         except (TypeError, KeyError):
+            _settings.unknownfieldname.add(dot_fldname)
             retval = None
     elif depth == 2:
         try:
             retval = nested_dict[keys[0]][keys[1]]
         except (TypeError, KeyError):
+            _settings.unknownfieldname.add(dot_fldname)
             retval = None
     elif depth == 3:
         try:
             retval = nested_dict[keys[0]][keys[1]][keys[2]]
         except (TypeError, KeyError):
+            _settings.unknownfieldname.add(dot_fldname)
             retval = None
     elif depth == 4:
         try:
             retval = nested_dict[keys[0]][keys[1]][keys[2]][keys[3]]
         except (TypeError, KeyError):
+            _settings.unknownfieldname.add(dot_fldname)
             retval = None
     else:
         try:
             retval = nested_dict[keys[0]][keys[1]][keys[2]][keys[3]][keys[4]]
         except (TypeError, KeyError):
+            _settings.unknownfieldname.add(dot_fldname)
             retval = None
     return retval
 
