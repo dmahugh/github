@@ -40,7 +40,7 @@
         <p>I've written various one-off Python programs to handle these sorts of tasks, using the <a href="http://docs.python-requests.org/en/master/">Requests</a> library. After a while I decided it would be simpler to package up this functionality into a command-line tool, and gitdata is the result of that refactoring. I used Armin Ronacher's <a href="http://click.pocoo.org/5/">Click</a> package, which provides a simple decorator-based approach for exposing Python functions through a CLI.</p>
         <p>Gitdata's current functionality covers the specific types of queries that I've needed to date, including these features:</p>
         <ul>
-          <li>get info about organizations, repos, teams, members, collaborators</li>
+          <li>get info about organizations, repos, teams, members, collaborators, commits</li>
           <li>output to the console and/or CSV/JSON files</li>
           <li>all data cached locally, can query live API or cache</li>
           <li>select fields, specify sorting order</li>
@@ -83,7 +83,7 @@
         <p>As you can see, use of the cached data provides very fast performance.</p>
 
         <h3>Fields and Sorting</h3>
-        <p>All fields returned by the GitHub API are saved in gitdata's local cache, but only specified fields are included in console output and/or CSV and JSON output files. If you don't specify any fields, a set of <i>default fields</i> are returned for each entity type (collabs, members, orgs, repos, teams).</p>
+        <p>All fields returned by the GitHub API are saved in gitdata's local cache, but only specified fields are included in console output and/or CSV and JSON output files. If you don't specify any fields, a set of <i>default fields</i> are returned for each entity type (collabs, commits, members, orgs, repos, teams).</p>
         <p>To specify a custom set of fields, use the <code>-f/--fields</code> option and specify the field names as a /-delimited string. For example:</p>
         <img src="https://raw.githubusercontent.com/dmahugh/gitdata/master/images/customfields.png"/>
         <p>To determine which field names are available for an entity type, use the <code>-l/--listfields</code> option. For example, here are the fields that can be specified for the <code>members</code> subcommand:</p>
@@ -158,6 +158,9 @@
           <li><code>-r/--repo</code> repository name &mdash; <i>required</i></li>
         </ul>
         <p>These two criteria uniquely identify a repo, and the collaborators for that repo will be returned.</p>
+
+        <h3>Commits</h3>
+        <p>The <code>commits</code> subcommand supports /// criteria:</p>
 
         <h3>Members</h3>
         <p>The <code>members</code> subcommand supports two selection criteria: <i>org</i> and <i>team ID</i>.</p>
