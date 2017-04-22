@@ -160,7 +160,14 @@
         <p>These two criteria uniquely identify a repo, and the collaborators for that repo will be returned.</p>
 
         <h3>Commits</h3>
-        <p>The <code>commits</code> subcommand supports /// criteria:</p>
+        <p>The <code>commits</code> subcommand supports two selection criteria:</p>
+        <ul>
+          <li><code>-o/--owner</code> owner of the repo (org or user) &mdash; <i>required</i></li>
+          <li><code>-r/--repo</code> repository name &mdash; <i>required</i></li>
+        </ul>
+        <p>These two criteria uniquely identify a repo, and the commits for that repo will be returned.</p>
+        <p>NOTE: repos with a large number of commits (tens of thousands or more) may cause out-of-memory errors, due to building the entire returned data structure in memory. We may revise the design to address this in a future update.
+        </p>
 
         <h3>Members</h3>
         <p>The <code>members</code> subcommand supports two selection criteria: <i>org</i> and <i>team ID</i>.</p>
