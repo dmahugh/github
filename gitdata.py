@@ -13,7 +13,8 @@ from timeit import default_timer
 
 import click
 
-from dougerino import dicts2csv, dicts2json, github_allpages, setting, time_stamp
+from dougerino import dicts2csv, dicts2json, setting, time_stamp, logcalls
+from githuberino import github_allpages
 
 CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'])
 @click.group(context_settings=CONTEXT_SETTINGS, options_metavar='[options]',
@@ -866,7 +867,7 @@ def membersget(*, org=None, team=None, fields=None, #------------------------<<<
                        constants={"org": org}, headers={})
 
 def nested_json_value(nested_dict, dot_fldname): #---------------------------<<<
-    """Return a nested value from a JSON payload.
+    """Return a nested value from a JSON data structure.
 
     nested_dict = a JSON object, which contains nested dictionaries (nested up
                   to 4 levels deep)
