@@ -51,7 +51,7 @@ Output file written: license.csv
 ```
 
 # Contributing
-Gitinfo is a work in progress &mdash; pull requests, feature requests and issues welcome.
+Gitdata is a work in progress &mdash; pull requests, feature requests and issues welcome.
 
 I've implemented functionality as I need it for various projects, but I'm interested in knowing what other types of functionality
 may be useful to others. Please log an [issue](https://github.com/dmahugh/gitdata/issues) if you have a suggestion. Thanks!
