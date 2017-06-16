@@ -12,7 +12,7 @@ A command-line tool for querying GitHub APIs to retrieve information about repos
 
 # Installation
 Gitdata uses these packages:
-* [Click](http://docs.python-requests.org/en/master/) version 6.6 or above
+* [Click](http://click.pocoo.org/5/) version 6.6 or above
 * [Requests](http://docs.python-requests.org/en/master/) version 2.9.1 or above
 
 To quickly install gitdata and begin using it:
