@@ -20,7 +20,7 @@ To quickly install gitdata and begin using it:
 * In the folder containing the repo: ```pip install .```
 * If you'd like to make changes to the code and immediately see them in the command-line behavior, install with ```pip install --editable .``` instead
 
-Once you've done that, gitdata will be available at the command line. Use the -h option to get syntax help.
+Once you've done that, gitdata will be available at the command line. Use the -h or --help option to get syntax help.
 
 ![gitdata help](images/gitdata-help.png)
 
