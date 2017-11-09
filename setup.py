@@ -10,6 +10,7 @@ setup(
     py_modules=['gitdata'],
     install_requires=[
         'Click',
+        'Requests'
     ],
     entry_points='''
         [console_scripts]
