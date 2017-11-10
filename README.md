@@ -1,4 +1,3 @@
-<properties LandingPageTags="Python,GitHub,REST,OSPO" />
 # gitdata
 A command-line tool for querying GitHub APIs to retrieve information about repos, organizations, teams, collaborators, and commits. Provides a simple and consistent syntax for retrieving data in JSON or CSV format.
 
